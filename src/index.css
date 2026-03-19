@@ -1,0 +1,691 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@font-face {
+  font-family: 'ABC Diatype';
+  src: url('https://fonts.cdnfonts.com/s/93471/ABCDiatype-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ABC Diatype';
+  src: url('https://fonts.cdnfonts.com/s/93471/ABCDiatype-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ABC Diatype';
+  src: url('https://fonts.cdnfonts.com/s/93471/ABCDiatype-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ABC Marfa Mono';
+  src: url('https://fonts.cdnfonts.com/s/93472/ABCMarfaMono-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ABC Marfa Mono';
+  src: url('https://fonts.cdnfonts.com/s/93472/ABCMarfaMono-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --tab-bar-height: 56px;
+}
+
+@layer base {
+  html {
+    font-family: 'ABC Diatype', system-ui, sans-serif;
+    font-size: 14px;
+    font-kerning: auto;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    @apply text-xl font-bold leading-relaxed;
+  }
+
+  h2 {
+    @apply text-lg font-bold leading-relaxed;
+  }
+
+  h3 {
+    @apply text-base font-medium leading-relaxed;
+  }
+
+  p {
+    @apply text-base font-normal leading-relaxed;
+  }
+
+  label {
+    @apply text-sm font-medium;
+  }
+
+  input, select, textarea {
+    @apply text-sm font-normal;
+  }
+
+  button {
+    @apply text-sm font-medium;
+  }
+
+  .text-secondary {
+    @apply text-gray;
+  }
+
+  .text-mono {
+    @apply font-mono tracking-mono uppercase;
+  }
+
+  /* Custom focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-green ring-offset-2;
+  }
+
+  /* Form elements */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="url"],
+  input[type="tel"],
+  select,
+  textarea {
+    @apply border-gray focus:border-green focus:ring-green;
+    border-radius: 0 !important;
+  }
+
+  /* Checkbox and radio */
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply border-gray text-green focus:ring-green;
+  }
+
+  /* Prevent zoom on mobile input focus */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* Editorial System - Swiss Design Inspired Layout */
+
+/* Modular Grid System */
+.grid-editorial {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+/* Information Blocks */
+.info-block {
+  @apply border border-black p-6;
+  background: white;
+}
+
+.info-block-header {
+  @apply border-b border-black pb-3 mb-4;
+}
+
+.info-block-label {
+  @apply text-mono text-xs mb-2 text-gray;
+}
+
+/* Structured Sections */
+.section-divider {
+  @apply border-t border-black my-8;
+}
+
+.section-label {
+  @apply text-mono text-xs text-gray mb-4;
+}
+
+/* Cards with Editorial Structure */
+.card-editorial {
+  @apply border border-black bg-white;
+}
+
+.card-editorial-header {
+  @apply border-b border-black p-4 bg-beige;
+}
+
+.card-editorial-body {
+  @apply p-6;
+}
+
+.card-editorial-footer {
+  @apply border-t border-black p-4 bg-beige;
+}
+
+/* Data Tables - Filing System Inspired */
+.table-editorial {
+  @apply w-full border-collapse;
+}
+
+.table-editorial th {
+  @apply border-b-2 border-black text-left p-3 text-mono text-xs bg-beige;
+}
+
+.table-editorial td {
+  @apply border-b border-gray p-3 text-sm;
+}
+
+.table-editorial tr:hover {
+  @apply bg-beige;
+}
+
+/* Form Layouts - Bureaucratic Template Style */
+.form-section {
+  @apply border border-black p-6 mb-6;
+}
+
+.form-section-title {
+  @apply text-mono text-xs mb-4 pb-2 border-b border-gray;
+}
+
+.form-field-group {
+  @apply mb-6 last:mb-0;
+}
+
+.form-field-label {
+  @apply text-mono text-xs mb-2 block text-gray;
+}
+
+/* Navigation - Archival System */
+.nav-editorial {
+  @apply border-r border-black bg-beige;
+}
+
+.nav-item {
+  @apply border-b border-gray px-4 py-3 text-sm hover:bg-light-blue transition-colors;
+}
+
+.nav-item-active {
+  @apply bg-black text-beige;
+}
+
+/* Headers with Swiss Grid Influence */
+.header-editorial {
+  @apply border-b border-black p-6 bg-white;
+}
+
+.header-title {
+  @apply text-2xl font-bold mb-2;
+}
+
+.header-subtitle {
+  @apply text-mono text-xs text-gray;
+}
+
+/* Content Containers */
+.container-editorial {
+  @apply max-w-7xl mx-auto px-6 py-8;
+}
+
+/* Sidebar hover color */
+.sidebar-menu-item:hover {
+  @apply bg-light-blue;
+}
+
+/* Workspace Layout */
+.workspace {
+  @apply min-h-screen bg-beige;
+}
+
+/* Utility Classes for Borders and Rules */
+.rule-vertical {
+  @apply border-r border-black;
+}
+
+.rule-horizontal {
+  @apply border-b border-black;
+}
+
+/* Status Indicators - Label Style */
+.status-label {
+  @apply inline-block px-3 py-1 border border-black text-mono text-xs;
+}
+
+.status-active {
+  @apply bg-green text-white border-green;
+}
+
+.status-pending {
+  @apply bg-light-blue text-black;
+}
+
+.status-complete {
+  @apply bg-black text-beige;
+}
+
+/* Layout Containers & Framing System */
+/* Inspired by analog filing systems: folders, drawers, tabs, and labels */
+
+/* 1. Underlined Text - For labels or short prompts */
+.container-underline {
+  border-bottom: 1px solid black;
+  padding-bottom: 0.75rem;
+  display: inline-block;
+}
+
+.container-underline-full {
+  border-bottom: 1px solid black;
+  padding-bottom: 0.75rem;
+}
+
+/* 2. Open Boxes - Group modular content or highlight calls to action */
+.container-open {
+  border: 1px solid black;
+  border-bottom: none;
+  padding: 1rem;
+  min-height: 120px;
+}
+
+.container-open-left {
+  border: 1px solid black;
+  border-right: none;
+  padding: 1rem;
+}
+
+.container-open-top {
+  border: 1px solid black;
+  border-bottom: none;
+  padding: 1rem;
+}
+
+/* 3. Closed Boxes - Define hierarchy or create contrast */
+.container-closed {
+  border: 1px solid black;
+  padding: 1rem;
+  background: white;
+}
+
+.container-closed-list {
+  border: 1px solid black;
+}
+
+.container-closed-list > * {
+  padding: 1rem;
+  border-bottom: 1px solid black;
+}
+
+.container-closed-list > *:last-child {
+  border-bottom: none;
+}
+
+/* 4. Rounded Corner Boxes - Reference to file folders and physical storage */
+.container-rounded {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 1rem;
+  background: white;
+}
+
+.container-rounded-left {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 1rem;
+}
+
+/* Padding Guidelines: 12-16px internal padding */
+.container-sm {
+  padding: 0.75rem; /* 12px */
+}
+
+.container-md {
+  padding: 1rem; /* 16px */
+}
+
+.container-lg {
+  padding: 1.5rem; /* 24px */
+}
+
+/* Content List Container - For dashboard-style lists */
+.content-list {
+  border: 1px solid black;
+}
+
+.content-list-item {
+  padding: 1rem;
+  border-bottom: 1px solid black;
+  background: white;
+  transition: background-color 0.15s ease;
+}
+
+.content-list-item:hover {
+  background: #F9F9F9;
+}
+
+.content-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Module Cards - For dashboard grid layouts */
+.module-card {
+  border: 1px solid black;
+  padding: 1.5rem;
+  background: white;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.module-card-title {
+  @apply font-bold text-base mb-2;
+}
+
+.module-card-description {
+  @apply text-sm leading-relaxed;
+}
+
+/* Task Card - For task management interfaces */
+.task-card {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 1.5rem;
+  background: white;
+}
+
+.task-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid black;
+  margin-bottom: 1rem;
+}
+
+.task-card-section {
+  padding: 1rem 0;
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.task-card-section:last-of-type {
+  border-bottom: none;
+}
+
+.task-card-label {
+  @apply text-mono text-xs text-gray mb-0.5;
+}
+
+.task-card-value {
+  @apply text-sm font-medium;
+}
+
+/* Spacing System - Minimum 16px between containers */
+.container-spacing {
+  margin-bottom: 1rem; /* 16px */
+}
+
+.container-spacing-lg {
+  margin-bottom: 1.5rem; /* 24px */
+}
+
+/* Grid Alignment - Containers align to grid structure */
+.grid-container {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-container-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-container-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-container-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Sidebar Container - For navigation panels */
+.sidebar-container {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+  background: white;
+}
+
+/* Hero/Featured Container - For large promotional sections */
+.hero-container {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 2rem;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hero-container-left {
+  flex: 1;
+  padding-right: 2rem;
+}
+
+.hero-container-right {
+  flex: 1;
+  text-align: right;
+}
+
+/* On dark/photo backgrounds - use white lines */
+.container-inverted {
+  border-color: white;
+}
+
+.container-inverted .content-list-item,
+.container-inverted .task-card-header {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Brand Container - Standard container following brand guidelines */
+.brand-container {
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: white;
+}
+
+/* Sub-containers within main containers should have squared corners */
+.brand-container .subcontainer,
+.brand-container > div > .rounded-lg,
+.brand-container > div > .rounded-md,
+.brand-container > div > .rounded-xl,
+.shadow-sm .subcontainer,
+.shadow-md .subcontainer,
+.shadow-lg .subcontainer {
+  border-radius: 0 !important;
+}
+
+/* Override Tailwind shadow utilities to use brand guidelines */
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: none !important;
+  border: 1px solid black;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid-container-2,
+  .grid-container-3,
+  .grid-container-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-container {
+    flex-direction: column;
+  }
+
+  .hero-container-left {
+    padding-right: 0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid black;
+  }
+
+  .hero-container-right {
+    text-align: left;
+  }
+
+  .shadow-sm,
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    border-top-left-radius: 12px;
+  }
+
+  .container-rounded,
+  .container-rounded-left,
+  .brand-container,
+  .task-card,
+  .sidebar-container {
+    border-top-left-radius: 12px;
+  }
+
+  .info-block {
+    padding: 1rem;
+  }
+
+  .card-editorial-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .module-card {
+    padding: 1rem;
+    min-height: 140px;
+  }
+
+  .task-card {
+    padding: 1rem;
+  }
+
+  .table-editorial th {
+    padding: 0.5rem;
+    font-size: 10px;
+  }
+
+  .table-editorial td {
+    padding: 0.5rem;
+    font-size: 12px;
+  }
+
+  .header-editorial {
+    padding: 1rem;
+  }
+
+  .container-editorial {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .section-divider {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .grid-editorial {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@keyframes flipY {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.scroll-row {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
