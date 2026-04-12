@@ -1,10 +1,11 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
-import SupabaseConnectionStatus from './components/SupabaseConnectionStatus';
+import Onboarding from './components/Onboarding';
 import { useAuthStore } from './store/authStore';
+import { useOnboarding } from './hooks/useOnboarding';
 import { isNative } from './lib/platform';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
@@ -36,24 +37,52 @@ const Notes = React.lazy(() => import('./pages/Notes'));
 const Tasks = React.lazy(() => import('./pages/Tasks'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const SharedPlaylist = React.lazy(() => import('./pages/SharedPlaylist'));
+const Sign = React.lazy(() => import('./pages/Sign'));
+const DesignSystem = React.lazy(() => import('./pages/DesignSystem'));
 
 function AppRoutes() {
   const { user, loading, initialize } = useAuthStore();
+  const { needsOnboarding, loading: onboardingLoading, currentStep, stepsCompleted, refresh } = useOnboarding();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  if (loading) {
+  // Show onboarding when detected
+  useEffect(() => {
+    if (!onboardingLoading && needsOnboarding && user) {
+      setShowOnboarding(true);
+    }
+  }, [needsOnboarding, onboardingLoading, user]);
+
+  if (loading || (user && onboardingLoading)) {
     return <LoadingSpinner />;
   }
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
+      {/* Onboarding overlay */}
+      {showOnboarding && user && (
+        <Onboarding
+          initialStep={currentStep}
+          stepsCompleted={stepsCompleted}
+          onComplete={() => {
+            setShowOnboarding(false);
+            refresh();
+          }}
+        />
+      )}
+
       <Routes>
         <Route path="/" element={!user ? <Landing /> : <Navigate to="/dashboard" replace />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
         <Route path="/playlist/:shareToken" element={<SharedPlaylist />} />
+        <Route path="/sign/:accessToken" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Sign />
+          </Suspense>
+        } />
         <Route path="/" element={<Layout />}>
           <Route path="dashboard" element={
             <ProtectedRoute>
@@ -164,11 +193,15 @@ function AppRoutes() {
               <Settings />
             </ProtectedRoute>
           } />
+          <Route path="design-system" element={
+            <ProtectedRoute>
+              <DesignSystem />
+            </ProtectedRoute>
+          } />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
-      <SupabaseConnectionStatus />
     </Suspense>
   );
 }
