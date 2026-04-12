@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { AssetSourceType } from './assetSources';
 
 export type DocumentType = 'contract' | 'license' | 'release' | 'agreement' | 'other';
 export type DocumentStatus = 'Draft' | 'pending_review' | 'pending_signature' | 'active' | 'expired' | 'terminated';
@@ -13,6 +14,7 @@ export interface LegalDocument {
   file_url: string;
   file_name: string;
   file_size: number;
+  source_type?: AssetSourceType;
   parties: string[];
   tags: string[];
   version: string;
@@ -29,6 +31,13 @@ export interface LegalDocument {
   created_by?: string;
   created_at: string;
   updated_at: string;
+}
+
+/** External cloud-link attachment for a document (instead of a file upload). */
+export interface LegalExternalLink {
+  sourceType: AssetSourceType;
+  url: string;
+  name?: string;
 }
 
 export interface DocumentNote {
@@ -120,7 +129,11 @@ export async function getDocument(id: string): Promise<LegalDocument | null> {
   };
 }
 
-export async function createDocument(documentData: CreateDocumentData, file?: File): Promise<LegalDocument> {
+export async function createDocument(
+  documentData: CreateDocumentData,
+  file?: File,
+  externalLink?: LegalExternalLink
+): Promise<LegalDocument> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
 
@@ -131,12 +144,19 @@ export async function createDocument(documentData: CreateDocumentData, file?: Fi
   let fileUrl = '';
   let fileName = '';
   let fileSize = 0;
+  let sourceType: AssetSourceType = 'upload';
 
   if (file) {
     const uploadResult = await uploadDocumentFile(file);
     fileUrl = uploadResult.url;
     fileName = file.name;
     fileSize = file.size;
+    sourceType = 'upload';
+  } else if (externalLink) {
+    fileUrl = externalLink.url;
+    fileName = externalLink.name || externalLink.url;
+    fileSize = 0;
+    sourceType = externalLink.sourceType;
   }
 
   const { data, error } = await supabase
@@ -144,14 +164,19 @@ export async function createDocument(documentData: CreateDocumentData, file?: Fi
     .insert({
       ...documentData,
       artist_id: documentData.artist_id || null,
-      status: documentData.status || 'Draft',
+      // prod check constraint enforces lowercase values
+      status: (documentData.status || 'Draft').toLowerCase(),
       parties: documentData.parties || [],
       tags: documentData.tags || [],
       version: documentData.version || '1.0',
       description: documentData.description || '',
+      // prod schema has effective_date NOT NULL with no default — default to signed_date or now()
+      effective_date: (documentData as any).effective_date || documentData.signed_date || new Date().toISOString(),
       file_url: fileUrl,
       file_name: fileName,
       file_size: fileSize,
+      source_type: sourceType,
+      user_id: userId,
       created_by: userId,
     })
     .select()
@@ -204,7 +229,9 @@ export async function updateDocument(id: string, updates: UpdateDocumentData, fi
 export async function deleteDocument(id: string): Promise<void> {
   const document = await getDocument(id);
 
-  if (document?.file_url) {
+  // Only try to remove the blob when it's an uploaded file — external links stay
+  // in the cloud provider, we just drop our reference row.
+  if (document?.file_url && (!document.source_type || document.source_type === 'upload')) {
     const path = document.file_url.split('/').pop();
     if (path) {
       await supabase.storage.from('legal-documents').remove([path]);
@@ -314,4 +341,35 @@ export async function deleteDocumentNote(id: string): Promise<void> {
     console.error('Error deleting document note:', error);
     throw error;
   }
+}
+
+export async function getSigningStatusForDocuments(documentIds: string[]): Promise<Record<string, {
+  status: string;
+  signed_count: number;
+  total_count: number;
+  signing_request_id: string;
+}>> {
+  if (documentIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('signing_requests')
+    .select('id, document_id, status, signing_recipients(id, status)')
+    .in('document_id', documentIds)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return {};
+
+  const result: Record<string, any> = {};
+  for (const req of data) {
+    // Only keep the latest signing request per document
+    if (result[req.document_id]) continue;
+    const recipients = (req as any).signing_recipients || [];
+    result[req.document_id] = {
+      status: req.status,
+      signed_count: recipients.filter((r: any) => r.status === 'signed').length,
+      total_count: recipients.length,
+      signing_request_id: req.id,
+    };
+  }
+  return result;
 }
