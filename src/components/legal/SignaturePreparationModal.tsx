@@ -3,6 +3,8 @@ import { X, Mail, User, Plus, Trash2, FileText, Send, Move, FileSignature as Sig
 import Modal from '../Modal';
 import type { LegalDocument } from '../../types';
 import SignatureEmailPreview from './SignatureEmailPreview';
+import * as signingService from '../../lib/signingService';
+import type { SigningOrder } from '../../lib/signingTypes';
 
 interface SignaturePreparationModalProps {
   isOpen: boolean;
@@ -51,6 +53,8 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
   const [draggedField, setDraggedField] = useState<SignatureField | null>(null);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [selectedSigner, setSelectedSigner] = useState<Signer | null>(null);
+  const [signingOrder, setSigningOrder] = useState<SigningOrder>('parallel');
+  const [expiresAt, setExpiresAt] = useState<string>('');
   
   const documentRef = useRef<HTMLDivElement>(null);
   const fieldIdCounter = useRef(1);
@@ -75,6 +79,8 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
       setCurrentPage(1);
       setShowEmailPreview(false);
       setSelectedSigner(null);
+      setSigningOrder('parallel');
+      setExpiresAt('');
     }
   }, [isOpen, document]);
 
@@ -155,14 +161,43 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
     });
   };
 
-  const handleSendForSignature = () => {
+  const handleSendForSignature = async () => {
     setIsSending(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSending(false);
+    try {
+      await signingService.createSigningRequest({
+        document_id: document?.id?.toString() || '',
+        signing_order: signingOrder,
+        subject: emailSubject,
+        message: emailMessage,
+        expires_at: expiresAt || undefined,
+        recipients: signers.map((s, i) => ({
+          name: s.name,
+          email: s.email,
+          role: s.role,
+          order_index: i,
+          temp_id: s.id,
+        })),
+        fields: signers.flatMap(signer =>
+          signer.fields.map(f => ({
+            recipient_temp_id: signer.id,
+            type: f.type,
+            page: f.page,
+            x: f.position.x,
+            y: f.position.y,
+            width: f.position.width,
+            height: f.position.height,
+            required: f.required,
+            label: f.label,
+          }))
+        ),
+      });
       setSendComplete(true);
-    }, 1500);
+    } catch (err: any) {
+      console.error('Failed to send signing request:', err);
+      alert('Failed to send signing request: ' + err.message);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleDocumentClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -273,7 +308,7 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                         Name
                       </label>
                       <div className="mt-1 relative rounded-md shadow-sm">
@@ -292,7 +327,7 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                         Email
                       </label>
                       <div className="mt-1 relative rounded-md shadow-sm">
@@ -311,14 +346,15 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
                     </div>
                     
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                         Role
                       </label>
                       <input
                         type="text"
                         value={signer.role}
                         onChange={(e) => handleUpdateSigner(signer.id, { role: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                         placeholder="e.g., Artist, Manager, Attorney"
                       />
                     </div>
@@ -336,18 +372,56 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
               </button>
             </div>
 
+            <div className="space-y-2">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
+                Signing Order
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSigningOrder('parallel')}
+                  className={`flex-1 px-3 py-2 text-sm rounded-md border ${
+                    signingOrder === 'parallel'
+                      ? 'border-primary bg-primary/10 text-primary font-medium'
+                      : 'border-gray-300 text-gray-600 hover:border-primary hover:bg-primary/5'
+                  }`}
+                  style={signingOrder !== 'parallel' ? { borderColor: 'var(--border)', color: 'var(--t2)' } : {}}
+                >
+                  Parallel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSigningOrder('sequential')}
+                  className={`flex-1 px-3 py-2 text-sm rounded-md border ${
+                    signingOrder === 'sequential'
+                      ? 'border-primary bg-primary/10 text-primary font-medium'
+                      : 'border-gray-300 text-gray-600 hover:border-primary hover:bg-primary/5'
+                  }`}
+                  style={signingOrder !== 'sequential' ? { borderColor: 'var(--border)', color: 'var(--t2)' } : {}}
+                >
+                  Sequential
+                </button>
+              </div>
+              <p className="text-xs" style={{ color: 'var(--t3)' }}>
+                {signingOrder === 'parallel'
+                  ? 'All recipients receive the document at the same time.'
+                  : 'Recipients sign one at a time in the order listed above.'}
+              </p>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium border"
+                style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => setStep('fields')}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
                 disabled={signers.some(s => !s.name || !s.email)}
               >
                 Continue
@@ -366,16 +440,12 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
               </p>
             </div>
 
-            <div className="flex gap-4 border-b border-gray-200 mb-4">
+            <div className="sub-tabs mb-4">
               {signers.map((signer) => (
                 <button
                   key={signer.id}
                   onClick={() => setActiveSignerId(signer.id)}
-                  className={`pb-2 px-1 border-b-2 font-medium text-sm ${
-                    activeSignerId === signer.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`sub-tab ${activeSignerId === signer.id ? 'active' : ''}`}
                 >
                   {signer.name || `Recipient ${signer.id}`}
                 </button>
@@ -751,6 +821,22 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
+                  Expiration Date (optional)
+                </label>
+                <input
+                  type="date"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
+                />
+                <p className="mt-1 text-xs" style={{ color: 'var(--t3)' }}>
+                  If set, the signing request will expire and recipients will no longer be able to sign after this date.
+                </p>
               </div>
             </div>
 
