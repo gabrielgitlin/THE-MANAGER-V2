@@ -15,25 +15,15 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 // ─── Edge Function Helpers ────────────────────────────────────────────────────
 
 async function callEdgeFunction<T = unknown>(name: string, body: Record<string, unknown>): Promise<T> {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? supabaseAnonKey;
-
-  const res = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'apikey': supabaseAnonKey ?? '',
-    },
-    body: JSON.stringify(body),
+  const { data, error } = await supabase.functions.invoke(name, {
+    body,
   });
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Edge function '${name}' failed (${res.status}): ${errorText}`);
+  if (error) {
+    throw new Error(`Edge function '${name}' failed: ${error.message}`);
   }
 
-  return res.json() as Promise<T>;
+  return data as T;
 }
 
 async function callPublicEdgeFunction<T = unknown>(name: string, body: Record<string, unknown>): Promise<T> {
