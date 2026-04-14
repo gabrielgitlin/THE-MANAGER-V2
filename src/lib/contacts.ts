@@ -186,11 +186,16 @@ export async function upsertContactPaymentInfo(
   contactId: string,
   formData: ContactPaymentFormData
 ): Promise<ContactPaymentInfo> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (!user) throw new Error('Not authenticated');
+
   const { data, error } = await supabase
     .from('contact_payment_info')
     .upsert(
       {
         contact_id: contactId,
+        user_id: user.id,
         bank_name: formData.bankName || null,
         account_holder_name: formData.accountHolderName || null,
         routing_number: formData.routingNumber || null,
@@ -246,7 +251,8 @@ export async function uploadContactFile(
   file: File,
   description?: string
 ): Promise<ContactFile> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
   if (!user) throw new Error('Not authenticated');
   const ext = file.name.split('.').pop();
   const filePath = `${user.id}/${contactId}/${crypto.randomUUID()}.${ext}`;
@@ -276,7 +282,10 @@ export async function uploadContactFile(
 }
 
 export async function deleteContactFile(file: ContactFile): Promise<void> {
-  await supabase.storage.from('contact-files').remove([file.filePath]);
+  const { error: storageError } = await supabase.storage
+    .from('contact-files')
+    .remove([file.filePath]);
+  if (storageError) throw storageError;
   const { error } = await supabase.from('contact_files').delete().eq('id', file.id);
   if (error) throw error;
 }
@@ -292,7 +301,8 @@ export async function getContactFileDownloadUrl(filePath: string): Promise<strin
 // ─── Photo upload ──────────────────────────────────────────────────────────────
 
 export async function uploadContactPhoto(contactId: string, file: File): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
   if (!user) throw new Error('Not authenticated');
   const ext = file.name.split('.').pop();
   const filePath = `${user.id}/${contactId}/photo.${ext}`;

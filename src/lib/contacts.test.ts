@@ -32,4 +32,11 @@ describe('getAvatarUrl', () => {
   it('returns null when no photo or social handles available', () => {
     expect(getAvatarUrl({ profilePhotoUrl: undefined, socialLinks: {} })).toBeNull();
   });
+  it('prefers instagram over twitter when both are present', () => {
+    const result = getAvatarUrl({
+      profilePhotoUrl: undefined,
+      socialLinks: { instagram: 'iguser', twitter: 'twuser' },
+    });
+    expect(result).toBe('https://unavatar.io/instagram/iguser');
+  });
 });
