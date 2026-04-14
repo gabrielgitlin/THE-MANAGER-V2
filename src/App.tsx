@@ -33,6 +33,7 @@ const ShowDetails = React.lazy(() => import('./pages/live/ShowDetails'));
 const ShowFees = React.lazy(() => import('./pages/live/ShowFees'));
 const Artist = React.lazy(() => import('./pages/Artist'));
 const Team = React.lazy(() => import('./pages/Team'));
+const ContactProfile = React.lazy(() => import('./pages/ContactProfile'));
 const Notes = React.lazy(() => import('./pages/Notes'));
 const Tasks = React.lazy(() => import('./pages/Tasks'));
 const Settings = React.lazy(() => import('./pages/Settings'));
@@ -169,6 +170,11 @@ function AppRoutes() {
           <Route path="team" element={
             <ProtectedRoute requiredPermission="view_personnel">
               <Team />
+            </ProtectedRoute>
+          } />
+          <Route path="team/:id" element={
+            <ProtectedRoute requiredPermission="view_personnel">
+              <ContactProfile />
             </ProtectedRoute>
           } />
 
