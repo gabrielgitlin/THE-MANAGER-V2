@@ -15,8 +15,13 @@ const SIZE: Record<NonNullable<Props['size']>, string> = {
 };
 
 const COLORS = [
-  '#009C55', '#4A7FA5', '#A0522D', '#6B5B95',
-  '#DD5555', '#DDAA44', '#E08A3C',
+  'var(--brand-1)',        // green
+  'var(--status-red)',     // red
+  'var(--status-yellow)',  // yellow/gold
+  'var(--status-orange)',  // orange
+  '#4A7FA5',              // steel blue — no CSS var equivalent
+  '#A0522D',              // sienna — no CSS var equivalent
+  '#6B5B95',              // purple — no CSS var equivalent
 ];
 
 function avatarColor(name: string): string {
@@ -45,7 +50,7 @@ export default function AvatarWithFallback({ contact, size = 'md' }: Props) {
   return (
     <div
       className={`${SIZE[size]} rounded-full flex items-center justify-center flex-shrink-0 font-semibold`}
-      style={{ backgroundColor: bg, color: '#fff' }}
+      style={{ backgroundColor: bg, color: 'var(--t1)' }}
     >
       {initials}
     </div>

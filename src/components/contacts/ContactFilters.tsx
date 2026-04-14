@@ -38,11 +38,6 @@ export default function ContactFilters({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full pl-9 pr-4 py-2 text-sm"
-          style={{
-            backgroundColor: 'var(--surface-2)',
-            color: 'var(--t1)',
-            border: '1px solid var(--border-2)',
-          }}
         />
       </div>
 

@@ -21,7 +21,6 @@ export default function ContactCard({ contact }: { contact: Contact }) {
   return (
     <div
       className="tm-card p-4 cursor-pointer transition-all duration-[120ms] hover:border-border-3"
-      style={{ borderColor: 'var(--border-2)' }}
       onClick={() => navigate(`/team/${contact.id}`)}
     >
       <div className="flex flex-col items-center text-center gap-3">
