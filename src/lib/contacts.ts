@@ -146,7 +146,44 @@ export async function updateContact(id: string, formData: Partial<ContactFormDat
 }
 
 export async function deleteContact(id: string): Promise<void> {
-  const { error } = await supabase.from('contacts').delete().eq('id', id);
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (!user) throw new Error('Not authenticated');
+
+  // Delete associated files from storage first
+  const { data: files } = await supabase
+    .from('contact_files')
+    .select('file_path')
+    .eq('contact_id', id)
+    .eq('user_id', user.id);
+
+  if (files && files.length > 0) {
+    const paths = files.map((f: { file_path: string }) => f.file_path);
+    await supabase.storage.from('contact-files').remove(paths);
+  }
+
+  // Delete profile photo from storage
+  const { data: contact } = await supabase
+    .from('contacts')
+    .select('profile_photo_url')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single();
+
+  if (contact?.profile_photo_url) {
+    // Extract path from URL: contact-photos/{userId}/{contactId}.ext
+    const url = new URL(contact.profile_photo_url);
+    const path = url.pathname.split('/contact-photos/')[1];
+    if (path) {
+      await supabase.storage.from('contact-photos').remove([path]);
+    }
+  }
+
+  const { error } = await supabase
+    .from('contacts')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
   if (error) throw error;
 }
 
@@ -258,21 +295,28 @@ export async function uploadContactFile(
   const filePath = `${user.id}/${contactId}/${crypto.randomUUID()}.${ext}`;
   const { error: uploadError } = await supabase.storage
     .from('contact-files')
-    .upload(filePath, file);
+    .upload(filePath, file, { upsert: false });
   if (uploadError) throw uploadError;
+
   const { data, error } = await supabase
     .from('contact_files')
     .insert({
       contact_id: contactId,
-      file_name: file.name,
+      user_id: user.id,
+      file_name: description || file.name,
       file_type: file.type,
       file_path: filePath,
       file_size: file.size,
-      description: description ?? null,
+      description,
     })
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    // Clean up orphaned storage object before throwing
+    await supabase.storage.from('contact-files').remove([filePath]);
+    throw error;
+  }
   return {
     id: data.id, contactId: data.contact_id, userId: data.user_id,
     fileName: data.file_name, fileType: data.file_type, filePath: data.file_path,

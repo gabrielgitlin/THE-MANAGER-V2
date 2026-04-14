@@ -13,6 +13,7 @@ export default function NotesTab({ contact, onUpdate }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const savedTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDirty = notes !== (contact.notes ?? '');
 
   async function handleSave() {
@@ -22,7 +23,8 @@ export default function NotesTab({ contact, onUpdate }: Props) {
       await updateContact(contact.id, { notes });
       onUpdate(notes);
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
     } catch { setError('Failed to save notes.'); }
     finally { setIsSaving(false); }
   }

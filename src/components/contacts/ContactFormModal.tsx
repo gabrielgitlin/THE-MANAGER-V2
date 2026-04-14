@@ -299,7 +299,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
             <div className="space-y-2 mb-3">
               <p className="text-t2 text-xs font-medium">PRO Affiliations</p>
               {form.proAffiliations.map((pro, i) => (
-                <div key={i} className="flex gap-2 items-center">
+                <div key={`${i}-${pro.name}`} className="flex gap-2 items-center">
                   <input
                     className="flex-1"
                     type="text"
@@ -347,7 +347,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
             <div className="space-y-2">
               <p className="text-t2 text-xs font-medium">Publisher Affiliations</p>
               {form.publisherAffiliations.map((pub, i) => (
-                <div key={i} className="flex gap-2 items-center">
+                <div key={`${i}-${pub.name}`} className="flex gap-2 items-center">
                   <input
                     className="flex-1"
                     type="text"

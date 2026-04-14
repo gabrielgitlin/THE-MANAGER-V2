@@ -38,8 +38,12 @@ export default function ContactProfile() {
   async function handleDelete() {
     if (!contact) return;
     if (!window.confirm(`Delete ${contact.firstName} ${contact.lastName}? This cannot be undone.`)) return;
-    await deleteContact(contact.id);
-    navigate('/team');
+    try {
+      await deleteContact(contact.id);
+      navigate('/team');
+    } catch {
+      setError('Failed to delete contact. Please try again.');
+    }
   }
 
   if (isLoading) return <LoadingSpinner fullScreen={false} />;

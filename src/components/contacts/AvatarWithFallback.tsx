@@ -19,9 +19,9 @@ const COLORS = [
   'var(--status-red)',     // red
   'var(--status-yellow)',  // yellow/gold
   'var(--status-orange)',  // orange
-  '#4A7FA5',              // steel blue — no CSS var equivalent
-  '#A0522D',              // sienna — no CSS var equivalent
-  '#6B5B95',              // purple — no CSS var equivalent
+  'var(--avatar-steel)',   // steel blue
+  'var(--avatar-sienna)',  // sienna
+  'var(--avatar-purple)',  // purple
 ];
 
 function avatarColor(name: string): string {
