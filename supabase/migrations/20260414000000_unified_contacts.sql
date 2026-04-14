@@ -30,6 +30,10 @@ CREATE TABLE IF NOT EXISTS contacts (
 );
 
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "contacts_select" ON contacts;
+DROP POLICY IF EXISTS "contacts_insert" ON contacts;
+DROP POLICY IF EXISTS "contacts_update" ON contacts;
+DROP POLICY IF EXISTS "contacts_delete" ON contacts;
 CREATE POLICY "contacts_select" ON contacts FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "contacts_insert" ON contacts FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "contacts_update" ON contacts FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
@@ -39,6 +43,7 @@ CREATE OR REPLACE FUNCTION contacts_set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$;
+DROP TRIGGER IF EXISTS contacts_updated_at ON contacts;
 CREATE TRIGGER contacts_updated_at
   BEFORE UPDATE ON contacts FOR EACH ROW
   EXECUTE FUNCTION contacts_set_updated_at();
@@ -66,6 +71,7 @@ CREATE TABLE IF NOT EXISTS contact_payment_info (
 );
 
 ALTER TABLE contact_payment_info ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "payment_info_all" ON contact_payment_info;
 CREATE POLICY "payment_info_all" ON contact_payment_info
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
@@ -83,6 +89,7 @@ CREATE TABLE IF NOT EXISTS contact_files (
 );
 
 ALTER TABLE contact_files ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "contact_files_all" ON contact_files;
 CREATE POLICY "contact_files_all" ON contact_files
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
@@ -94,6 +101,11 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- contact-photos: public read, owner write
+DROP POLICY IF EXISTS "contact_photos_public_read" ON storage.objects;
+DROP POLICY IF EXISTS "contact_photos_owner_insert" ON storage.objects;
+DROP POLICY IF EXISTS "contact_photos_owner_update" ON storage.objects;
+DROP POLICY IF EXISTS "contact_photos_owner_delete" ON storage.objects;
+DROP POLICY IF EXISTS "contact_files_owner_all" ON storage.objects;
 CREATE POLICY "contact_photos_public_read"   ON storage.objects FOR SELECT USING (bucket_id = 'contact-photos');
 CREATE POLICY "contact_photos_owner_insert"  ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'contact-photos' AND auth.uid()::text = (storage.foldername(name))[1]);
 CREATE POLICY "contact_photos_owner_update"  ON storage.objects FOR UPDATE USING  (bucket_id = 'contact-photos' AND auth.uid()::text = (storage.foldername(name))[1]);
