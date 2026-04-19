@@ -23,6 +23,13 @@ export interface PublisherAffiliation {
   isPrimary: boolean;
 }
 
+export interface PrimaryAffiliation {
+  role: string;
+  roleCustom?: string;
+  orgName: string;
+  endDate?: string;
+}
+
 export interface Contact {
   id: string;
   userId: string;
@@ -30,6 +37,7 @@ export interface Contact {
   visibility: 'workspace' | 'private';
   category: ContactCategory;
   role?: string;
+  primaryAffiliation?: PrimaryAffiliation | null;
   firstName: string;
   lastName: string;
   profilePhotoUrl?: string;
