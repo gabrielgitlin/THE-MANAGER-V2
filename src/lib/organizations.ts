@@ -81,14 +81,16 @@ export async function updateOrganization(id: string, form: Partial<OrganizationF
   if (form.socialLinks !== undefined) patch.social_links = form.socialLinks;
   if (form.visibility !== undefined) patch.visibility = form.visibility;
 
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase.from('organizations')
-    .update(patch).eq('id', id).select('*').single();
+    .update(patch).eq('id', id).eq('workspace_id', wsId).select('*').single();
   if (error || !data) throw error ?? new Error('update failed');
   return FROM_DB(data as Record<string, unknown>);
 }
 
 export async function deleteOrganization(id: string): Promise<void> {
-  const { error } = await supabase.from('organizations').delete().eq('id', id);
+  const wsId = await currentWorkspaceId();
+  const { error } = await supabase.from('organizations').delete().eq('id', id).eq('workspace_id', wsId);
   if (error) throw error;
 }
 
