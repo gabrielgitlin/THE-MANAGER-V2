@@ -8,6 +8,7 @@ import ImageCropper from '../ImageCropper';
 import LoadingSpinner from '../LoadingSpinner';
 import Modal from '../Modal';
 import MusicPlayer from '../MusicPlayer';
+import { ProjectTagInput, type ProjectTag } from '../ui/ProjectTagInput';
 
 interface Playlist {
   id: string;
@@ -291,6 +292,7 @@ export default function PlaylistsTab() {
     password: '',
     cover_url: '',
   });
+  const [newPlaylistCreators, setNewPlaylistCreators] = useState<ProjectTag[]>([]);
 
   const [editPlaylist, setEditPlaylist] = useState({
     title: '',
@@ -299,6 +301,7 @@ export default function PlaylistsTab() {
     password: '',
     cover_url: '',
   });
+  const [editPlaylistCreators, setEditPlaylistCreators] = useState<ProjectTag[]>([]);
 
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
@@ -501,6 +504,7 @@ export default function PlaylistsTab() {
         is_public: newPlaylist.is_public,
         cover_url: newPlaylist.cover_url.trim() || null,
         user_id: user.id,
+        creator_projects: newPlaylistCreators,
       };
 
       if (newPlaylist.password) {
@@ -519,6 +523,7 @@ export default function PlaylistsTab() {
       if (error) throw error;
 
       setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+      setNewPlaylistCreators([]);
       setIsCreateModalOpen(false);
       fetchPlaylists();
     } catch (error) {
@@ -620,6 +625,12 @@ export default function PlaylistsTab() {
       password: '',
       cover_url: target.cover_url || '',
     });
+    const rawCreatorProjects = (target as any).creator_projects;
+    setEditPlaylistCreators(
+      Array.isArray(rawCreatorProjects) && rawCreatorProjects.length > 0
+        ? (rawCreatorProjects as ProjectTag[])
+        : []
+    );
     setIsEditModalOpen(true);
   };
 
@@ -633,6 +644,7 @@ export default function PlaylistsTab() {
         description: editPlaylist.description.trim() || null,
         is_public: editPlaylist.is_public,
         cover_url: editPlaylist.cover_url.trim() || null,
+        creator_projects: editPlaylistCreators,
       };
 
       if (editPlaylist.password) {
@@ -1193,6 +1205,18 @@ export default function PlaylistsTab() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-black mb-1">
+              Artist Projects
+            </label>
+            <ProjectTagInput
+              value={newPlaylistCreators}
+              onChange={setNewPlaylistCreators}
+              placeholder="Tag associated projects…"
+              size="sm"
+            />
+          </div>
+
           <div className="border-t border-gray/30 pt-4">
             <label className="flex items-center gap-2">
               <input
@@ -1229,6 +1253,7 @@ export default function PlaylistsTab() {
               onClick={() => {
                 setIsCreateModalOpen(false);
                 setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+                setNewPlaylistCreators([]);
               }}
               className="px-4 py-2 text-black hover:bg-beige transition-colors"
             >
@@ -1478,6 +1503,18 @@ export default function PlaylistsTab() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-black mb-1">
+              Artist Projects
+            </label>
+            <ProjectTagInput
+              value={editPlaylistCreators}
+              onChange={setEditPlaylistCreators}
+              placeholder="Tag associated projects…"
+              size="sm"
+            />
           </div>
 
           <div className="border-t border-gray/30 pt-4">

@@ -11,6 +11,7 @@ import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import DigitalAssetUploader, { AssetCategory } from '../components/catalog/DigitalAssetUploader';
 import BudgetLinkSection from '../components/BudgetLinkSection';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { ProjectTagInput, type ProjectTag } from '../components/ui/ProjectTagInput';
 
 
 export default function AlbumDetails() {
@@ -30,6 +31,7 @@ export default function AlbumDetails() {
   const [isAddingCredit, setIsAddingCredit] = useState(false);
   const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
   const [linkedBudget, setLinkedBudget] = useState<Budget | null>(null);
+  const [artistProjects, setArtistProjects] = useState<ProjectTag[]>([]);
   const [isUploadingArtwork, setIsUploadingArtwork] = useState(false);
   const artworkInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,7 @@ export default function AlbumDetails() {
             total_tracks,
             genres_array,
             artist_id,
+            artist_projects,
             artists (
               name
             )
@@ -124,6 +127,17 @@ export default function AlbumDetails() {
 
         setAlbum(formattedAlbum);
         setAlbumData(formattedAlbum);
+
+        // Populate artist_projects tags; fall back to artist_id + name if empty
+        const rawProjects = (albumData as any).artist_projects;
+        if (Array.isArray(rawProjects) && rawProjects.length > 0) {
+          setArtistProjects(rawProjects as ProjectTag[]);
+        } else if (albumData.artist_id) {
+          setArtistProjects([{
+            id: albumData.artist_id as string,
+            name: albumData.artists?.name || 'Unknown Artist',
+          }]);
+        }
       } catch (err) {
         console.error('Error fetching album:', err);
         const catalogAlbum = CATALOG.find(a => a.id === Number(id));
@@ -188,8 +202,18 @@ export default function AlbumDetails() {
     ));
   };
 
-  const handleSaveAlbum = () => {
-    // In a real app, this would save to the database
+  const handleSaveAlbum = async () => {
+    if (user && id && albumData) {
+      try {
+        const { error } = await supabase
+          .from('albums')
+          .update({ artist_projects: artistProjects })
+          .eq('id', id);
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error saving artist projects:', err);
+      }
+    }
     setIsEditingAlbum(false);
   };
 
@@ -592,6 +616,19 @@ export default function AlbumDetails() {
                   <p className="text-xl text-gray-500">{displayAlbum.artist}</p>
                 )}
               </div>
+              {isEditingAlbum && (
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Artist Projects
+                  </label>
+                  <ProjectTagInput
+                    value={artistProjects}
+                    onChange={setArtistProjects}
+                    placeholder="Search projects…"
+                    size="sm"
+                  />
+                </div>
+              )}
               <div className="flex items-center gap-4 mt-4">
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   displayAlbum.status === 'Released'
