@@ -75,10 +75,12 @@ export async function getContacts(): Promise<Contact[]> {
 }
 
 export async function getContact(id: string): Promise<Contact> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .select('*')
     .eq('id', id)
+    .eq('workspace_id', wsId)
     .single();
   if (error) throw error;
   return rowToContact(data);
