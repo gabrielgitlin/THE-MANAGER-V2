@@ -45,6 +45,10 @@ interface SpotifyAlbum {
   genres?: string[];
 }
 
+interface SpotifyAlbumDetail extends SpotifyAlbum {
+  label?: string;
+}
+
 interface SpotifyTrack {
   id: string;
   name: string;
@@ -164,46 +168,21 @@ Deno.serve(async (req: Request) => {
       console.error("Artist update error:", artistUpdateError);
     }
 
-    // Resolve (or create) a Team contact for this artist — deduplicated by full name.
-    // We do this once per import so all albums share the same contact reference.
-    let artistContactTag: { id: string; name: string } | null = null;
-    if (artistName && artistName !== "Unknown Artist") {
-      const nameLower = artistName.toLowerCase();
-      const nameParts = artistName.trim().split(/\s+/);
-      const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(" ") || "";
+    // Fetch workspace_id from the artist record so we can create org records scoped to the workspace
+    const { data: artistRecord } = await supabase
+      .from("artists")
+      .select("workspace_id")
+      .eq("id", artistDbId)
+      .maybeSingle();
 
-      // Load all contacts for this user (service role bypasses RLS, filter by user_id)
-      const { data: existingContacts } = await supabase
-        .from("contacts")
-        .select("id, first_name, last_name")
-        .eq("user_id", user.id);
+    const workspaceId: string | null = artistRecord?.workspace_id ?? null;
 
-      const existing = (existingContacts || []).find(
-        (c) => `${c.first_name} ${c.last_name}`.toLowerCase() === nameLower
-      );
-
-      if (existing) {
-        artistContactTag = { id: existing.id, name: artistName };
-      } else {
-        const { data: newContact, error: contactError } = await supabase
-          .from("contacts")
-          .insert({
-            user_id: user.id,
-            first_name: firstName,
-            last_name: lastName,
-            role: "Artist",
-            category: "other",
-            tags: [],
-          })
-          .select("id")
-          .single();
-
-        if (!contactError && newContact) {
-          artistContactTag = { id: newContact.id, name: artistName };
-        } else {
-          console.error("Contact insert error:", contactError);
-        }
+    const albumsResponse = await fetch(
+      `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep,compilation,appears_on&limit=50`,
+      {
+        headers: {
+          Authorization: `Bearer ${spotifyAccessToken}`,
+        },
       }
     }
 
@@ -230,8 +209,10 @@ Deno.serve(async (req: Request) => {
     const skippedAlbums: { title: string; reason: string }[] = [];
     const failedAlbums: { title: string; reason: string }[] = [];
 
-    for (const album of allAlbums) {
-      // Skip duplicates by spotify_id
+    // Cache label name → org id to avoid duplicate lookups within a single import run
+    const labelOrgCache = new Map<string, string>();
+
+    for (const album of albums) {
       const { data: existingAlbum } = await supabase
         .from("albums")
         .select("id")
@@ -287,6 +268,96 @@ Deno.serve(async (req: Request) => {
         });
         continue;
       }
+
+      // --- Label org enrichment ---
+      // The artist album list endpoint returns summary data without the label field,
+      // so we fetch the full album detail to get it.
+      if (workspaceId) {
+        try {
+          const albumDetailResp = await fetch(
+            `https://api.spotify.com/v1/albums/${album.id}`,
+            { headers: { Authorization: `Bearer ${spotifyAccessToken}` } }
+          );
+          if (albumDetailResp.ok) {
+            const albumDetail: SpotifyAlbumDetail = await albumDetailResp.json();
+            const labelName = albumDetail.label?.trim() || null;
+
+            if (labelName) {
+              // Check cache first
+              let orgId: string | undefined = labelOrgCache.get(labelName);
+
+              if (!orgId) {
+                // Look up existing org (case-insensitive)
+                const { data: existingOrg } = await supabase
+                  .from("organizations")
+                  .select("id")
+                  .eq("workspace_id", workspaceId)
+                  .ilike("name", labelName)
+                  .limit(1)
+                  .maybeSingle();
+
+                if (existingOrg) {
+                  orgId = existingOrg.id;
+                } else {
+                  // Create a new label org
+                  const { data: newOrg, error: orgErr } = await supabase
+                    .from("organizations")
+                    .insert({
+                      workspace_id: workspaceId,
+                      created_by: user.id,
+                      name: labelName,
+                      type: "label",
+                      tags: [],
+                      social_links: {},
+                      visibility: "workspace",
+                    })
+                    .select("id")
+                    .single();
+                  if (orgErr) {
+                    console.error("Failed to create label org:", orgErr);
+                  } else {
+                    orgId = newOrg.id;
+                  }
+                }
+
+                if (orgId) {
+                  labelOrgCache.set(labelName, orgId);
+                }
+              }
+
+              if (orgId) {
+                // Link artist (project) to label org via project_relations if not already linked
+                const { data: existingRel } = await supabase
+                  .from("project_relations")
+                  .select("id")
+                  .eq("project_id", artistDbId)
+                  .eq("organization_id", orgId)
+                  .eq("role", "label_rep")
+                  .maybeSingle();
+
+                if (!existingRel) {
+                  const { error: relErr } = await supabase
+                    .from("project_relations")
+                    .insert({
+                      workspace_id: workspaceId,
+                      project_id: artistDbId,
+                      organization_id: orgId,
+                      role: "label_rep",
+                      is_primary: true,
+                    });
+                  if (relErr) {
+                    console.error("Failed to create project_relation for label:", relErr);
+                  }
+                }
+              }
+            }
+          }
+        } catch (labelErr) {
+          // Non-fatal: log and continue importing tracks
+          console.error("Label enrichment error for album", album.id, ":", labelErr);
+        }
+      }
+      // --- End label org enrichment ---
 
       const trackIds: string[] = [];
 

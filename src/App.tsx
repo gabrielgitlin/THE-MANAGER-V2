@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -7,6 +7,7 @@ import Onboarding from './components/Onboarding';
 import { useAuthStore } from './store/authStore';
 import { useOnboarding } from './hooks/useOnboarding';
 import { isNative } from './lib/platform';
+import { ensurePersonalWorkspace } from './lib/workspaces';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -38,14 +39,21 @@ const Logistics = React.lazy(() => import('./pages/live/Logistics'));
 const ShowDetails = React.lazy(() => import('./pages/live/ShowDetails'));
 const ShowFees = React.lazy(() => import('./pages/live/ShowFees'));
 const Artist = React.lazy(() => import('./pages/Artist'));
-const Team = React.lazy(() => import('./pages/Team'));
+const Industry = React.lazy(() => import('./pages/Industry'));
 const ContactProfile = React.lazy(() => import('./pages/ContactProfile'));
+const OrganizationProfile = React.lazy(() => import('./pages/OrganizationProfile'));
+const ProjectProfile = React.lazy(() => import('./pages/ProjectProfile'));
 const Notes = React.lazy(() => import('./pages/Notes'));
 const Tasks = React.lazy(() => import('./pages/Tasks'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const SharedPlaylist = React.lazy(() => import('./pages/SharedPlaylist'));
 const Sign = React.lazy(() => import('./pages/Sign'));
 const DesignSystem = React.lazy(() => import('./pages/DesignSystem'));
+
+function RedirectTeamToIndustry() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/industry/people/${id}`} replace />;
+}
 
 function AppRoutes() {
   const { user, loading, initialize } = useAuthStore();
@@ -55,6 +63,15 @@ function AppRoutes() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Fire-and-forget: ensure a personal workspace exists whenever a user signs in.
+  useEffect(() => {
+    if (user) {
+      ensurePersonalWorkspace().catch((err) =>
+        console.error('[workspaces] ensurePersonalWorkspace failed:', err)
+      );
+    }
+  }, [user]);
 
   // Show onboarding when detected
   useEffect(() => {
@@ -183,16 +200,29 @@ function AppRoutes() {
             </ProtectedRoute>
           } />
 
-          <Route path="team" element={
+          <Route path="industry" element={
             <ProtectedRoute requiredPermission="view_personnel">
-              <Team />
+              <Industry />
             </ProtectedRoute>
           } />
-          <Route path="team/:id" element={
+          <Route path="industry/people/:id" element={
             <ProtectedRoute requiredPermission="view_personnel">
               <ContactProfile />
             </ProtectedRoute>
           } />
+          <Route path="industry/companies/:id" element={
+            <ProtectedRoute requiredPermission="view_personnel">
+              <OrganizationProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="industry/projects/:id" element={
+            <ProtectedRoute requiredPermission="view_personnel">
+              <ProjectProfile />
+            </ProtectedRoute>
+          } />
+          {/* Redirect legacy /team URLs */}
+          <Route path="team" element={<Navigate to="/industry" replace />} />
+          <Route path="team/:id" element={<RedirectTeamToIndustry />} />
 
           <Route path="artist" element={
             <ProtectedRoute requiredPermission="view_sensitive_info">

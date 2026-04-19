@@ -1,22 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import ContactCard from '../components/contacts/ContactCard';
-import ContactRow from '../components/contacts/ContactRow';
-import ContactFilters from '../components/contacts/ContactFilters';
-import ContactFormModal from '../components/contacts/ContactFormModal';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { getContacts } from '../lib/contacts';
-import type { Contact, ContactCategory } from '../types/contacts';
+import ContactCard from '../contacts/ContactCard';
+import ContactRow from '../contacts/ContactRow';
+import ContactFilters from '../contacts/ContactFilters';
+import ContactFormModal from '../contacts/ContactFormModal';
+import LoadingSpinner from '../LoadingSpinner';
+import { getContacts } from '../../lib/contacts';
+import type { Contact, ContactCategory } from '../../types/contacts';
 
-const CATEGORIES: Array<{ value: ContactCategory | 'all' | 'artists'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'artists', label: 'Artists' },
-  { value: 'collaborator', label: 'Collaborators' },
-  { value: 'crew', label: 'Crew' },
-  { value: 'business', label: 'Business' },
-  { value: 'other', label: 'Other' },
-];
-
-export default function Team() {
+export default function PeopleTab() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ContactCategory | 'all' | 'artists'>('all');
@@ -56,18 +47,16 @@ export default function Team() {
   if (isLoading) return <LoadingSpinner fullScreen={false} />;
 
   return (
-    <div>
-      {/* Sub-tabs — bare root so these sit at the same y-offset as every other page */}
-      <div className="sub-tabs mb-6">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.value}
-            className={`sub-tab ${category === c.value ? 'active' : ''}`}
-            onClick={() => setCategory(c.value)}
-          >
-            {c.label}
-          </button>
-        ))}
+    <div className="space-y-[28px]">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1>Contacts</h1>
+        <button
+          className="btn btn-primary btn-md"
+          onClick={() => { setEditingContact(null); setIsFormOpen(true); }}
+        >
+          + Add Contact
+        </button>
       </div>
 
       {/* Content area — matches the spacing used by other pages */}

@@ -1,8 +1,10 @@
 import { supabase } from './supabase';
+import { currentWorkspaceId } from './workspaces';
 import type {
   Contact, ContactFormData,
   ContactPaymentInfo, ContactPaymentFormData,
   ContactFile,
+  PrimaryAffiliation,
 } from '../types/contacts';
 
 // ─── Pure helpers (exported for tests) ────────────────────────────────────────
@@ -28,12 +30,15 @@ export function getAvatarUrl(
 
 // ─── Row mapper ────────────────────────────────────────────────────────────────
 
-function rowToContact(row: Record<string, unknown>): Contact {
+function rowToContact(row: Record<string, unknown>, primaryAffiliation?: PrimaryAffiliation | null): Contact {
   return {
     id: row.id as string,
     userId: row.user_id as string,
+    workspaceId: row.workspace_id as string,
+    visibility: (row.visibility as Contact['visibility']) ?? 'workspace',
     category: row.category as Contact['category'],
     role: (row.role as string) ?? undefined,
+    primaryAffiliation: primaryAffiliation ?? null,
     firstName: row.first_name as string,
     lastName: row.last_name as string,
     profilePhotoUrl: (row.profile_photo_url as string) ?? undefined,
@@ -62,28 +67,65 @@ function rowToContact(row: Record<string, unknown>): Contact {
 // ─── Contacts CRUD ─────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .select('*')
+    .eq('workspace_id', wsId)
     .order('last_name', { ascending: true });
   if (error) throw error;
-  return (data ?? []).map(rowToContact);
+  const contacts = data ?? [];
+
+  // Fetch primary affiliations for these contacts (separate query to avoid PostgREST filter quirks)
+  const contactIds = contacts.map((c: Record<string, unknown>) => c.id as string);
+  let primaryAffMap: Record<string, PrimaryAffiliation> = {};
+  if (contactIds.length > 0) {
+    const { data: affRows } = await supabase
+      .from('contact_affiliations')
+      .select('contact_id, role, role_custom, end_date, organization:organizations!inner(id, name)')
+      .in('contact_id', contactIds)
+      .eq('is_primary', true);
+    if (affRows) {
+      for (const aff of affRows) {
+        const endDate = aff.end_date ?? undefined;
+        const isActive = !endDate || new Date(endDate) >= new Date();
+        if (isActive) {
+          const org = aff.organization as { id: string; name: string } | null;
+          primaryAffMap[aff.contact_id] = {
+            role: aff.role as string,
+            roleCustom: (aff.role_custom as string) ?? undefined,
+            orgName: org?.name ?? '',
+            endDate,
+          };
+        }
+      }
+    }
+  }
+
+  return contacts.map((row: Record<string, unknown>) =>
+    rowToContact(row, primaryAffMap[row.id as string] ?? null)
+  );
 }
 
 export async function getContact(id: string): Promise<Contact> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .select('*')
     .eq('id', id)
+    .eq('workspace_id', wsId)
     .single();
   if (error) throw error;
   return rowToContact(data);
 }
 
 export async function createContact(formData: ContactFormData): Promise<Contact> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .insert({
+      workspace_id: wsId,
+      visibility: formData.visibility ?? 'workspace',
       category: formData.category,
       role: formData.role || null,
       first_name: formData.firstName,
@@ -115,6 +157,7 @@ export async function createContact(formData: ContactFormData): Promise<Contact>
 
 export async function updateContact(id: string, formData: Partial<ContactFormData>): Promise<Contact> {
   const updates: Record<string, unknown> = {};
+  if (formData.visibility !== undefined)            updates.visibility = formData.visibility;
   if (formData.category !== undefined)              updates.category = formData.category;
   if (formData.role !== undefined)                  updates.role = formData.role || null;
   if (formData.firstName !== undefined)             updates.first_name = formData.firstName;

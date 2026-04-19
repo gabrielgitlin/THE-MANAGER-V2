@@ -9,11 +9,10 @@ const tabs: Tab[] = [
   { type: 'pixel', icon: '/TM-Pin-negro.png', label: 'Home', path: '/dashboard' },
   { type: 'pixel', icon: '/TM-Calendario-negro.png', label: 'Cal', path: '/calendar' },
   { type: 'pixel', icon: '/TM-Maletin-negro.png', label: 'Live', path: '/live' },
-  // { type: 'pixel', icon: '/TM-Monedas-negro.png', label: 'Finance', path: '/finance' }, // v2
   { type: 'pixel', icon: '/TM-Vinil-negro.png', label: 'Catalog', path: '/catalog' },
   { type: 'pixel', icon: '/TM-Contrato-negro.png', label: 'Legal', path: '/legal' },
   { type: 'pixel', icon: '/TM-Ajedrez Caballo-negro.png', label: 'Mktg', path: '/marketing' },
-  { type: 'pixel', icon: '/TM-Sello-negro.png', label: 'Team', path: '/team' },
+  { type: 'pixel', icon: '/TM-Sello-negro.png', label: 'Industry', path: '/industry' },
   { type: 'pixel', icon: '/TM-Icono-negro.png', label: 'Artist', path: '/artist' },
   { type: 'lucide', LucideIcon: StickyNote, label: 'Notes', path: '/notes' },
   { type: 'lucide', LucideIcon: CheckSquare, label: 'Tasks', path: '/tasks' },

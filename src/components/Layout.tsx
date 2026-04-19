@@ -52,6 +52,101 @@ export default function Layout() {
     console.log('Saving artist info:', info);
   };
 
+
+  const menuItems = [
+    {
+      icon: PolyhedraIcons.Dashboard,
+      label: 'DASHBOARD',
+      path: '/dashboard',
+      permission: 'view_dashboard' as const,
+      group: 1
+    },
+    {
+      icon: PolyhedraIcons.Calendar,
+      label: 'CALENDAR',
+      path: '/calendar',
+      permission: 'view_live' as const,
+      group: 1
+    },
+    {
+      icon: PolyhedraIcons.Catalog,
+      label: 'CATALOG',
+      path: '/catalog',
+      permission: 'view_catalog' as const,
+      group: 2
+    },
+    {
+      icon: PolyhedraIcons.Finance,
+      label: 'FINANCE',
+      path: '/finance',
+      permission: 'view_finance' as const,
+      group: 2
+    },
+    {
+      icon: PolyhedraIcons.Legal,
+      label: 'LEGAL',
+      path: '/legal',
+      permission: 'view_legal' as const,
+      group: 2
+    },
+    {
+      icon: PolyhedraIcons.Live,
+      label: 'LIVE',
+      path: '/live',
+      permission: 'view_live' as const,
+      group: 2
+    },
+    {
+      icon: PolyhedraIcons.Marketing,
+      label: 'MARKETING',
+      path: '/marketing',
+      permission: 'view_marketing' as const,
+      group: 2
+    },
+    {
+      icon: PolyhedraIcons.Team,
+      label: 'INDUSTRY',
+      path: '/industry',
+      permission: 'view_personnel' as const,
+      group: 3
+    },
+    {
+      icon: PolyhedraIcons.Artist,
+      label: 'ARTIST',
+      path: '/artist',
+      permission: 'view_sensitive_info' as const,
+      group: 3
+    },
+  ];
+
+  const handleTitleClick = () => {
+    if (titleAnimating) return;
+
+    setTitleAnimating(true);
+
+    if (titleRef.current) {
+      titleRef.current.style.transition = 'transform 0.6s ease-in-out';
+      titleRef.current.style.transformStyle = 'preserve-3d';
+      titleRef.current.style.transform = 'perspective(800px) rotateY(180deg)';
+
+      setTimeout(() => {
+        if (titleRef.current) {
+          titleRef.current.style.transform = 'perspective(800px) rotateY(360deg)';
+
+          setTimeout(() => {
+            if (titleRef.current) {
+              titleRef.current.style.transition = '';
+              titleRef.current.style.transform = '';
+              setTitleAnimating(false);
+            }
+          }, 600);
+        }
+      }, 300);
+    }
+
+    setIsAIManagerOpen(true);
+  };
+
   return (
     <div className="flex flex-col h-screen" style={{ background: 'var(--bg)' }}>
       <div className="flex-1 flex flex-col min-h-0">

@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvatarWithFallback from './AvatarWithFallback';
 import type { Contact, ContactCategory } from '../../types/contacts';
+import { ROLE_LABELS } from '../../lib/industryRoles';
+import type { IndustryRole } from '../../lib/industryRoles';
 
 const BADGE: Record<ContactCategory, string> = {
   collaborator: 'badge-green',
@@ -18,6 +20,13 @@ const LABEL: Record<ContactCategory, string> = {
 
 export default function ContactCard({ contact }: { contact: Contact }) {
   const navigate = useNavigate();
+
+  const primaryAff = contact.primaryAffiliation;
+  const isActive = !primaryAff?.endDate || new Date(primaryAff.endDate) >= new Date();
+  const roleDisplay = (primaryAff && isActive)
+    ? `${ROLE_LABELS[primaryAff.role as IndustryRole] ?? primaryAff.roleCustom ?? primaryAff.role} at ${primaryAff.orgName}`
+    : contact.role;
+
   return (
     <div
       className="tm-card p-4 cursor-pointer transition-all duration-[120ms] hover:border-border-3"
@@ -29,8 +38,8 @@ export default function ContactCard({ contact }: { contact: Contact }) {
           <p className="text-t1 font-semibold text-sm truncate">
             {contact.firstName} {contact.lastName}
           </p>
-          {contact.role && (
-            <p className="text-t3 text-xs truncate mt-0.5">{contact.role}</p>
+          {roleDisplay && (
+            <p className="text-t3 text-xs truncate mt-0.5">{roleDisplay}</p>
           )}
         </div>
         <span className={`status-badge ${BADGE[contact.category]}`}>

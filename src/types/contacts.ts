@@ -23,11 +23,21 @@ export interface PublisherAffiliation {
   isPrimary: boolean;
 }
 
+export interface PrimaryAffiliation {
+  role: string;
+  roleCustom?: string;
+  orgName: string;
+  endDate?: string;
+}
+
 export interface Contact {
   id: string;
   userId: string;
+  workspaceId: string;
+  visibility: 'workspace' | 'private';
   category: ContactCategory;
   role?: string;
+  primaryAffiliation?: PrimaryAffiliation | null;
   firstName: string;
   lastName: string;
   profilePhotoUrl?: string;
@@ -52,7 +62,9 @@ export interface Contact {
   updatedAt: string;
 }
 
-export type ContactFormData = Omit<Contact, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
+export type ContactFormData = Omit<Contact, 'id' | 'userId' | 'workspaceId' | 'createdAt' | 'updatedAt'> & {
+  visibility?: 'workspace' | 'private';
+};
 
 export interface ContactPaymentInfo {
   id: string;

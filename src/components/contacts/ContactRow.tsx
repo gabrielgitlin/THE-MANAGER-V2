@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvatarWithFallback from './AvatarWithFallback';
 import type { Contact, ContactCategory } from '../../types/contacts';
+import { ROLE_LABELS } from '../../lib/industryRoles';
+import type { IndustryRole } from '../../lib/industryRoles';
 
 const BADGE: Record<ContactCategory, string> = {
   collaborator: 'badge-green',
@@ -15,6 +17,13 @@ const LABEL: Record<ContactCategory, string> = {
 
 export default function ContactRow({ contact }: { contact: Contact }) {
   const navigate = useNavigate();
+
+  const primaryAff = contact.primaryAffiliation;
+  const isActive = !primaryAff?.endDate || new Date(primaryAff.endDate) >= new Date();
+  const roleDisplay = (primaryAff && isActive)
+    ? `${ROLE_LABELS[primaryAff.role as IndustryRole] ?? primaryAff.roleCustom ?? primaryAff.role} at ${primaryAff.orgName}`
+    : contact.role;
+
   return (
     <tr
       className="cursor-pointer transition-all duration-[120ms] hover:bg-surface-2"
@@ -27,7 +36,7 @@ export default function ContactRow({ contact }: { contact: Contact }) {
             <p className="text-t1 text-sm font-medium">
               {contact.firstName} {contact.lastName}
             </p>
-            {contact.role && <p className="text-t3 text-xs">{contact.role}</p>}
+            {roleDisplay && <p className="text-t3 text-xs">{roleDisplay}</p>}
           </div>
         </div>
       </td>

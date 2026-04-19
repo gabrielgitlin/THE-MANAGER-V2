@@ -224,9 +224,7 @@ export default function Catalog() {
         .insert({
           title: formData.title,
           artist_id: artistId,
-          artist: formData.artist || 'Unknown Artist',
-          artist_contacts: JSON.stringify(formData.artistTags),
-          user_id: user.id,
+          artist_projects: [{ id: artistId, name: formData.artist || 'Unknown' }],
           format: formData.format,
           artwork_url: coverUrl,
           release_date: new Date().toISOString().split('T')[0],
@@ -334,9 +332,7 @@ export default function Catalog() {
           demo_status,
           hold_until,
           artist_id,
-          artist,
-          artist_contacts,
-          notes,
+          artist_projects,
           artists (
             name
           )

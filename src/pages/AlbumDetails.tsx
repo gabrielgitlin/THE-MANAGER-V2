@@ -12,9 +12,7 @@ import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import DigitalAssetUploader from '../components/catalog/DigitalAssetUploader';
 import { listAssets as listDigitalAssets } from '../lib/digitalAssetService';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { KebabMenu } from '../components/ui/KebabMenu';
-import { ContactTagInput, type ContactTag } from '../components/ui/ContactTagInput';
-import { syncArtistsToTeam } from '../lib/contacts';
+import { ProjectTagInput, type ProjectTag } from '../components/ui/ProjectTagInput';
 
 
 export default function AlbumDetails() {
@@ -38,6 +36,9 @@ export default function AlbumDetails() {
   const [newGenre, setNewGenre] = useState('');
   const [newCredit, setNewCredit] = useState<{ type: string; credit: CreditShare }>({ type: '', credit: { name: '' } });
   const [isAddingCredit, setIsAddingCredit] = useState(false);
+  const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
+  const [linkedBudget, setLinkedBudget] = useState<Budget | null>(null);
+  const [artistProjects, setArtistProjects] = useState<ProjectTag[]>([]);
   const [isUploadingArtwork, setIsUploadingArtwork] = useState(false);
   const [showStockPicker, setShowStockPicker] = useState(false);
   const artworkInputRef = React.useRef<HTMLInputElement>(null);
@@ -91,8 +92,7 @@ export default function AlbumDetails() {
             label,
             upc,
             artist_id,
-            artist,
-            artist_contacts,
+            artist_projects,
             artists (
               name
             )
@@ -171,16 +171,22 @@ export default function AlbumDetails() {
 
         setAlbum(formattedAlbum);
         setAlbumData(formattedAlbum);
-      } catch (err: any) {
-        console.error('Error fetching album:', err?.message || err, err);
-        // Only fall back to mock catalog when id is a numeric mock id;
-        // DB albums use UUIDs so Number(id) would be NaN and wipe the state.
-        const numericId = Number(id);
-        if (!Number.isNaN(numericId)) {
-          const catalogAlbum = CATALOG.find(a => a.id === numericId);
-          setAlbum(catalogAlbum || null);
-          setAlbumData(catalogAlbum || null);
+
+        // Populate artist_projects tags; fall back to artist_id + name if empty
+        const rawProjects = (albumData as any).artist_projects;
+        if (Array.isArray(rawProjects) && rawProjects.length > 0) {
+          setArtistProjects(rawProjects as ProjectTag[]);
+        } else if (albumData.artist_id) {
+          setArtistProjects([{
+            id: albumData.artist_id as string,
+            name: albumData.artists?.name || 'Unknown Artist',
+          }]);
         }
+      } catch (err) {
+        console.error('Error fetching album:', err);
+        const catalogAlbum = CATALOG.find(a => a.id === Number(id));
+        setAlbum(catalogAlbum || null);
+        setAlbumData(catalogAlbum || null);
       } finally {
         setIsLoading(false);
       }
@@ -272,84 +278,19 @@ export default function AlbumDetails() {
     setEditDraft('');
   };
 
-  const commitEditing = async () => {
-    if (!editingField || !albumData) {
-      cancelEditing();
-      return;
+  const handleSaveAlbum = async () => {
+    if (user && id && albumData) {
+      try {
+        const { error } = await supabase
+          .from('albums')
+          .update({ artist_projects: artistProjects })
+          .eq('id', id);
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error saving artist projects:', err);
+      }
     }
-    const field = editingField;
-    const column = FIELD_TO_COLUMN[field];
-    const rawValue = editDraft.trim();
-
-    // Guard: title, format, and artist are NOT NULL in prod schema. Reject empty saves.
-    if ((field === 'title' || field === 'format' || field === 'artist') && !rawValue) {
-      cancelEditing();
-      return;
-    }
-
-    // Optimistic local update, keyed on the React field name.
-    const patchLocal: Partial<Album> =
-      field === 'releaseDate' ? { releaseDate: rawValue } : { [field]: rawValue } as Partial<Album>;
-    setAlbumData({ ...albumData, ...patchLocal });
-    cancelEditing();
-
-    // Persist. Only attempt when we have a real DB-backed album (UUID id).
-    if (!user || typeof album?.id !== 'string') return;
-    const { error } = await supabase
-      .from('albums')
-      .update({ [column]: rawValue || null })
-      .eq('id', album.id);
-    if (error) {
-      console.error('Error updating album field:', field, error);
-      // Roll back optimistic update
-      setAlbumData({ ...albumData });
-    }
-  };
-
-  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      commitEditing();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      cancelEditing();
-    }
-  };
-
-  // ---- Track reorder via drag-and-drop ----
-  const handleDragStart = (trackId: string | number) => {
-    setDraggedTrackId(trackId);
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetTrackNumber: number) => {
-    e.preventDefault();
-    if (!draggedTrackId || !albumData) return;
-
-    const tracks = [...albumData.tracks];
-    const draggedIdx = tracks.findIndex(t => t.id === draggedTrackId);
-    const targetIdx = tracks.findIndex(t => t.trackNumber === targetTrackNumber);
-    if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) return;
-
-    // Swap track numbers
-    const tmpNum = tracks[draggedIdx].trackNumber;
-    tracks[draggedIdx] = { ...tracks[draggedIdx], trackNumber: tracks[targetIdx].trackNumber };
-    tracks[targetIdx] = { ...tracks[targetIdx], trackNumber: tmpNum };
-    tracks.sort((a, b) => a.trackNumber - b.trackNumber);
-
-    setAlbumData({ ...albumData, tracks });
-  };
-
-  const handleDragEnd = async () => {
-    setDraggedTrackId(null);
-    // Persist the new track order to album_tracks in Supabase
-    if (!user || !albumData) return;
-    for (const track of albumData.tracks) {
-      await supabase
-        .from('album_tracks')
-        .update({ track_number: track.trackNumber })
-        .eq('album_id', albumData.id)
-        .eq('track_id', track.id);
-    }
+    setIsEditingAlbum(false);
   };
 
   const handleSaveTrack = (trackId: number, updates: any) => {
@@ -982,70 +923,19 @@ export default function AlbumDetails() {
                   </h1>
                 )}
               </div>
-
-              {/* Artist */}
-              <div className="mt-1">
-                {isEditingArtist ? (
-                  <div style={{ maxWidth: 360 }}>
-                    <ContactTagInput
-                      value={artistEditTags}
-                      onChange={setArtistEditTags}
-                      placeholder="Search or add artist…"
-                      preferRole="Artist"
-                    />
-                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={() => saveArtistTags(artistEditTags)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setIsEditingArtist(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-1">
-                    {((displayAlbum as any).artistTags as { id?: string; name: string }[] | undefined)?.map((tag, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          padding: '2px 9px',
-                          borderRadius: 9999,
-                          fontSize: 13,
-                          fontWeight: 500,
-                          background: tag.id ? 'var(--surface-4)' : 'var(--surface-3)',
-                          color: tag.id ? 'var(--t1)' : 'var(--t2)',
-                          border: '1px solid var(--border-2)',
-                        }}
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                    <button
-                      type="button"
-                      className="btn-icon"
-                      title="Edit artist"
-                      onClick={() => {
-                        setArtistEditTags(((displayAlbum as any).artistTags as ContactTag[]) ?? []);
-                        setIsEditingArtist(true);
-                      }}
-                      style={{ width: 20, height: 20, minWidth: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <Plus size={12} style={{ color: 'var(--t3)' }} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
+              {isEditingAlbum && (
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Artist Projects
+                  </label>
+                  <ProjectTagInput
+                    value={artistProjects}
+                    onChange={setArtistProjects}
+                    placeholder="Search projects…"
+                    size="sm"
+                  />
+                </div>
+              )}
               <div className="flex items-center gap-4 mt-4">
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   displayAlbum.status === 'Released'
