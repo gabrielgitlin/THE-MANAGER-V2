@@ -21,11 +21,12 @@ export async function ensurePersonalWorkspace(): Promise<string> {
 
   if (error || !created) throw error ?? new Error('workspace create failed');
 
-  await supabase.from('team_members').insert({
+  const { error: memberError } = await supabase.from('team_members').insert({
     team_id: created.id,
     user_id: user.id,
     seat_role: 'owner',
   });
+  if (memberError) throw memberError;
 
   return created.id;
 }
