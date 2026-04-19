@@ -160,61 +160,90 @@ export default function Calculator({ isOpen, onClose }: CalculatorProps) {
 
   if (!isOpen) return null;
 
+  const fnStyle = { background: 'var(--surface-3)', color: 'var(--t2)' };
+  const numStyle = { background: 'var(--surface-2)', color: 'var(--t1)', border: '1px solid var(--border)' };
+  const opStyle = { background: 'var(--brand-2)', color: '#fff' };
+  const eqStyle = { background: 'var(--t1)', color: 'var(--bg)' };
+
   const buttons = [
-    { label: 'C', action: clear, className: 'bg-gray-200 hover:bg-gray-300 text-charcoal' },
-    { label: 'CE', action: clearEntry, className: 'bg-gray-200 hover:bg-gray-300 text-charcoal' },
-    { label: '%', action: inputPercent, className: 'bg-gray-200 hover:bg-gray-300 text-charcoal' },
-    { label: '+/-', action: toggleSign, className: 'bg-gray-200 hover:bg-gray-300 text-charcoal' },
-    { label: '7', action: () => inputDigit('7'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '8', action: () => inputDigit('8'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '9', action: () => inputDigit('9'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '/', action: () => performOperation('/'), className: 'bg-primary hover:bg-primary/90 text-white' },
-    { label: '4', action: () => inputDigit('4'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '5', action: () => inputDigit('5'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '6', action: () => inputDigit('6'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '*', action: () => performOperation('*'), className: 'bg-primary hover:bg-primary/90 text-white' },
-    { label: '1', action: () => inputDigit('1'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '2', action: () => inputDigit('2'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '3', action: () => inputDigit('3'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '-', action: () => performOperation('-'), className: 'bg-primary hover:bg-primary/90 text-white' },
-    { label: '.', action: inputDecimal, className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '0', action: () => inputDigit('0'), className: 'bg-white hover:bg-gray-50 text-charcoal border border-gray-200' },
-    { label: '=', action: calculate, className: 'bg-charcoal hover:bg-charcoal/90 text-white' },
-    { label: '+', action: () => performOperation('+'), className: 'bg-primary hover:bg-primary/90 text-white' },
+    { label: 'C', action: clear, style: fnStyle },
+    { label: 'CE', action: clearEntry, style: fnStyle },
+    { label: '%', action: inputPercent, style: fnStyle },
+    { label: '+/-', action: toggleSign, style: fnStyle },
+    { label: '7', action: () => inputDigit('7'), style: numStyle },
+    { label: '8', action: () => inputDigit('8'), style: numStyle },
+    { label: '9', action: () => inputDigit('9'), style: numStyle },
+    { label: '/', action: () => performOperation('/'), style: opStyle },
+    { label: '4', action: () => inputDigit('4'), style: numStyle },
+    { label: '5', action: () => inputDigit('5'), style: numStyle },
+    { label: '6', action: () => inputDigit('6'), style: numStyle },
+    { label: '*', action: () => performOperation('*'), style: opStyle },
+    { label: '1', action: () => inputDigit('1'), style: numStyle },
+    { label: '2', action: () => inputDigit('2'), style: numStyle },
+    { label: '3', action: () => inputDigit('3'), style: numStyle },
+    { label: '-', action: () => performOperation('-'), style: opStyle },
+    { label: '.', action: inputDecimal, style: numStyle },
+    { label: '0', action: () => inputDigit('0'), style: numStyle },
+    { label: '=', action: calculate, style: eqStyle },
+    { label: '+', action: () => performOperation('+'), style: opStyle },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pointer-events-none">
       <div
-        className="bg-white rounded-lg shadow-2xl w-96 pointer-events-auto border border-gray-200"
-        style={{ marginTop: '80px', marginRight: '16px' }}
+        className="w-96 pointer-events-auto"
+        style={{
+          marginTop: '80px',
+          marginRight: '16px',
+          background: 'var(--surface)',
+          border: '1px solid var(--border-2)',
+        }}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <span className="font-medium text-charcoal text-lg uppercase">Calculator</span>
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <span
+            className="font-medium text-lg uppercase"
+            style={{ color: 'var(--t1)', fontSize: '11px', letterSpacing: '0.08em' }}
+          >
+            Calculator
+          </span>
           <button
             onClick={onClose}
-            className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+            className="p-1.5 transition-colors"
+            style={{ color: 'var(--t3)' }}
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-5">
-          <div className="bg-gray-50 rounded-lg p-5 mb-5">
-            <div className="text-sm text-gray-500 h-5 text-right truncate">
+          <div
+            className="p-5 mb-5"
+            style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+          >
+            <div
+              className="text-sm h-5 text-right truncate"
+              style={{ color: 'var(--t3)' }}
+            >
               {history}
             </div>
-            <div className="text-4xl font-semibold text-charcoal text-right truncate">
+            <div
+              className="text-4xl font-semibold text-right truncate"
+              style={{ color: 'var(--t1)' }}
+            >
               {display}
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             {buttons.map((btn, index) => (
               <button
                 key={index}
                 onClick={btn.action}
-                className={`h-14 rounded-lg font-medium text-lg transition-colors ${btn.className}`}
+                className="h-14 font-medium text-lg transition-opacity hover:opacity-80 active:opacity-60"
+                style={btn.style}
               >
                 {btn.label}
               </button>

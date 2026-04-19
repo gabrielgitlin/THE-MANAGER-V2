@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
-import { FileText, Upload, Plus, X } from 'lucide-react';
 import Modal from '../Modal';
 import PerformanceAgreementEditor from './PerformanceAgreementEditor';
+import AssetInput from '../assets/AssetInput';
+import type { AssetSubmission } from '../../lib/assetSources';
+
+export interface AddDocumentSubmission {
+  type: 'template' | 'upload';
+  // For template flow
+  template?: string;
+  // For upload/link flow
+  file?: File;
+  externalLink?: {
+    sourceType: AssetSubmission['sourceType'];
+    url: string;
+    name?: string;
+  };
+}
 
 interface AddDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { type: 'template' | 'upload', file?: File, template?: string }) => void;
+  onSubmit: (data: AddDocumentSubmission) => void;
 }
 
 const TEMPLATES = [
@@ -55,19 +69,22 @@ const TEMPLATES = [
 export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocumentModalProps) {
   const [step, setStep] = useState<'select' | 'template' | 'upload' | 'edit'>('select');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedFile) {
+  const handleAssetSubmit = (submission: AssetSubmission) => {
+    if (submission.sourceType === 'upload' && submission.file) {
+      onSubmit({ type: 'upload', file: submission.file });
+    } else if (submission.url) {
       onSubmit({
         type: 'upload',
-        file: selectedFile
+        externalLink: {
+          sourceType: submission.sourceType,
+          url: submission.url,
+          name: submission.name,
+        },
       });
-      setSelectedFile(null);
-      setStep('select');
-      onClose();
     }
+    setStep('select');
+    onClose();
   };
 
   const handleTemplateSubmit = (data: any) => {
@@ -88,7 +105,6 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
       onClose={() => {
         setStep('select');
         setSelectedTemplate('');
-        setSelectedFile(null);
         onClose();
       }}
       title="Add New Document"
@@ -97,15 +113,16 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
         <div className="space-y-4">
           <button
             onClick={() => setStep('template')}
-            className="w-full p-6 text-left border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors"
+            className="w-full p-6 text-left border transition-colors"
+            style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
           >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-primary/10 rounded-lg">
-                <FileText className="w-6 h-6 text-primary" />
+                <img src="/TM-File-negro.svg" className="pxi-xl icon-muted" alt="" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Use a Template</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <h3 className="font-medium" style={{ color: 'var(--t1)' }}>Use a Template</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                   Start with a pre-configured document template
                 </p>
               </div>
@@ -114,15 +131,16 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
 
           <button
             onClick={() => setStep('upload')}
-            className="w-full p-6 text-left border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors"
+            className="w-full p-6 text-left border transition-colors"
+            style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
           >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-primary/10 rounded-lg">
-                <Upload className="w-6 h-6 text-primary" />
+                <img src="/TM-Upload-negro.svg" className="pxi-xl icon-muted" alt="" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Upload Document</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <h3 className="font-medium" style={{ color: 'var(--t1)' }}>Upload Document</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                   Upload an existing document from your computer
                 </p>
               </div>
@@ -135,9 +153,11 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
             {TEMPLATES.map((template) => (
               <label
                 key={template.id}
-                className={`block p-4 border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors ${
-                  selectedTemplate === template.id ? 'border-primary bg-primary/5' : ''
-                }`}
+                className="block p-4 border rounded-lg cursor-pointer transition-colors"
+                style={{
+                  borderColor: selectedTemplate === template.id ? 'var(--primary)' : 'var(--border)',
+                  background: selectedTemplate === template.id ? 'var(--surface-2)' : 'var(--surface)'
+                }}
               >
                 <div className="flex items-center gap-3">
                   <input
@@ -149,8 +169,8 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
                     className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">{template.name}</p>
-                    <p className="text-sm text-gray-500">{template.description}</p>
+                    <p className="font-medium" style={{ color: 'var(--t1)' }}>{template.name}</p>
+                    <p className="text-sm" style={{ color: 'var(--t3)' }}>{template.description}</p>
                   </div>
                 </div>
               </label>
@@ -164,14 +184,15 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
                 setStep('select');
                 setSelectedTemplate('');
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium border"
+              style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               Back
             </button>
             <button
               onClick={() => setStep('edit')}
               disabled={!selectedTemplate}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80 disabled:opacity-50"
             >
               Continue
             </button>
@@ -184,72 +205,24 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
           onSave={handleTemplateSubmit}
         />
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <div className="flex flex-col items-center justify-center">
-                <Upload className="w-8 h-8 text-gray-400 mb-4" />
-                <div className="text-center">
-                  {selectedFile ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {selectedFile.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedFile(null)}
-                        className="p-1 text-gray-400 hover:text-gray-500"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm text-gray-500">
-                        Drag and drop your file here, or{' '}
-                        <label className="text-primary hover:text-primary/80 cursor-pointer">
-                          browse
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) setSelectedFile(file);
-                            }}
-                          />
-                        </label>
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        PDF, Word documents up to 10MB
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3">
+        <div className="space-y-4">
+          <AssetInput
+            accept=".pdf,.doc,.docx"
+            onSubmit={handleAssetSubmit}
+            submitLabel="Add Document"
+            resetOnSubmit={false}
+          />
+          <div className="flex justify-start">
             <button
               type="button"
-              onClick={() => {
-                setStep('select');
-                setSelectedFile(null);
-              }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              onClick={() => setStep('select')}
+              className="px-4 py-2 text-sm font-medium border"
+              style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               Back
             </button>
-            <button
-              type="submit"
-              disabled={!selectedFile}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50"
-            >
-              Upload Document
-            </button>
           </div>
-        </form>
+        </div>
       )}
     </Modal>
   );

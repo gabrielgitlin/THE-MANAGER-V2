@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import type { AssetSourceType } from './assetSources';
 
 export type DocumentType = 'contract' | 'license' | 'release' | 'agreement' | 'other';
-export type DocumentStatus = 'Draft' | 'pending_review' | 'pending_signature' | 'active' | 'expired' | 'terminated';
+export type DocumentStatus = 'draft' | 'needs_signature' | 'signed';
 
 export interface LegalDocument {
   id: string;
@@ -165,7 +165,7 @@ export async function createDocument(
       ...documentData,
       artist_id: documentData.artist_id || null,
       // prod check constraint enforces lowercase values
-      status: (documentData.status || 'Draft').toLowerCase(),
+      status: documentData.status || 'draft',
       parties: documentData.parties || [],
       tags: documentData.tags || [],
       version: documentData.version || '1.0',

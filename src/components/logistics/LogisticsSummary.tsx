@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, MapPin, DollarSign, Plane, Building, Users, FileText, Download } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Plane, Building, Users } from 'lucide-react';
 import { LogisticsOverview } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
 import { jsPDF } from 'jspdf';
@@ -169,17 +169,17 @@ export default function LogisticsSummary({ overview }: LogisticsSummaryProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200">
+    <div className="rounded-lg shadow-md" style={{ background: 'var(--surface)' }}>
+      <div className="p-6 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-xl font-medium text-charcoal">{overview.showTitle}</h2>
+            <h2 className="text-xl font-medium" style={{ color: 'var(--t1)' }}>{overview.showTitle}</h2>
             <div className="flex items-center gap-4 mt-1">
-              <div className="flex items-center gap-1 text-sm text-gray-600">
+              <div className="flex items-center gap-1 text-sm" style={{ color: 'var(--t2)' }}>
                 <Calendar className="w-4 h-4 text-primary" />
                 {formatDate(overview.showDate)}
               </div>
-              <div className="flex items-center gap-1 text-sm text-gray-600">
+              <div className="flex items-center gap-1 text-sm" style={{ color: 'var(--t2)' }}>
                 <MapPin className="w-4 h-4 text-primary" />
                 {overview.showVenue}, {overview.showCity}
               </div>
@@ -189,7 +189,7 @@ export default function LogisticsSummary({ overview }: LogisticsSummaryProps) {
             onClick={handleExportPDF}
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
           >
-            <Download className="w-4 h-4" />
+            <img src="/TM-Download-negro.svg" className="pxi-md icon-white" alt="" />
             Export PDF
           </button>
         </div>
@@ -296,10 +296,10 @@ export default function LogisticsSummary({ overview }: LogisticsSummaryProps) {
         </div>
       </div>
 
-      <div className="p-6 border-t border-gray-200 bg-gray-50">
+      <div className="p-6 border-t" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />
             <h3 className="text-lg font-medium text-charcoal uppercase">Cost Summary</h3>
           </div>
           <div className="text-right">

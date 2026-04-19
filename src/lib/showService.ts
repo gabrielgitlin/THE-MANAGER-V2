@@ -117,6 +117,9 @@ export interface ProductionFile {
 export interface ShowWithDetails {
   id: string;
   artist_id: string;
+  artist_name?: string;
+  tour_id?: string;
+  tour_name?: string;
   title: string;
   venue_name: string;
   venue_city: string;
@@ -146,7 +149,7 @@ export async function getShowDetails(showId: string): Promise<ShowWithDetails | 
 
   const { data: show, error: showError } = await supabase
     .from('shows')
-    .select('*')
+    .select('*, artists(name), tours(name)')
     .eq('id', showId)
     .maybeSingle();
 
@@ -221,6 +224,8 @@ export async function getShowDetails(showId: string): Promise<ShowWithDetails | 
 
   const result = {
     ...show,
+    artist_name: show.artists?.name || undefined,
+    tour_name: show.tours?.name || undefined,
     deal: deal || undefined,
     advances: advances || undefined,
     setlist: setlist || undefined,

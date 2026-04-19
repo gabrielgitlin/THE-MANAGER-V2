@@ -40,10 +40,11 @@ export default function BudgetTypeSelector({ onSelect }: BudgetTypeSelectorProps
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-charcoal uppercase">Choose a Starting Point</h3>
+          <h3 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>Choose a Starting Point</h3>
           <button
             onClick={() => setShowTemplateSelection(false)}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm hover:opacity-80"
+            style={{ color: 'var(--t2)' }}
           >
             Back
           </button>
@@ -52,14 +53,15 @@ export default function BudgetTypeSelector({ onSelect }: BudgetTypeSelectorProps
         <div className="grid grid-cols-1 gap-4">
           <button
             onClick={() => onSelect(selectedType)}
-            className="flex items-start gap-4 p-6 text-left border rounded-lg hover:border-primary hover:bg-beige transition-colors w-full"
+            className="flex items-start gap-4 p-6 text-left border hover:opacity-80 transition-opacity w-full"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
           >
-            <div className="flex-shrink-0 p-3 bg-beige rounded-lg">
+            <div className="flex-shrink-0 p-3" style={{ background: 'var(--surface-2)' }}>
               <Music className="w-6 h-6 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-charcoal">Start from Scratch</h3>
-              <p className="text-sm text-gray-500">Create a new budget with no predefined items</p>
+              <h3 className="font-medium" style={{ color: 'var(--t1)' }}>Start from Scratch</h3>
+              <p className="text-sm" style={{ color: 'var(--t2)' }}>Create a new budget with no predefined items</p>
             </div>
           </button>
 
@@ -68,14 +70,15 @@ export default function BudgetTypeSelector({ onSelect }: BudgetTypeSelectorProps
               // This will be handled when you provide the templates
               onSelect(selectedType);
             }}
-            className="flex items-start gap-4 p-6 text-left border rounded-lg hover:border-primary hover:bg-beige transition-colors w-full"
+            className="flex items-start gap-4 p-6 text-left border hover:opacity-80 transition-opacity w-full"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
           >
-            <div className="flex-shrink-0 p-3 bg-beige rounded-lg">
+            <div className="flex-shrink-0 p-3" style={{ background: 'var(--surface-2)' }}>
               <Music className="w-6 h-6 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-charcoal">Use a Template</h3>
-              <p className="text-sm text-gray-500">Start with a predefined budget structure</p>
+              <h3 className="font-medium" style={{ color: 'var(--t1)' }}>Use a Template</h3>
+              <p className="text-sm" style={{ color: 'var(--t2)' }}>Start with a predefined budget structure</p>
             </div>
           </button>
         </div>
@@ -89,14 +92,15 @@ export default function BudgetTypeSelector({ onSelect }: BudgetTypeSelectorProps
         <button
           key={type}
           onClick={() => handleTypeSelect(type)}
-          className="flex flex-col items-start p-6 text-left border rounded-lg hover:border-primary hover:bg-beige transition-colors h-full"
+          className="flex flex-col items-start p-6 text-left border hover:opacity-80 transition-opacity h-full"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
-          <div className="flex-shrink-0 p-3 bg-beige rounded-lg mb-4">
+          <div className="flex-shrink-0 p-3 mb-4" style={{ background: 'var(--surface-2)' }}>
             <Icon className="w-6 h-6 text-primary" />
           </div>
           <div className="min-w-0 w-full">
-            <h3 className="font-medium text-charcoal mb-2">{title}</h3>
-            <p className="text-sm text-gray-500 break-words">{description}</p>
+            <h3 className="font-medium mb-2" style={{ color: 'var(--t1)' }}>{title}</h3>
+            <p className="text-sm break-words" style={{ color: 'var(--t2)' }}>{description}</p>
           </div>
         </button>
       ))}

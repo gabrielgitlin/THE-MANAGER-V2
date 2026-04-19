@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, Link2, Save } from 'lucide-react';
+import { Globe, Link2 } from 'lucide-react';
 import Modal from './Modal';
 
 interface SocialLinks {
@@ -56,85 +56,75 @@ export default function ArtistPortal({ isOpen, onClose, onSave, initialInfo = IN
     <Modal isOpen={isOpen} onClose={onClose} title="Artist Information">
       <div className="space-y-6">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('info')}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'info'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <img src="/tm-vinil-negro_(2).png" alt="Basic" className="w-4 h-4 object-contain" />
-                Basic Information
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('social')}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'social'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                Social & Streaming
-              </div>
-            </button>
-          </nav>
+        <div className="sub-tabs">
+          <button
+            onClick={() => setActiveTab('info')}
+            className={`sub-tab ${activeTab === 'info' ? 'active' : ''}`}
+          >
+            <img src="/tm-vinil-negro_(2).png" alt="" className="tab-icon" style={{ filter: 'invert(1)' }} />
+            Basic Information
+          </button>
+          <button
+            onClick={() => setActiveTab('social')}
+            className={`sub-tab ${activeTab === 'social' ? 'active' : ''}`}
+          >
+            <Globe className="tab-icon" />
+            Social & Streaming
+          </button>
         </div>
 
         {/* Content */}
         {activeTab === 'info' ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Artist Name
               </label>
               <input
                 type="text"
                 value={info.name}
                 onChange={(e) => setInfo({ ...info, name: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Photo URL
               </label>
               <input
                 type="url"
                 value={info.photo}
                 onChange={(e) => setInfo({ ...info, photo: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Biography
               </label>
               <textarea
                 value={info.bio}
                 onChange={(e) => setInfo({ ...info, bio: e.target.value })}
                 rows={4}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Genres
               </label>
               <div className="mt-1 flex flex-wrap gap-2">
                 {info.genre.map((g, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-beige text-black"
+                    className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderRadius: 0 }}
                   >
                     {g}
                   </span>
@@ -146,11 +136,11 @@ export default function ArtistPortal({ isOpen, onClose, onSave, initialInfo = IN
           <div className="space-y-4">
             {Object.entries(info.socialLinks).map(([platform, url]) => (
               <div key={platform}>
-                <label className="block text-sm font-medium text-gray-700 capitalize">
+                <label className="block text-sm font-medium capitalize" style={{ color: 'var(--t1)' }}>
                   {platform.replace(/([A-Z])/g, ' $1').trim()}
                 </label>
-                <div className="mt-1 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                <div className="mt-1 flex shadow-sm">
+                  <span className="inline-flex items-center px-3 border border-r-0" style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t2)', borderRadius: 0 }}>
                     <Link2 className="w-4 h-4" />
                   </span>
                   <input
@@ -163,7 +153,8 @@ export default function ArtistPortal({ isOpen, onClose, onSave, initialInfo = IN
                         [platform]: e.target.value
                       }
                     })}
-                    className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                    className="flex-1 block w-full border-r border-t border-b sm:text-sm"
+                    style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
                     placeholder={`https://${platform}.com/...`}
                   />
                 </div>
@@ -176,15 +167,17 @@ export default function ArtistPortal({ isOpen, onClose, onSave, initialInfo = IN
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium border"
+            style={{ color: 'var(--t1)', backgroundColor: 'var(--surface)', borderColor: 'var(--border)', borderRadius: 0 }}
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white"
+            style={{ backgroundColor: 'var(--brand-1)', borderRadius: 0 }}
           >
-            <Save className="w-4 h-4" />
+            <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-white" alt="" />
             Save Changes
           </button>
         </div>

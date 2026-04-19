@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Disc, Plus, Lock, Globe, Share2, Copy, Trash2, Play, Pause, GripVertical, Pencil, Image, X, Clock, MoreHorizontal, ExternalLink, Upload } from 'lucide-react';
+import { Disc, Plus, Lock, Globe, Play, Pause, Image } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useMusicPlayerStore } from '../../store/musicPlayerStore';
 import ImageCropper from '../ImageCropper';
 import LoadingSpinner from '../LoadingSpinner';
 import Modal from '../Modal';
-import MusicPlayer from '../MusicPlayer';
+import RichTextEditor from './RichTextEditor';
+import { ContactTagInput, type ContactTag } from '../ui/ContactTagInput';
 
 interface Playlist {
   id: string;
@@ -34,6 +35,7 @@ interface PlaylistTrack {
     duration: number;
     audio_url?: string;
     preview_url?: string;
+    spotify_id?: string;
   };
   albums?: {
     title: string;
@@ -51,6 +53,41 @@ interface AvailableTrack {
   albumTitle: string;
   albumCover?: string;
   artist: string;
+  isDemo: boolean;
+}
+
+const STOCK_COVERS = [
+  '/covers/cover-green.jpg',
+  '/covers/cover-dark.jpg',
+  '/covers/cover-light.jpg',
+];
+
+function StockCoverPicker({ selected, onSelect }: { selected: string; onSelect: (url: string) => void }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--t3)', fontFamily: 'var(--font-mono)' }}>
+        Or choose a stock cover
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {STOCK_COVERS.map((url) => (
+          <button
+            key={url}
+            type="button"
+            onClick={() => onSelect(url)}
+            className="w-full aspect-square overflow-hidden transition-all duration-[120ms]"
+            style={{
+              border: selected === url ? '2px solid var(--brand-1)' : '1px solid var(--border)',
+              opacity: selected === url ? 1 : 0.7,
+            }}
+            onMouseEnter={(e) => { if (selected !== url) e.currentTarget.style.opacity = '1'; }}
+            onMouseLeave={(e) => { if (selected !== url) e.currentTarget.style.opacity = '0.7'; }}
+          >
+            <img src={url} alt="" className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function CoverPreview({ url, onRemove }: { url: string; onRemove: () => void }) {
@@ -64,7 +101,7 @@ function CoverPreview({ url, onRemove }: { url: string; onRemove: () => void }) 
 
   if (!url) {
     return (
-      <div className="w-32 h-32 border border-black flex items-center justify-center bg-beige">
+      <div className="w-32 h-32 flex items-center justify-center" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}>
         <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-8 h-8 object-contain opacity-50" />
       </div>
     );
@@ -73,17 +110,18 @@ function CoverPreview({ url, onRemove }: { url: string; onRemove: () => void }) 
   if (imageError) {
     return (
       <div className="relative">
-        <div className="w-32 h-32 border border-black flex flex-col items-center justify-center bg-beige">
+        <div className="w-32 h-32 flex flex-col items-center justify-center" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}>
           <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-6 h-6 object-contain opacity-50 mb-1" />
-          <span className="text-xs text-gray">Failed to load</span>
+          <span className="text-xs" style={{ color: 'var(--t3)' }}>Failed to load</span>
         </div>
         <button
           type="button"
           onClick={onRemove}
-          className="absolute -top-2 -right-2 p-1 bg-black text-white hover:bg-gray-800 transition-colors"
+          className="absolute -top-2 -right-2 p-1 text-white hover:opacity-80 transition-colors"
+          style={{ backgroundColor: 'var(--t1)' }}
           title="Remove cover"
         >
-          <X className="w-4 h-4" />
+          <img src="/TM-Close-negro.svg" className="pxi-md icon-white" alt="" />
         </button>
       </div>
     );
@@ -92,167 +130,26 @@ function CoverPreview({ url, onRemove }: { url: string; onRemove: () => void }) 
   return (
     <div className="relative">
       {isLoading && (
-        <div className="absolute inset-0 w-32 h-32 bg-beige flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-gray border-t-primary animate-spin" style={{ borderRadius: '50%' }} />
+        <div className="absolute inset-0 w-32 h-32 flex items-center justify-center" style={{ backgroundColor: 'var(--surface-2)' }}>
+          <div className="w-6 h-6 border-2 border-t-primary animate-spin" style={{ borderRadius: '50%', borderColor: 'var(--t3)', borderTopColor: 'var(--brand-1)' }} />
         </div>
       )}
       <img
         src={url}
         alt=""
         className={`w-32 h-32 object-cover ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        onLoad={() => setIsLoading(false)}
+        onError={() => { setImageError(true); setIsLoading(false); }}
       />
       <button
         type="button"
         onClick={onRemove}
-        className="absolute -top-2 -right-2 p-1 bg-black text-white hover:bg-gray-800 transition-colors"
+        className="absolute -top-2 -right-2 p-1 text-white hover:opacity-80 transition-colors"
+        style={{ backgroundColor: 'var(--t1)' }}
         title="Remove cover"
       >
-        <X className="w-4 h-4" />
+        <img src="/TM-Close-negro.svg" className="pxi-md icon-white" alt="" />
       </button>
-    </div>
-  );
-}
-
-function PlaylistCard({
-  playlist,
-  isSelected,
-  onSelect,
-  onShare,
-  onEdit,
-  onDelete,
-  onPlay,
-  isCurrentlyPlaying
-}: {
-  playlist: Playlist;
-  isSelected: boolean;
-  onSelect: () => void;
-  onShare: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onPlay: () => void;
-  isCurrentlyPlaying: boolean;
-}) {
-  const [showMenu, setShowMenu] = useState(false);
-
-  return (
-    <div
-      className={`group relative bg-white border transition-all cursor-pointer ${
-        isSelected ? 'border-primary ring-1 ring-primary' : 'border-black hover:border-gray'
-      }`}
-      style={{ borderTopLeftRadius: '16px' }}
-      onClick={onSelect}
-    >
-      <div className="aspect-square relative overflow-hidden bg-beige" style={{ borderTopLeftRadius: '15px' }}>
-        {playlist.cover_url ? (
-          <img
-            src={playlist.cover_url}
-            alt={playlist.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-12 h-12 object-contain opacity-50" />
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay();
-            }}
-            className="w-14 h-14 bg-primary text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105 hover:bg-green"
-            style={{ borderRadius: '50%' }}
-          >
-            {isCurrentlyPlaying ? (
-              <Pause className="w-6 h-6 fill-white" />
-            ) : (
-              <Play className="w-6 h-6 fill-white ml-0.5" />
-            )}
-          </button>
-        </div>
-
-        <div className="absolute top-2 right-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMenu(!showMenu);
-            }}
-            className="p-1.5 bg-white/90 text-black hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
-
-          {showMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(false);
-                }}
-              />
-              <div className="absolute right-0 mt-1 w-40 bg-white border border-black z-20">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-beige flex items-center gap-2"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-beige flex items-center gap-2"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Share
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-beige flex items-center gap-2 text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="absolute bottom-2 left-2 flex items-center gap-1">
-          {playlist.password_hash ? (
-            <span className="px-2 py-0.5 bg-black/80 text-white text-xs flex items-center gap-1">
-              <Lock className="w-3 h-3" />
-              Protected
-            </span>
-          ) : playlist.is_public ? (
-            <span className="px-2 py-0.5 bg-primary text-white text-xs flex items-center gap-1">
-              <Globe className="w-3 h-3" />
-              Public
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="p-3">
-        <h3 className="font-medium text-black truncate">{playlist.title}</h3>
-        <p className="text-xs text-gray mt-1">
-          {playlist.track_count} {playlist.track_count === 1 ? 'track' : 'tracks'}
-          {playlist.total_duration ? ` • ${Math.floor(playlist.total_duration / 60)} min` : ''}
-        </p>
-      </div>
     </div>
   );
 }
@@ -290,6 +187,7 @@ export default function PlaylistsTab() {
     is_public: false,
     password: '',
     cover_url: '',
+    creators: [] as ContactTag[],
   });
 
   const [editPlaylist, setEditPlaylist] = useState({
@@ -298,6 +196,7 @@ export default function PlaylistsTab() {
     is_public: false,
     password: '',
     cover_url: '',
+    creators: [] as ContactTag[],
   });
 
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -352,7 +251,7 @@ export default function PlaylistsTab() {
             .order('position', { ascending: true });
 
           const tracksWithAlbums = await Promise.all(
-            (tracksData || []).map(async (pt: any) => {
+            (tracksData || []).filter((pt: any) => pt.tracks != null).map(async (pt: any) => {
               const { data: albumTracks } = await supabase
                 .from('album_tracks')
                 .select(`
@@ -376,7 +275,7 @@ export default function PlaylistsTab() {
           );
 
           const trackCount = tracksData?.length || 0;
-          const totalDuration = tracksData?.reduce((sum, pt: any) => sum + (pt.tracks?.duration || 0), 0) || 0;
+          const totalDuration = tracksData?.reduce((sum, pt: any) => sum + (Number(pt.tracks?.duration) || 0), 0) || 0;
 
           return {
             ...playlist,
@@ -416,7 +315,8 @@ export default function PlaylistsTab() {
             title,
             duration,
             audio_url,
-            preview_url
+            preview_url,
+            spotify_id
           )
         `)
         .eq('playlist_id', playlistId)
@@ -456,35 +356,65 @@ export default function PlaylistsTab() {
 
   const fetchAvailableTracks = async () => {
     try {
-      const { data: albumTracksData, error } = await supabase
-        .from('album_tracks')
+      // Step 1: fetch all albums (same query pattern as fetchCatalog in Catalog.tsx)
+      const { data: albums, error: albumsError } = await supabase
+        .from('albums')
         .select(`
-          tracks (
-            id,
-            title,
-            duration
-          ),
-          albums (
-            title,
-            cover_url,
-            artists (
-              name
-            )
+          id,
+          title,
+          artwork_url,
+          status,
+          artists (
+            name
           )
-        `);
+        `)
+        .order('release_date', { ascending: false });
 
-      if (error) throw error;
+      if (albumsError) {
+        console.error('Error fetching albums for tracks picker:', albumsError);
+        return;
+      }
 
-      const tracks = (albumTracksData || []).map((at: any) => ({
-        id: at.tracks.id,
-        title: at.tracks.title,
-        duration: at.tracks.duration,
-        albumTitle: at.albums?.title || 'Unknown Album',
-        albumCover: at.albums?.cover_url,
-        artist: at.albums?.artists?.name || 'Unknown Artist',
-      }));
+      // Step 2: for each album, fetch its tracks via album_tracks (same as fetchCatalog)
+      const trackMap = new Map<string, AvailableTrack>();
 
-      setAvailableTracks(tracks);
+      await Promise.all(
+        (albums || []).map(async (album) => {
+          const { data: albumTracks, error: tracksError } = await supabase
+            .from('album_tracks')
+            .select(`
+              tracks (
+                id,
+                title,
+                duration
+              )
+            `)
+            .eq('album_id', album.id);
+
+          if (tracksError) {
+            console.error('Error fetching tracks for album', album.id, tracksError);
+            return;
+          }
+
+          const artistName = (album as any).artists?.name || 'Unknown Artist';
+
+          for (const at of albumTracks || []) {
+            const t = (at as any).tracks;
+            if (!t?.id || trackMap.has(t.id)) continue;
+            trackMap.set(t.id, {
+              id: t.id,
+              title: t.title,
+              duration: Number(t.duration) || 0,
+              albumTitle: album.title,
+              albumCover: (album as any).artwork_url,
+              artist: artistName,
+              isDemo: album.status === 'demo',
+            });
+          }
+        })
+      );
+
+      setAvailableTracks(Array.from(trackMap.values()));
     } catch (error) {
       console.error('Error fetching available tracks:', error);
     }
@@ -501,6 +431,7 @@ export default function PlaylistsTab() {
         is_public: newPlaylist.is_public,
         cover_url: newPlaylist.cover_url.trim() || null,
         user_id: user.id,
+        creator_contacts: JSON.stringify(newPlaylist.creators),
       };
 
       if (newPlaylist.password) {
@@ -518,7 +449,7 @@ export default function PlaylistsTab() {
 
       if (error) throw error;
 
-      setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+      setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '', creators: [] });
       setIsCreateModalOpen(false);
       fetchPlaylists();
     } catch (error) {
@@ -609,16 +540,43 @@ export default function PlaylistsTab() {
     setIsShareModalOpen(true);
   };
 
+  const handleEnableSharing = async () => {
+    if (!selectedPlaylist) return;
+    try {
+      const { error } = await supabase
+        .from('playlists')
+        .update({ is_public: true })
+        .eq('id', selectedPlaylist.id);
+
+      if (error) throw error;
+
+      const updated = { ...selectedPlaylist, is_public: true };
+      setSelectedPlaylist(updated);
+      const baseUrl = window.location.origin;
+      setShareLink(`${baseUrl}/playlist/${updated.share_token}`);
+      fetchPlaylists();
+    } catch (error) {
+      console.error('Error enabling sharing:', error);
+      alert('Failed to enable sharing');
+    }
+  };
+
   const handleOpenEditModal = (playlist?: Playlist) => {
     const target = playlist || selectedPlaylist;
     if (!target) return;
     setSelectedPlaylist(target);
+    let existingCreators: ContactTag[] = [];
+    try {
+      const raw = (target as any).creator_contacts;
+      if (raw) existingCreators = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    } catch { /* silent */ }
     setEditPlaylist({
       title: target.title,
       description: target.description || '',
       is_public: target.is_public,
       password: '',
       cover_url: target.cover_url || '',
+      creators: existingCreators,
     });
     setIsEditModalOpen(true);
   };
@@ -633,6 +591,7 @@ export default function PlaylistsTab() {
         description: editPlaylist.description.trim() || null,
         is_public: editPlaylist.is_public,
         cover_url: editPlaylist.cover_url.trim() || null,
+        creator_contacts: JSON.stringify(editPlaylist.creators),
       };
 
       if (editPlaylist.password) {
@@ -770,7 +729,8 @@ export default function PlaylistsTab() {
           title,
           duration,
           audio_url,
-          preview_url
+          preview_url,
+          spotify_id
         )
       `)
       .eq('playlist_id', playlist.id)
@@ -781,7 +741,7 @@ export default function PlaylistsTab() {
           return;
         }
 
-        const tracksWithAlbums = await Promise.all(
+        const allTracks = await Promise.all(
           data.map(async (pt: any) => {
             const { data: albumData } = await supabase
               .from('album_tracks')
@@ -795,21 +755,15 @@ export default function PlaylistsTab() {
               title: pt.tracks.title,
               artist: albumData?.albums?.artists?.name || playlist.title,
               duration: formatDuration(pt.tracks.duration || 0),
-              audioUrl: pt.tracks.audio_url || pt.tracks.preview_url,
+              audioUrl: pt.tracks.audio_url || pt.tracks.preview_url || undefined,
               coverArt: albumData?.albums?.cover_url || playlist.cover_url,
               trackNumber: pt.position + 1,
+              spotifyId: pt.tracks.spotify_id || undefined,
             };
           })
         );
 
-        const tracksWithAudio = tracksWithAlbums.filter(t => t.audioUrl);
-
-        if (tracksWithAudio.length === 0) {
-          alert('No tracks with audio available in this playlist');
-          return;
-        }
-
-        playAlbum(tracksWithAudio);
+        playAlbum(allTracks);
       });
   };
 
@@ -818,24 +772,18 @@ export default function PlaylistsTab() {
 
     setCurrentPlaylistId(selectedPlaylist.id);
 
-    const tracks = playlistTracks.map((pt) => ({
+    const allTracks = playlistTracks.map((pt) => ({
       id: pt.tracks.id as any,
       title: pt.tracks.title,
       artist: pt.albums?.[0]?.artists?.name || 'Unknown Artist',
       duration: formatDuration(pt.tracks.duration || 0),
-      audioUrl: pt.tracks.audio_url || pt.tracks.preview_url,
+      audioUrl: pt.tracks.audio_url || pt.tracks.preview_url || undefined,
       coverArt: pt.albums?.[0]?.cover_url || selectedPlaylist.cover_url,
       trackNumber: pt.position + 1,
+      spotifyId: pt.tracks.spotify_id || undefined,
     }));
 
-    const tracksWithAudio = tracks.filter(t => t.audioUrl);
-
-    if (tracksWithAudio.length === 0) {
-      alert('No tracks with audio available');
-      return;
-    }
-
-    playAlbum(tracksWithAudio, Math.min(trackIndex, tracksWithAudio.length - 1));
+    playAlbum(allTracks, trackIndex);
   };
 
   const handleDragStart = (trackId: string) => {
@@ -912,241 +860,338 @@ export default function PlaylistsTab() {
 
   return (
     <div>
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
+      <div className="overflow-hidden" style={{ backgroundColor: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+        <div className="p-6" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center justify-between">
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 flex items-center gap-2"
+              className="btn btn-ghost btn-icon"
+              title="Create Playlist"
             >
               <Plus className="w-4 h-4" />
-              Create Playlist
             </button>
           </div>
         </div>
 
-        <div className="divide-y divide-gray-200">
+        <div style={{ borderColor: 'var(--border)' }}>
           {playlists.length === 0 ? (
             <div className="p-12 text-center">
               <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="mx-auto h-12 w-12 object-contain opacity-40" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No playlists yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No playlists yet</h3>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                 Get started by creating a new playlist
               </p>
             </div>
           ) : (
-            playlists.map((playlist) => {
-              return (
-                <div key={playlist.id} className="p-6">
-                  <div className="flex items-start gap-6 mb-4">
-                    <div className="flex-shrink-0 w-48">
-                      <div className="w-48 h-48 relative group mb-2">
-                        {playlist.cover_url ? (
-                          <>
-                            <button
-                              onClick={() => navigate(`/playlist/${playlist.share_token}`)}
-                              className="w-full h-full rounded-lg overflow-hidden bg-gray-100 transition-transform duration-200 hover:scale-105"
-                            >
-                              <img
-                                src={playlist.cover_url}
-                                alt={`${playlist.title} cover`}
-                                className="w-full h-full object-cover"
-                              />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePlayPlaylist(playlist);
-                              }}
-                              style={{ borderRadius: '50%' }}
-                              className="absolute bottom-2 right-2 w-12 h-12 aspect-square bg-blue-600 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-blue-700 ring-2 ring-white overflow-hidden"
-                            >
-                              {currentPlaylistId === playlist.id && isPlaying ? (
-                                <Pause className="w-6 h-6 text-white fill-white" />
-                              ) : (
-                                <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-                              )}
-                            </button>
-                          </>
-                        ) : (
-                          <div className="w-full h-full rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                            <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-8 h-8 object-contain opacity-40" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 text-center uppercase tracking-wide">
-                        {playlist.track_count} {playlist.track_count === 1 ? 'song' : 'songs'}
-                        {playlist.total_duration ? `, ${Math.floor(playlist.total_duration / 60)} minutes` : ''}
-                      </p>
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
+            playlists.map((playlist) => (
+              <div key={playlist.id} className="p-6">
+                <div className="flex items-start gap-6 mb-4">
+                  <div className="flex-shrink-0 w-48">
+                    <div className="w-48 h-48 relative group mb-2">
+                      {playlist.cover_url ? (
+                        <>
                           <button
                             onClick={() => navigate(`/playlist/${playlist.share_token}`)}
-                            className="text-lg font-medium text-gray-900 hover:text-primary"
+                            className="w-full h-full overflow-hidden transition-transform duration-200 hover:scale-105"
+                            style={{ backgroundColor: 'var(--surface-2)' }}
                           >
-                            {playlist.title}
+                            <img
+                              src={playlist.cover_url}
+                              alt={`${playlist.title} cover`}
+                              className="w-full h-full object-cover"
+                            />
                           </button>
-                          {playlist.description && (
-                            <p className="text-sm text-gray-500 mt-1">{playlist.description}</p>
-                          )}
-                          <p className="text-sm text-gray-500 mt-1">
-                            {playlist.is_public && (
-                              <span className="inline-flex items-center gap-1">
-                                <Globe className="w-4 h-4" />
-                                Public
-                              </span>
-                            )}
-                            {playlist.password_hash && (
-                              <span className="inline-flex items-center gap-1 ml-3">
-                                <Lock className="w-4 h-4" />
-                                Protected
-                              </span>
-                            )}
-                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePlayPlaylist(playlist);
+                            }}
+                            className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:opacity-80"
+                            style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
+                          >
+                            <img src="/pixel-play.svg" alt="Play" className="w-12 h-12" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="w-full h-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--surface-2)' }}>
+                          <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-8 h-8 object-contain opacity-40" />
                         </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-center uppercase tracking-wide" style={{ color: 'var(--t3)' }}>
+                      {playlist.track_count} {playlist.track_count === 1 ? 'song' : 'songs'}
+                      {playlist.total_duration ? `, ${Math.floor(playlist.total_duration / 60)} minutes` : ''}
+                    </p>
+                  </div>
 
-                        <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <button
+                          onClick={() => navigate(`/playlist/${playlist.share_token}`)}
+                          className="text-lg font-medium"
+                          style={{ color: 'var(--t1)' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--brand-1)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--t1)')}
+                        >
+                          {playlist.title}
+                        </button>
+                        {/* Creator pills — click to edit */}
+                        {(() => {
+                          let creators: ContactTag[] = [];
+                          try {
+                            const raw = (playlist as any).creator_contacts;
+                            if (raw && raw.length > 0) creators = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                          } catch { /* silent */ }
+                          return (
+                            <div
+                              className="flex flex-wrap gap-1 mt-0.5 cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); handleOpenEditModal(playlist); }}
+                              title="Click to edit creators"
+                            >
+                              {creators.length > 0 ? creators.map((tag, i) => (
+                                <span
+                                  key={i}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '1px 7px',
+                                    borderRadius: 9999,
+                                    fontSize: 11,
+                                    fontWeight: 500,
+                                    background: tag.id ? 'var(--surface-4)' : 'var(--surface-3)',
+                                    color: tag.id ? 'var(--t1)' : 'var(--t2)',
+                                    border: '1px solid var(--border-2)',
+                                  }}
+                                >
+                                  {tag.name}
+                                </span>
+                              )) : (
+                                <span style={{ fontSize: 11, color: 'var(--t3)' }}>+ Add creators</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                        {playlist.description && (
+                          <div
+                            className="text-sm mt-1"
+                            style={{ color: 'var(--t3)' }}
+                            dangerouslySetInnerHTML={{ __html: playlist.description }}
+                          />
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          {playlist.is_public && (
+                            <span className="inline-flex items-center gap-1 text-sm" style={{ color: 'var(--t3)' }}>
+                              <Globe className="w-4 h-4" />
+                              {playlist.password_hash ? 'Personal' : 'Public'}
+                            </span>
+                          )}
+                          {playlist.password_hash && (
+                            <span className="inline-flex items-center gap-1 text-sm" style={{ color: 'var(--t3)' }}>
+                              <Lock className="w-4 h-4" />
+                              Protected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPlaylist(playlist);
+                            setPlaylistTracks(playlist.tracks || []);
+                            fetchAvailableTracks();
+                            setTimeout(() => setIsAddTracksModalOpen(true), 100);
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                          style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', border: '1px solid var(--border)' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Add Tracks
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditModal(playlist);
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                          style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', border: '1px solid var(--border)' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                        >
+                          <img src="/TM-Pluma-negro.png" className="pxi-sm icon-muted" alt="" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSharePlaylist(playlist);
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                          style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', border: '1px solid var(--border)' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                        >
+                          <img src="/TM-Share-negro.svg" className="pxi-sm icon-muted" alt="" />
+                          Share
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePlaylist(playlist.id);
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors text-red-600"
+                          style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                        >
+                          <img src="/TM-Trash-negro.svg" className="pxi-sm icon-danger" alt="" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 mt-4">
+                      {(playlist.tracks || []).length === 0 ? (
+                        <div className="text-center py-8" style={{ backgroundColor: 'var(--surface-2)', border: '2px dashed var(--border)' }}>
+                          <img src="/tm-vinil-negro_(2).png" alt="Empty" className="mx-auto h-8 w-8 object-contain opacity-30 mb-2" />
+                          <p className="text-sm mb-3" style={{ color: 'var(--t3)' }}>No tracks yet</p>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPlaylist(playlist);
-                              setPlaylistTracks(playlist.tracks || []);
-                              setTimeout(() => setIsAddTracksModalOpen(true), 100);
+                              setPlaylistTracks([]);
+                              fetchAvailableTracks();
+                            setTimeout(() => setIsAddTracksModalOpen(true), 100);
                             }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm transition-colors"
+                            style={{ backgroundColor: 'var(--brand-1)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-2)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-1)')}
                           >
                             <Plus className="w-4 h-4" />
-                            Add Tracks
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenEditModal(playlist);
-                            }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
-                          >
-                            <Pencil className="w-4 h-4" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSharePlaylist(playlist);
-                            }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            Share
+                            Add Tracks to Playlist
                           </button>
                         </div>
-                      </div>
-
-                      <div className="space-y-1 mt-4">
-                        {(playlist.tracks || []).length === 0 ? (
-                          <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                            <img src="/tm-vinil-negro_(2).png" alt="Empty" className="mx-auto h-8 w-8 object-contain opacity-30 mb-2" />
-                            <p className="text-sm text-gray-500 mb-3">No tracks yet</p>
+                      ) : (
+                        (playlist.tracks || []).map((pt) => {
+                          const isTrackActive = currentPlaylistId === playlist.id
+                            && playerTracks[currentTrackIndex]
+                            && String(playerTracks[currentTrackIndex].id) === String(pt.tracks.id);
+                          return (
+                          <div
+                            key={pt.id}
+                            className="flex items-center gap-4 p-2 transition-colors group"
+                            style={{ backgroundColor: 'var(--surface-2)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                          >
+                            <span className="w-8 flex items-center justify-end">
+                              {isTrackActive ? (
+                                <span className={`eq-bars${isPlaying ? '' : ' paused'}`}>
+                                  <span className="eq-bar" />
+                                  <span className="eq-bar" />
+                                  <span className="eq-bar" />
+                                </span>
+                              ) : (
+                                <span className="text-sm" style={{ color: 'var(--t3)' }}>
+                                  {pt.position + 1}.
+                                </span>
+                              )}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setSelectedPlaylist(playlist);
+                                setPlaylistTracks(playlist.tracks || []);
+                                setTimeout(() => {
+                                  handlePlayFromTrack(playlist.tracks?.findIndex(t => t.id === pt.id) || 0);
+                                }, 100);
+                              }}
+                              className="flex-1 text-left text-sm font-medium"
+                              style={{ color: isTrackActive ? 'var(--brand-1)' : 'var(--t1)' }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--brand-1)')}
+                              onMouseLeave={(e) => { if (!isTrackActive) e.currentTarget.style.color = 'var(--t1)'; }}
+                            >
+                              {pt.tracks.title}
+                            </button>
+                            <span className="text-sm" style={{ color: isTrackActive ? 'var(--brand-1)' : 'var(--t3)' }}>{formatDuration(pt.tracks.duration || 0)}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedPlaylist(playlist);
-                                setPlaylistTracks([]);
-                                setTimeout(() => setIsAddTracksModalOpen(true), 100);
+                                if (confirm('Remove this track from the playlist?')) {
+                                  handleRemoveTrack(pt.id);
+                                }
                               }}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-green transition-colors text-sm"
+                              className="opacity-0 group-hover:opacity-100 p-1 text-red-600 transition-all"
+                              title="Remove track"
                             >
-                              <Plus className="w-4 h-4" />
-                              Add Tracks to Playlist
+                              <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
                             </button>
                           </div>
-                        ) : (
-                          (playlist.tracks || []).map((pt) => (
-                            <div
-                              key={pt.id}
-                              className="flex items-center gap-4 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
-                            >
-                              <span className="w-8 text-sm text-gray-500 text-right">
-                                {pt.position + 1}.
-                              </span>
-                              <button
-                                onClick={() => {
-                                  setSelectedPlaylist(playlist);
-                                  setPlaylistTracks(playlist.tracks || []);
-                                  setTimeout(() => {
-                                    handlePlayFromTrack(playlist.tracks?.findIndex(t => t.id === pt.id) || 0);
-                                  }, 100);
-                                }}
-                                className="flex-1 text-left text-sm text-gray-900 hover:text-primary"
-                              >
-                                {pt.tracks.title}
-                              </button>
-                              <span className="text-sm text-gray-500">{formatDuration(pt.tracks.duration || 0)}</span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (confirm('Remove this track from the playlist?')) {
-                                    handleRemoveTrack(pt.id);
-                                  }
-                                }}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-red-600 hover:bg-red-50 transition-all"
-                                title="Remove track"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
       </div>
 
+      {/* Create Playlist Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => {
           setIsCreateModalOpen(false);
-          setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+          setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '', creators: [] });
         }}
         title="Create New Playlist"
       >
         <form onSubmit={handleCreatePlaylist} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
               Playlist Name *
             </label>
             <input
               type="text"
               value={newPlaylist.title}
               onChange={(e) => setNewPlaylist({ ...newPlaylist, title: e.target.value })}
-              className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 focus:ring-1"
+              style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
               placeholder="My Awesome Playlist"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Description
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
+              Creators
             </label>
-            <textarea
-              value={newPlaylist.description}
-              onChange={(e) => setNewPlaylist({ ...newPlaylist, description: e.target.value })}
-              className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
-              placeholder="Optional description..."
-              rows={3}
+            <ContactTagInput
+              value={newPlaylist.creators}
+              onChange={(tags) => setNewPlaylist({ ...newPlaylist, creators: tags })}
+              placeholder="Tag artists or collaborators…"
+              preferRole="Artist"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black mb-2">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
+              Description
+            </label>
+            <RichTextEditor
+              value={newPlaylist.description}
+              onChange={(html) => setNewPlaylist({ ...newPlaylist, description: html })}
+              placeholder="Optional description..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
               Cover Image
             </label>
             <div className="flex items-start gap-4">
@@ -1156,7 +1201,7 @@ export default function PlaylistsTab() {
                   onRemove={() => setNewPlaylist({ ...newPlaylist, cover_url: '' })}
                 />
               ) : (
-                <div className="w-32 h-32 border border-black flex items-center justify-center bg-beige">
+                <div className="w-32 h-32 flex items-center justify-center" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}>
                   <img src="/tm-vinil-negro_(2).png" alt="Playlist" className="w-8 h-8 object-contain opacity-50" />
                 </div>
               )}
@@ -1172,53 +1217,61 @@ export default function PlaylistsTab() {
                   type="button"
                   onClick={() => createFileInputRef.current?.click()}
                   disabled={isUploadingCover}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-black bg-white text-black hover:bg-beige transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 transition-colors disabled:opacity-50"
+                  style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
                 >
                   {isUploadingCover ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-gray border-t-primary animate-spin" style={{ borderRadius: '50%' }} />
+                      <div className="w-4 h-4 border-2 animate-spin" style={{ borderRadius: '50%', borderColor: 'var(--t3)', borderTopColor: 'var(--brand-1)' }} />
                       Uploading...
                     </>
                   ) : (
                     <>
-                      <Upload className="w-4 h-4" />
+                      <img src="/TM-Upload-negro.svg" className="pxi-md icon-muted" alt="" />
                       {newPlaylist.cover_url ? 'Change Image' : 'Add Cover'}
                     </>
                   )}
                 </button>
-                <p className="text-xs text-gray mt-2">
+                <p className="text-xs mt-2" style={{ color: 'var(--t3)' }}>
                   Square image recommended. JPEG, PNG, or WebP.
                 </p>
               </div>
             </div>
+            <StockCoverPicker
+              selected={newPlaylist.cover_url}
+              onSelect={(url) => setNewPlaylist({ ...newPlaylist, cover_url: url })}
+            />
           </div>
 
-          <div className="border-t border-gray/30 pt-4">
+          <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={newPlaylist.is_public}
                 onChange={(e) => setNewPlaylist({ ...newPlaylist, is_public: e.target.checked })}
-                className="border-black text-primary focus:ring-primary"
+                style={{ accentColor: 'var(--brand-1)' }}
               />
-              <span className="text-sm text-black">Make playlist shareable</span>
+              <span className="text-sm" style={{ color: 'var(--t1)' }}>Enable sharing</span>
             </label>
           </div>
 
           {newPlaylist.is_public && (
             <div>
-              <label className="block text-sm font-medium text-black mb-1">
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
                 Password Protection (Optional)
               </label>
               <input
                 type="password"
                 value={newPlaylist.password}
                 onChange={(e) => setNewPlaylist({ ...newPlaylist, password: e.target.value })}
-                className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
-                placeholder="Leave empty for no password"
+                className="w-full px-3 py-2 focus:ring-1"
+                style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
+                placeholder="Leave empty for public access"
               />
-              <p className="text-xs text-gray mt-1">
-                Add a password to protect your shared playlist
+              <p className="text-xs mt-1" style={{ color: 'var(--t3)' }}>
+                Add a password to restrict access (personal sharing), or leave empty for public access
               </p>
             </div>
           )}
@@ -1230,13 +1283,19 @@ export default function PlaylistsTab() {
                 setIsCreateModalOpen(false);
                 setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
               }}
-              className="px-4 py-2 text-black hover:bg-beige transition-colors"
+              className="px-4 py-2 transition-colors"
+              style={{ color: 'var(--t1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary text-white hover:bg-green transition-colors"
+              className="px-4 py-2 text-white transition-colors"
+              style={{ backgroundColor: 'var(--brand-1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-1)')}
             >
               Create Playlist
             </button>
@@ -1244,6 +1303,7 @@ export default function PlaylistsTab() {
         </form>
       </Modal>
 
+      {/* Share Modal */}
       <Modal
         isOpen={isShareModalOpen}
         onClose={() => {
@@ -1253,37 +1313,61 @@ export default function PlaylistsTab() {
         title="Share Playlist"
       >
         <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray mb-3">
-              {selectedPlaylist?.password_hash
-                ? 'Share this link with others. They will need to enter the password to access the playlist.'
-                : selectedPlaylist?.is_public
-                ? 'Anyone with this link can view and listen to this playlist.'
-                : 'This playlist is private. Enable sharing in the edit settings to get a shareable link.'}
-            </p>
-
-            {selectedPlaylist?.is_public && (
+          {!selectedPlaylist?.is_public ? (
+            <div>
+              <p className="text-sm mb-4" style={{ color: 'var(--t3)' }}>
+                This playlist is private. Enable sharing to generate a shareable link.
+              </p>
+              <button
+                onClick={handleEnableSharing}
+                className="px-4 py-2 text-white flex items-center gap-2 transition-colors"
+                style={{ backgroundColor: 'var(--brand-1)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-1)')}
+              >
+                <Globe className="w-4 h-4" />
+                Enable Sharing
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                {selectedPlaylist?.password_hash ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', border: '1px solid var(--border)' }}>
+                    <Lock className="w-3 h-3" />
+                    Personal (Password Protected)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', border: '1px solid var(--border)' }}>
+                    <Globe className="w-3 h-3" />
+                    Public (No Password)
+                  </span>
+                )}
+              </div>
+              <p className="text-sm mb-3" style={{ color: 'var(--t3)' }}>
+                {selectedPlaylist?.password_hash
+                  ? 'Share this link with others. They will need to enter the password to access the playlist.'
+                  : 'Anyone with this link can view and listen to this playlist.'}
+              </p>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={shareLink}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-black bg-beige text-sm"
+                  className="flex-1 px-3 py-2 text-sm"
+                  style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface-2)', color: 'var(--t1)' }}
                 />
                 <button
                   onClick={handleCopyLink}
-                  className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-                    copiedLink
-                      ? 'bg-primary text-white'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  }`}
+                  className="px-4 py-2 flex items-center gap-2 transition-colors text-white"
+                  style={{ backgroundColor: copiedLink ? 'var(--brand-1)' : 'var(--t1)' }}
                 >
-                  <Copy className="w-4 h-4" />
+                  <img src="/TM-Copy-negro.svg" className="pxi-md icon-white" alt="" />
                   {copiedLink ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="flex justify-end pt-4">
             <button
@@ -1291,7 +1375,10 @@ export default function PlaylistsTab() {
                 setIsShareModalOpen(false);
                 setCopiedLink(false);
               }}
-              className="px-4 py-2 text-black hover:bg-beige transition-colors"
+              className="px-4 py-2 transition-colors"
+              style={{ color: 'var(--t1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               Close
             </button>
@@ -1299,6 +1386,7 @@ export default function PlaylistsTab() {
         </div>
       </Modal>
 
+      {/* Add Tracks Modal */}
       <Modal
         isOpen={isAddTracksModalOpen}
         onClose={() => {
@@ -1315,13 +1403,14 @@ export default function PlaylistsTab() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tracks..."
-              className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 focus:ring-1"
+              style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
             />
           </div>
 
-          <div className="max-h-96 overflow-y-auto border border-black">
+          <div className="max-h-96 overflow-y-auto" style={{ border: '1px solid var(--border)' }}>
             {filteredTracks.length === 0 ? (
-              <div className="p-8 text-center text-gray">
+              <div className="p-8 text-center" style={{ color: 'var(--t3)' }}>
                 {searchQuery ? 'No tracks match your search' : 'No tracks available'}
               </div>
             ) : (
@@ -1332,13 +1421,19 @@ export default function PlaylistsTab() {
                 return (
                   <div
                     key={track.id}
-                    className={`flex items-center gap-3 p-3 border-b border-gray/30 last:border-b-0 transition-all ${
+                    className={`flex items-center gap-3 p-3 transition-all ${
                       isAdded
-                        ? 'bg-beige opacity-50 cursor-not-allowed'
-                        : isSelected
-                        ? 'bg-light-blue'
-                        : 'bg-white hover:bg-beige cursor-pointer'
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer'
                     }`}
+                    style={{
+                      backgroundColor: isAdded
+                        ? 'var(--surface-2)'
+                        : isSelected
+                        ? 'var(--surface-3)'
+                        : 'var(--surface)',
+                      borderBottom: '1px solid var(--border)',
+                    }}
                     onClick={() => {
                       if (isAdded) return;
                       if (isSelected) {
@@ -1347,13 +1442,20 @@ export default function PlaylistsTab() {
                         setSelectedTracks([...selectedTracks, track.id]);
                       }
                     }}
+                    onMouseEnter={(e) => {
+                      if (!isAdded && !isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isAdded && !isSelected) e.currentTarget.style.backgroundColor = 'var(--surface)';
+                    }}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       disabled={isAdded}
                       onChange={() => {}}
-                      className="border-black text-primary focus:ring-primary disabled:opacity-50"
+                      style={{ accentColor: 'var(--brand-1)' }}
+                      className="disabled:opacity-50"
                     />
                     {track.albumCover && (
                       <img
@@ -1363,16 +1465,24 @@ export default function PlaylistsTab() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-black truncate">{track.title}</p>
-                      <p className="text-xs text-gray truncate">
-                        {track.artist} • {track.albumTitle}
+                      <p className="font-medium truncate" style={{ color: 'var(--t1)' }}>{track.title}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--t3)' }}>
+                        {track.artist} &middot; {track.albumTitle}
+                        {track.isDemo && (
+                          <span
+                            className="ml-2 inline-flex items-center px-1.5 py-0.5 text-xs font-medium"
+                            style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t2)', border: '1px solid var(--border)' }}
+                          >
+                            Demo
+                          </span>
+                        )}
                       </p>
                     </div>
-                    <span className="text-sm text-gray">
+                    <span className="text-sm" style={{ color: 'var(--t3)' }}>
                       {formatDuration(track.duration)}
                     </span>
                     {isAdded && (
-                      <span className="text-xs text-gray">Added</span>
+                      <span className="text-xs" style={{ color: 'var(--t3)' }}>Added</span>
                     )}
                   </div>
                 );
@@ -1380,8 +1490,8 @@ export default function PlaylistsTab() {
             )}
           </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-gray/30">
-            <span className="text-sm text-gray">
+          <div className="flex justify-between items-center pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+            <span className="text-sm" style={{ color: 'var(--t3)' }}>
               {selectedTracks.length} track{selectedTracks.length !== 1 ? 's' : ''} selected
             </span>
             <div className="flex gap-3">
@@ -1391,14 +1501,20 @@ export default function PlaylistsTab() {
                   setSelectedTracks([]);
                   setSearchQuery('');
                 }}
-                className="px-4 py-2 text-black hover:bg-beige transition-colors"
+                className="px-4 py-2 transition-colors"
+                style={{ color: 'var(--t1)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddTracks}
                 disabled={selectedTracks.length === 0}
-                className="px-4 py-2 bg-primary text-white hover:bg-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{ backgroundColor: 'var(--brand-1)' }}
+                onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = 'var(--brand-2)'; }}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-1)')}
               >
                 Add Tracks
               </button>
@@ -1407,6 +1523,7 @@ export default function PlaylistsTab() {
         </div>
       </Modal>
 
+      {/* Edit Playlist Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -1414,32 +1531,44 @@ export default function PlaylistsTab() {
       >
         <form onSubmit={handleEditPlaylist} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
               Playlist Name *
             </label>
             <input
               type="text"
               value={editPlaylist.title}
               onChange={(e) => setEditPlaylist({ ...editPlaylist, title: e.target.value })}
-              className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 focus:ring-1"
+              style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Description
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
+              Creators
             </label>
-            <textarea
-              value={editPlaylist.description}
-              onChange={(e) => setEditPlaylist({ ...editPlaylist, description: e.target.value })}
-              className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
-              rows={3}
+            <ContactTagInput
+              value={editPlaylist.creators}
+              onChange={(tags) => setEditPlaylist({ ...editPlaylist, creators: tags })}
+              placeholder="Tag artists or collaborators…"
+              preferRole="Artist"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black mb-2">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
+              Description
+            </label>
+            <RichTextEditor
+              value={editPlaylist.description}
+              onChange={(html) => setEditPlaylist({ ...editPlaylist, description: html })}
+              placeholder="Optional description..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
               Cover Image
             </label>
             <div className="flex items-start gap-4">
@@ -1459,51 +1588,62 @@ export default function PlaylistsTab() {
                   type="button"
                   onClick={() => editFileInputRef.current?.click()}
                   disabled={isUploadingCover}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-black bg-white text-black hover:bg-beige transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 transition-colors disabled:opacity-50"
+                  style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
                 >
                   {isUploadingCover ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-gray border-t-primary animate-spin" style={{ borderRadius: '50%' }} />
+                      <div className="w-4 h-4 border-2 animate-spin" style={{ borderRadius: '50%', borderColor: 'var(--t3)', borderTopColor: 'var(--brand-1)' }} />
                       Uploading...
                     </>
                   ) : (
                     <>
-                      <Upload className="w-4 h-4" />
+                      <img src="/TM-Upload-negro.svg" className="pxi-md icon-muted" alt="" />
                       {editPlaylist.cover_url ? 'Change Image' : 'Add Cover'}
                     </>
                   )}
                 </button>
-                <p className="text-xs text-gray mt-2">
+                <p className="text-xs mt-2" style={{ color: 'var(--t3)' }}>
                   Square image recommended. JPEG, PNG, or WebP.
                 </p>
               </div>
             </div>
+            <StockCoverPicker
+              selected={editPlaylist.cover_url}
+              onSelect={(url) => setEditPlaylist({ ...editPlaylist, cover_url: url })}
+            />
           </div>
 
-          <div className="border-t border-gray/30 pt-4">
+          <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={editPlaylist.is_public}
                 onChange={(e) => setEditPlaylist({ ...editPlaylist, is_public: e.target.checked })}
-                className="border-black text-primary focus:ring-primary"
+                style={{ accentColor: 'var(--brand-1)' }}
               />
-              <span className="text-sm text-black">Make playlist shareable</span>
+              <span className="text-sm" style={{ color: 'var(--t1)' }}>Enable sharing</span>
             </label>
           </div>
 
           {editPlaylist.is_public && (
             <div>
-              <label className="block text-sm font-medium text-black mb-1">
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
                 {selectedPlaylist?.password_hash ? 'Change Password' : 'Add Password'} (Optional)
               </label>
               <input
                 type="password"
                 value={editPlaylist.password}
                 onChange={(e) => setEditPlaylist({ ...editPlaylist, password: e.target.value })}
-                className="w-full px-3 py-2 border border-black focus:ring-primary focus:border-primary"
-                placeholder={selectedPlaylist?.password_hash ? 'Leave empty to keep current' : 'Leave empty for no password'}
+                className="w-full px-3 py-2 focus:ring-1"
+                style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--t1)' }}
+                placeholder={selectedPlaylist?.password_hash ? 'Leave empty to keep current' : 'Leave empty for public access'}
               />
+              <p className="text-xs mt-1" style={{ color: 'var(--t3)' }}>
+                Add a password to restrict access (personal sharing), or leave empty for public access
+              </p>
             </div>
           )}
 
@@ -1511,30 +1651,25 @@ export default function PlaylistsTab() {
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 text-black hover:bg-beige transition-colors"
+              className="px-4 py-2 transition-colors"
+              style={{ color: 'var(--t1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary text-white hover:bg-green transition-colors"
+              className="px-4 py-2 text-white transition-colors"
+              style={{ backgroundColor: 'var(--brand-1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-1)')}
             >
               Save Changes
             </button>
           </div>
         </form>
       </Modal>
-
-      {hasInteracted && playerTracks.length > 0 && (
-        <MusicPlayer
-          tracks={playerTracks}
-          currentTrackIndex={currentTrackIndex}
-          onTrackChange={setCurrentTrackIndex}
-          isPlaying={isPlaying}
-          onPlayPause={togglePlayPause}
-          onClose={() => setHasInteracted(false)}
-        />
-      )}
 
       {showCropper && (
         <ImageCropper

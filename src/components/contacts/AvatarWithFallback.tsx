@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { getInitials, getAvatarUrl } from '../../lib/contacts';
+import { getInitials } from '../../lib/contacts';
 import type { Contact } from '../../types/contacts';
 
 interface Props {
-  contact: Pick<Contact, 'firstName' | 'lastName' | 'profilePhotoUrl' | 'socialLinks'>;
+  contact: Pick<Contact, 'firstName' | 'lastName' | 'profilePhotoUrl' | 'socialLinks' | 'category' | 'role'>;
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
@@ -14,32 +14,27 @@ const SIZE: Record<NonNullable<Props['size']>, string> = {
   xl: 'w-24 h-24 text-2xl',
 };
 
-const COLORS = [
-  'var(--brand-1)',        // green
-  'var(--status-red)',     // red
-  'var(--status-yellow)',  // yellow/gold
-  'var(--status-orange)',  // orange
-  'var(--avatar-steel)',   // steel blue
-  'var(--avatar-sienna)',  // sienna
-  'var(--avatar-purple)',  // purple
-];
-
-function avatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return COLORS[Math.abs(hash) % COLORS.length];
-}
+// Avatar bg mirrors the solid accent color used in the category's badge
+const CATEGORY_SWATCH: Record<string, { bg: string; fg: string }> = {
+  collaborator: { bg: '#009C55', fg: '#ffffff' }, // badge-green
+  crew:         { bg: '#CCDBE2', fg: '#000000' }, // badge-blue
+  business:     { bg: '#000000', fg: '#ffffff' }, // black
+  other:        { bg: '#90928F', fg: '#ffffff' }, // badge-neutral
+};
+const ARTIST_SWATCH = { bg: '#1a5f8a', fg: '#ffffff' }; // deep blue
 
 export default function AvatarWithFallback({ contact, size = 'md' }: Props) {
   const [imgError, setImgError] = useState(false);
-  const url = !imgError ? getAvatarUrl(contact) : null;
   const initials = getInitials(contact.firstName || '?', contact.lastName || '?');
-  const bg = avatarColor(`${contact.firstName}${contact.lastName}`);
+  const { bg, fg } = contact.role === 'Artist'
+    ? ARTIST_SWATCH
+    : (CATEGORY_SWATCH[contact.category] ?? CATEGORY_SWATCH.other);
 
-  if (url) {
+  // Only show a photo if one was explicitly uploaded — no social-handle scraping
+  if (contact.profilePhotoUrl && !imgError) {
     return (
       <img
-        src={url}
+        src={contact.profilePhotoUrl}
         alt={`${contact.firstName} ${contact.lastName}`}
         className={`${SIZE[size]} rounded-full object-cover flex-shrink-0`}
         onError={() => setImgError(true)}
@@ -50,7 +45,7 @@ export default function AvatarWithFallback({ contact, size = 'md' }: Props) {
   return (
     <div
       className={`${SIZE[size]} rounded-full flex items-center justify-center flex-shrink-0 font-semibold`}
-      style={{ backgroundColor: bg, color: 'var(--t1)' }}
+      style={{ backgroundColor: bg, color: fg }}
     >
       {initials}
     </div>

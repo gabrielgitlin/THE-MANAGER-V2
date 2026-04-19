@@ -7,6 +7,7 @@ interface Track {
   duration: string;
   audioUrl?: string;
   coverArt?: string;
+  spotifyId?: string;
 }
 
 interface MusicPlayerState {

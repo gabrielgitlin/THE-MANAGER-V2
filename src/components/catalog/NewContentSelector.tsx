@@ -30,14 +30,24 @@ export default function NewContentSelector({ onSelect, onClose }: NewContentSele
         <button
           key={type}
           onClick={() => onSelect(type)}
-          className="flex flex-col items-start p-6 text-left border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors h-full"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            padding: '24px',
+            textAlign: 'left',
+            border: `1px solid var(--border)`,
+            borderRadius: 0,
+            height: '100%'
+          }}
+          className="hover:opacity-80"
         >
-          <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg mb-4">
+          <div style={{ flexShrink: 0, padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: 0, marginBottom: '16px' }}>
             <img src="/tm-vinil-negro_(2).png" alt={title} className="w-6 h-6 object-contain" />
           </div>
-          <div className="min-w-0 w-full">
-            <h3 className="font-medium text-gray-900 mb-2">{title}</h3>
-            <p className="text-sm text-gray-500 break-words">{description}</p>
+          <div style={{ minWidth: 0, width: '100%' }}>
+            <h3 style={{ fontWeight: '500', color: 'var(--t1)', marginBottom: '8px' }}>{title}</h3>
+            <p style={{ fontSize: '14px', color: 'var(--t2)', wordBreak: 'break-word' }}>{description}</p>
           </div>
         </button>
       ))}

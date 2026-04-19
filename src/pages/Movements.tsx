@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, FileSpreadsheet, FileText, Download, Filter, X, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronLeft, Plus, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BudgetItem, BudgetCategory, TransactionType, IncomeStatus, ExpenseStatus, PaymentStatus } from '../types';
 import { mockFinances } from '../data/mockData';
 import { utils, writeFile } from 'xlsx';
@@ -21,7 +21,7 @@ export default function Movements() {
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<PaymentStatus | 'all'>('all');
   const [isExporting, setIsExporting] = useState(false);
-  
+
   // Sorting state
   const [sortField, setSortField] = useState<'date' | 'description' | 'type' | 'category' | 'amount' | 'status'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -182,29 +182,27 @@ export default function Movements() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/finance')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm hover:text-gray-700 mb-4"
+          style={{ color: 'var(--t2)' }}
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Finance
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Financial Movements</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          View and manage all financial transactions
-        </p>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg">
-        <div className="p-6 border-b border-gray-200">
+      <div className="shadow-md" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="p-6 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <img src="/TM-Filter-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                 <input
                   type="text"
                   placeholder="Search movements..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
               </div>
             </div>
@@ -212,7 +210,8 @@ export default function Movements() {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value as TransactionType | 'all')}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="block shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Types</option>
                 {TRANSACTION_TYPES.map((type) => (
@@ -222,7 +221,8 @@ export default function Movements() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value as BudgetCategory | 'all')}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="block shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Categories</option>
                 {BUDGET_CATEGORIES.map((category) => (
@@ -232,7 +232,8 @@ export default function Movements() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value as PaymentStatus | 'all')}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="block shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Statuses</option>
                 {PAYMENT_STATUSES.map((status) => (
@@ -244,7 +245,8 @@ export default function Movements() {
               <button
                 onClick={handleExportExcel}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:opacity-80 disabled:opacity-50"
+                style={{ color: 'var(--t1)', backgroundColor: 'var(--surface)', border: `1px solid var(--border)` }}
               >
                 <FileSpreadsheet className="w-4 h-4" />
                 Excel
@@ -252,20 +254,22 @@ export default function Movements() {
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:opacity-80 disabled:opacity-50"
+                style={{ color: 'var(--t1)', backgroundColor: 'var(--surface)', border: `1px solid var(--border)` }}
               >
-                <FileText className="w-4 h-4" />
+                <img src="/TM-File-negro.svg" className="pxi-md icon-white" alt="" />
                 PDF
               </button>
             </div>
           </div>
         </div>
 
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y" style={{ borderColor: 'var(--border)' }}>
+          <thead style={{ backgroundColor: 'var(--surface-2)' }}>
             <tr>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('date')}
               >
                 <div className="flex items-center">
@@ -273,8 +277,9 @@ export default function Movements() {
                   {renderSortIcon('date')}
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('description')}
               >
                 <div className="flex items-center">
@@ -282,8 +287,9 @@ export default function Movements() {
                   {renderSortIcon('description')}
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('type')}
               >
                 <div className="flex items-center">
@@ -291,8 +297,9 @@ export default function Movements() {
                   {renderSortIcon('type')}
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('category')}
               >
                 <div className="flex items-center">
@@ -300,8 +307,9 @@ export default function Movements() {
                   {renderSortIcon('category')}
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('amount')}
               >
                 <div className="flex items-center justify-end">
@@ -309,8 +317,9 @@ export default function Movements() {
                   {renderSortIcon('amount')}
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              <th
+                className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider cursor-pointer"
+                style={{ color: 'var(--t2)' }}
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center justify-center">
@@ -318,53 +327,53 @@ export default function Movements() {
                   {renderSortIcon('status')}
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                 Notes
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                 Attachments
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
             {sortedMovements.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tr key={item.id} style={{ color: 'var(--t1)' }}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                   {formatDate(item.date)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t1)' }}>
                   {item.description}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.type === 'Income' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold ${
+                    item.type === 'Income'
+                      ? 'bg-green-100/20 text-green-400'
+                      : 'bg-red-100/20 text-red-400'
                   }`}>
                     {item.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                   {item.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                  <span className={item.type === 'Income' ? 'text-green-600' : 'text-red-600'}>
+                  <span style={{ color: item.type === 'Income' ? 'var(--status-green)' : 'var(--status-red)' }}>
                     {formatCurrency(item.amount)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold ${
                     item.status === 'received' || item.status === 'paid'
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-beige text-black'
+                      ? 'bg-green-100/20 text-green-400'
+                      : 'bg-yellow-100/20 text-yellow-300'
                   }`}>
                     {item.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                <td className="px-6 py-4 text-sm max-w-xs truncate" style={{ color: 'var(--t2)' }}>
                   {item.notes}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-6 py-4 text-sm" style={{ color: 'var(--t2)' }}>
                   {item.attachments?.length || '-'}
                 </td>
               </tr>

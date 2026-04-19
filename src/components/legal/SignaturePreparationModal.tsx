@@ -1,24 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Mail, User, Plus, Trash2, FileText, Send, Move, FileSignature as Signature, Edit, Calendar, CheckSquare } from 'lucide-react';
-import Modal from '../Modal';
-import type { LegalDocument } from '../../types';
-import SignatureEmailPreview from './SignatureEmailPreview';
+import {
+  Plus, Loader2,
+  FileSignature as Sig, Edit3, Calendar, Type, CheckSquare,
+  ChevronLeft, ChevronRight, Users,
+} from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
+import { supabase } from '../../lib/supabase';
 import * as signingService from '../../lib/signingService';
+import { getPdfFirstPageSize } from '../../lib/pdfPageSize';
 import type { SigningOrder } from '../../lib/signingTypes';
+import type { LegalDocument as ServiceLegalDocument } from '../../lib/legalService';
+import { getContacts, createContact, formatContactName } from '../../lib/contacts';
+import type { Contact } from '../../types/contacts';
 
-interface SignaturePreparationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  document: LegalDocument | null;
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-interface SignatureField {
+const SIGNER_COLORS = ['#4F46E5', '#059669', '#EA580C', '#7C3AED', '#DC2626', '#0891B2'];
+
+type FieldType = 'signature' | 'initial' | 'date' | 'text' | 'checkbox';
+
+const FIELD_PALETTE: { type: FieldType; label: string; icon: React.ReactNode; w: number; h: number }[] = [
+  { type: 'signature', label: 'Signature', icon: <Sig size={14} />,        w: 22, h: 7 },
+  { type: 'initial',   label: 'Initials',  icon: <Edit3 size={14} />,      w: 10, h: 7 },
+  { type: 'date',      label: 'Date',      icon: <Calendar size={14} />,   w: 15, h: 5 },
+  { type: 'text',      label: 'Text',      icon: <Type size={14} />,       w: 20, h: 5 },
+  { type: 'checkbox',  label: 'Checkbox',  icon: <CheckSquare size={14} />, w: 4,  h: 4 },
+];
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface SField {
   id: string;
-  type: 'signature' | 'initial' | 'date' | 'text' | 'checkbox';
+  type: FieldType;
   label: string;
   required: boolean;
   page: number;
-  position: { x: number; y: number; width: number; height: number };
+  x: number;      // % of overlay width
+  y: number;      // % of overlay height
+  width: number;  // % of overlay width
+  height: number; // % of overlay height
   recipientId: string;
 }
 
@@ -27,145 +47,307 @@ interface Signer {
   name: string;
   email: string;
   role: string;
-  fields: SignatureField[];
+  color: string;
+  contactId?: string; // set when picked from Team database
 }
 
-export default function SignaturePreparationModal({ isOpen, onClose, document }: SignaturePreparationModalProps) {
-  const [step, setStep] = useState<'recipients' | 'fields' | 'message' | 'review'>('recipients');
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  document: ServiceLegalDocument | null;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function SignaturePreparationModal({ isOpen, onClose, document: doc }: Props) {
+  const [step, setStep] = useState<'recipients' | 'editor' | 'done'>('recipients');
   const [signers, setSigners] = useState<Signer[]>([
-    {
-      id: '1',
-      name: '',
-      email: '',
-      role: '',
-      fields: []
-    }
+    { id: '1', name: '', email: '', role: '', color: SIGNER_COLORS[0] },
   ]);
-  const [activeSignerId, setActiveSignerId] = useState<string>('1');
-  const [emailSubject, setEmailSubject] = useState(`Please sign: ${document?.title || 'Document'}`);
-  const [emailMessage, setEmailMessage] = useState('Please review and sign this document at your earliest convenience.');
-  const [isSending, setIsSending] = useState(false);
-  const [sendComplete, setSendComplete] = useState(false);
-  const [selectedFieldType, setSelectedFieldType] = useState<SignatureField['type'] | null>(null);
+  const [fields, setFields] = useState<SField[]>([]);
+  const [activeSignerId, setActiveSignerId] = useState('1');
+  const [paletteType, setPaletteType] = useState<FieldType | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(3); // Simulated total pages
-  const [isDragging, setIsDragging] = useState(false);
-  const [draggedField, setDraggedField] = useState<SignatureField | null>(null);
-  const [showEmailPreview, setShowEmailPreview] = useState(false);
-  const [selectedSigner, setSelectedSigner] = useState<Signer | null>(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('Please review and sign this document at your earliest convenience.');
   const [signingOrder, setSigningOrder] = useState<SigningOrder>('parallel');
-  const [expiresAt, setExpiresAt] = useState<string>('');
-  
-  const documentRef = useRef<HTMLDivElement>(null);
-  const fieldIdCounter = useRef(1);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  // Height of the document sheet in pixels, sized to match the actual PDF aspect ratio
+  const [sheetHeight, setSheetHeight] = useState(1100);
+  const [isSending, setIsSending] = useState(false);
+  const [dragging, setDragging] = useState<{
+    fieldId: string;
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
 
-  // Reset state when modal opens/closes
+  // Contact search state
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [signerSearch, setSignerSearch] = useState<Record<string, string>>({});
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  // CC state
+  const [ccList, setCcList] = useState<Array<{ id: string; name: string; email: string; role: string; contactId?: string }>>([]);
+  const [ccSearch, setCcSearch] = useState<Record<string, string>>({});
+  const [ccDropdownOpen, setCcDropdownOpen] = useState<string | null>(null);
+  const [ccDragIndex, setCcDragIndex] = useState<number | null>(null);
+  const [ccDragOverIndex, setCcDragOverIndex] = useState<number | null>(null);
+
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const idRef = useRef(0);
+
+  // Load contacts once when modal opens
   useEffect(() => {
-    if (!isOpen) {
-      setStep('recipients');
-      setSigners([{
-        id: '1',
-        name: '',
-        email: '',
-        role: '',
-        fields: []
-      }]);
-      setActiveSignerId('1');
-      setEmailSubject(`Please sign: ${document?.title || 'Document'}`);
-      setEmailMessage('Please review and sign this document at your earliest convenience.');
-      setIsSending(false);
-      setSendComplete(false);
-      setSelectedFieldType(null);
-      setCurrentPage(1);
-      setShowEmailPreview(false);
-      setSelectedSigner(null);
-      setSigningOrder('parallel');
-      setExpiresAt('');
+    if (isOpen) {
+      getContacts().then(setContacts).catch(() => {});
     }
-  }, [isOpen, document]);
+  }, [isOpen]);
 
-  const handleAddSigner = () => {
-    const newSigner: Signer = {
-      id: `${signers.length + 1}`,
-      name: '',
-      email: '',
-      role: '',
-      fields: []
-    };
-    setSigners([...signers, newSigner]);
-  };
-
-  const handleRemoveSigner = (id: string) => {
-    if (signers.length > 1) {
-      setSigners(signers.filter(signer => signer.id !== id));
-      if (activeSignerId === id) {
-        setActiveSignerId(signers[0].id === id ? signers[1].id : signers[0].id);
+  // Load signed URL + reset on open/close
+  useEffect(() => {
+    if (isOpen) {
+      setEmailSubject(`Please sign: ${doc?.title || 'Document'}`);
+      if (doc?.file_url) {
+        const path = doc.file_url.split('/').pop();
+        if (path) {
+          supabase.storage
+            .from('legal-documents')
+            .createSignedUrl(path, 3600)
+            .then(({ data }) => {
+              if (data?.signedUrl) {
+                setDocumentUrl(data.signedUrl);
+                // Detect actual page dimensions so the overlay matches the rendered PDF
+                getPdfFirstPageSize(data.signedUrl, 850)
+                  .then(({ heightPx }) => setSheetHeight(heightPx))
+                  .catch(() => setSheetHeight(1100)); // fall back to portrait default
+              }
+            });
+        }
       }
+    } else {
+      setStep('recipients');
+      setSigners([{ id: '1', name: '', email: '', role: '', color: SIGNER_COLORS[0] }]);
+      setFields([]);
+      setActiveSignerId('1');
+      setPaletteType(null);
+      setCurrentPage(1);
+      setDocumentUrl(null);
+      setIsSending(false);
+      setDragging(null);
+      setEmailMessage('Please review and sign this document at your earliest convenience.');
+      setExpiresAt('');
+      setSigningOrder('parallel');
+      setSheetHeight(1100);
+      setSignerSearch({});
+      setOpenDropdown(null);
+      setCcList([]);
+      setCcSearch({});
+      setCcDropdownOpen(null);
+      setCcDragIndex(null);
+      setCcDragOverIndex(null);
     }
+  }, [isOpen]);
+
+  // ── Signer drag-to-reorder ─────────────────────────────────────────────────
+
+  const [signerDragIndex, setSignerDragIndex] = useState<number | null>(null);
+  const [signerDragOverIndex, setSignerDragOverIndex] = useState<number | null>(null);
+
+  const handleSignerDragStart = (e: React.DragEvent, index: number) => {
+    setSignerDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent ghost image so we control the visual via CSS
+    const ghost = document.createElement('div');
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-9999px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    setTimeout(() => document.body.removeChild(ghost), 0);
   };
 
-  const handleUpdateSigner = (id: string, updates: Partial<Signer>) => {
-    setSigners(signers.map(signer => 
-      signer.id === id ? { ...signer, ...updates } : signer
-    ));
+  const handleSignerDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (index !== signerDragIndex) setSignerDragOverIndex(index);
   };
 
-  const handleAddField = (signerId: string, type: SignatureField['type'], position?: { x: number; y: number }) => {
-    const signer = signers.find(s => s.id === signerId);
-    if (!signer) return;
+  const handleSignerDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (signerDragIndex === null || signerDragIndex === toIndex) return;
+    setSigners(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(signerDragIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+    setSignerDragIndex(null);
+    setSignerDragOverIndex(null);
+  };
 
-    const fieldId = fieldIdCounter.current++;
-    
-    // Default position in the middle of the document if not provided
-    const defaultPosition = {
-      x: position?.x || 200,
-      y: position?.y || 200,
-      width: type === 'signature' ? 150 : type === 'initial' ? 80 : 120,
-      height: type === 'signature' || type === 'initial' ? 60 : 40
-    };
+  const handleSignerDragEnd = () => {
+    setSignerDragIndex(null);
+    setSignerDragOverIndex(null);
+  };
 
-    const newField: SignatureField = {
-      id: `field-${fieldId}`,
+  // ── CC drag-to-reorder ─────────────────────────────────────────────────────
+
+  const handleCcDragStart = (e: React.DragEvent, index: number) => {
+    setCcDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    const ghost = document.createElement('div');
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-9999px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+  };
+
+  const handleCcDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (index !== ccDragIndex) setCcDragOverIndex(index);
+  };
+
+  const handleCcDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (ccDragIndex === null || ccDragIndex === toIndex) return;
+    setCcList(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(ccDragIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+    setCcDragIndex(null);
+    setCcDragOverIndex(null);
+  };
+
+  const handleCcDragEnd = () => {
+    setCcDragIndex(null);
+    setCcDragOverIndex(null);
+  };
+
+  // ── Signer management ──────────────────────────────────────────────────────
+
+  const addSigner = () => {
+    const n = signers.length;
+    const id = `s-${Date.now()}`;
+    setSigners(prev => [...prev, { id, name: '', email: '', role: '', color: SIGNER_COLORS[n % SIGNER_COLORS.length] }]);
+    setActiveSignerId(id);
+  };
+
+  const removeSigner = (id: string) => {
+    if (signers.length <= 1) return;
+    setSigners(prev => prev.filter(s => s.id !== id));
+    setFields(prev => prev.filter(f => f.recipientId !== id));
+    if (activeSignerId === id) setActiveSignerId(signers.find(s => s.id !== id)!.id);
+  };
+
+  const updateSigner = (id: string, u: Partial<Signer>) =>
+    setSigners(prev => prev.map(s => (s.id === id ? { ...s, ...u } : s)));
+
+  // ── Field management ───────────────────────────────────────────────────────
+
+  const placeField = (cx: number, cy: number, type: FieldType) => {
+    const pal = FIELD_PALETTE.find(p => p.type === type)!;
+    const f: SField = {
+      id: `f-${++idRef.current}`,
       type,
-      label: `${type.charAt(0).toUpperCase() + type.slice(1)} ${fieldId}`,
+      label: pal.label,
       required: true,
       page: currentPage,
-      position: defaultPosition,
-      recipientId: signerId
+      x: Math.max(0, Math.min(cx - pal.w / 2, 100 - pal.w)),
+      y: Math.max(0, Math.min(cy - pal.h / 2, 100 - pal.h)),
+      width: pal.w,
+      height: pal.h,
+      recipientId: activeSignerId,
+    };
+    setFields(prev => [...prev, f]);
+    setPaletteType(null);
+  };
+
+  const removeField = (id: string) => setFields(prev => prev.filter(f => f.id !== id));
+
+  const updateField = (id: string, u: Partial<SField>) =>
+    setFields(prev => prev.map(f => (f.id === id ? { ...f, ...u } : f)));
+
+  // ── Overlay interaction ────────────────────────────────────────────────────
+
+  const toPercent = (e: React.MouseEvent) => {
+    if (!overlayRef.current) return null;
+    const r = overlayRef.current.getBoundingClientRect();
+    return {
+      x: ((e.clientX - r.left) / r.width) * 100,
+      y: ((e.clientY - r.top) / r.height) * 100,
+    };
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (dragging) { setDragging(null); return; }
+    if (!paletteType) return;
+    const p = toPercent(e);
+    if (p) placeField(p.x, p.y, paletteType);
+  };
+
+  const startDrag = (e: React.MouseEvent, field: SField) => {
+    e.stopPropagation();
+    const p = toPercent(e);
+    if (!p) return;
+    setDragging({ fieldId: field.id, startX: p.x, startY: p.y, origX: field.x, origY: field.y });
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragging) return;
+    const p = toPercent(e);
+    if (!p) return;
+    const f = fields.find(f => f.id === dragging.fieldId);
+    if (!f) return;
+    updateField(dragging.fieldId, {
+      x: Math.max(0, Math.min(dragging.origX + (p.x - dragging.startX), 100 - f.width)),
+      y: Math.max(0, Math.min(dragging.origY + (p.y - dragging.startY), 100 - f.height)),
+    });
+  };
+
+  const onMouseUp = () => setDragging(null);
+
+  // ── Send ───────────────────────────────────────────────────────────────────
+
+  // Auto-save new signers + CC contacts (not already in Team) to the contacts database
+  const saveNewSignersToTeam = async () => {
+    const nameEmailToContact = (name: string, email: string, role?: string) => {
+      const parts = name.trim().split(' ');
+      const firstName = parts[0] || name.trim();
+      const lastName = parts.slice(1).join(' ') || '.';
+      return createContact({
+        category: 'other',
+        firstName,
+        lastName,
+        email: email.trim(),
+        role: role?.trim() || undefined,
+        socialLinks: {},
+        proAffiliations: [],
+        publisherAffiliations: [],
+        tags: [],
+      });
     };
 
-    handleUpdateSigner(signerId, {
-      fields: [...signer.fields, newField]
-    });
-    
-    setSelectedFieldType(null);
+    const newSigners = signers.filter(s => !s.contactId && s.name.trim() && s.email.trim());
+    const newCc = ccList.filter(c => !c.contactId && c.name.trim() && c.email.trim());
+
+    await Promise.allSettled([
+      ...newSigners.map(s => nameEmailToContact(s.name, s.email, s.role)),
+      ...newCc.map(c => nameEmailToContact(c.name, c.email, c.role)),
+    ]);
   };
 
-  const handleRemoveField = (signerId: string, fieldId: string) => {
-    const signer = signers.find(s => s.id === signerId);
-    if (!signer) return;
-
-    handleUpdateSigner(signerId, {
-      fields: signer.fields.filter(field => field.id !== fieldId)
-    });
-  };
-
-  const handleUpdateField = (signerId: string, fieldId: string, updates: Partial<SignatureField>) => {
-    const signer = signers.find(s => s.id === signerId);
-    if (!signer) return;
-
-    handleUpdateSigner(signerId, {
-      fields: signer.fields.map(field => 
-        field.id === fieldId ? { ...field, ...updates } : field
-      )
-    });
-  };
-
-  const handleSendForSignature = async () => {
+  const handleSend = async () => {
     setIsSending(true);
     try {
+      await saveNewSignersToTeam();
       await signingService.createSigningRequest({
-        document_id: document?.id?.toString() || '',
+        document_id: doc?.id || '',
         signing_order: signingOrder,
         subject: emailSubject,
         message: emailMessage,
@@ -177,840 +359,822 @@ export default function SignaturePreparationModal({ isOpen, onClose, document }:
           order_index: i,
           temp_id: s.id,
         })),
-        fields: signers.flatMap(signer =>
-          signer.fields.map(f => ({
-            recipient_temp_id: signer.id,
-            type: f.type,
-            page: f.page,
-            x: f.position.x,
-            y: f.position.y,
-            width: f.position.width,
-            height: f.position.height,
-            required: f.required,
-            label: f.label,
-          }))
-        ),
+        cc: ccList.filter(c => c.email.trim()).map(c => ({ name: c.name, email: c.email })),
+        fields: fields.map(f => ({
+          recipient_temp_id: f.recipientId,
+          type: f.type,
+          page: f.page,
+          x: f.x,
+          y: f.y,
+          width: f.width,
+          height: f.height,
+          required: f.required,
+          label: f.label,
+        })),
       });
-      setSendComplete(true);
+      setStep('done');
     } catch (err: any) {
-      console.error('Failed to send signing request:', err);
-      alert('Failed to send signing request: ' + err.message);
+      alert('Failed to send: ' + err.message);
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleDocumentClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!selectedFieldType || !documentRef.current) return;
-    
-    const rect = documentRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    handleAddField(activeSignerId, selectedFieldType, { x, y });
-  };
+  if (!isOpen) return null;
 
-  const handleDragStart = (e: React.MouseEvent, field: SignatureField) => {
-    if (!documentRef.current) return;
-    
-    setIsDragging(true);
-    setDraggedField(field);
-    
-    // Prevent default drag behavior
-    e.preventDefault();
-  };
+  const canProceed = signers.every(s => s.name.trim() && s.email.trim());
+  const activeSigner = signers.find(s => s.id === activeSignerId);
+  const pageFields = fields.filter(f => f.page === currentPage);
 
-  const handleDragMove = (e: React.MouseEvent) => {
-    if (!isDragging || !draggedField || !documentRef.current) return;
-    
-    const rect = documentRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - draggedField.position.width));
-    const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height - draggedField.position.height));
-    
-    // Update field position
-    handleUpdateField(draggedField.recipientId, draggedField.id, {
-      position: {
-        ...draggedField.position,
-        x,
-        y
-      }
-    });
-  };
+  // ── DONE step ──────────────────────────────────────────────────────────────
+  if (step === 'done') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <img src="/The Manager_Iconografia-11.svg" className="pxi-xl icon-green" alt="" />
+          </div>
+          <h2 style={{ color: 'var(--t1)', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Sent for Signature</h2>
+          <p style={{ color: 'var(--t2)', fontSize: 15, maxWidth: 380, lineHeight: 1.6, margin: '0 auto 28px' }}>
+            {signers.map(s => s.name).join(', ')} {signers.length === 1 ? 'has' : 'have'} been notified by email with a link to review and sign.
+          </p>
+          <button
+            onClick={onClose}
+            style={{ padding: '12px 32px', borderRadius: 8, background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    setDraggedField(null);
-  };
+  // ── RECIPIENTS step ────────────────────────────────────────────────────────
+  if (step === 'recipients') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+        {/* Top bar */}
+        <div style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 20px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', gap: 12, flexShrink: 0 }}>
+          <button onClick={onClose} style={{ padding: '6px 8px', borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--t2)', display: 'flex' }}>
+            <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="" />
+          </button>
+          <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+          <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" style={{ flexShrink: 0 }} />
+          <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--t1)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.title}</span>
+          <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--t3)', alignItems: 'center', flexShrink: 0 }}>
+            <span style={{ color: 'var(--primary)', fontWeight: 700 }}>1. Recipients</span>
+            <ChevronRight size={12} />
+            <span>2. Place Fields</span>
+            <ChevronRight size={12} />
+            <span>3. Send</span>
+          </div>
+          <button
+            onClick={() => setStep('editor')}
+            disabled={!canProceed}
+            style={{ padding: '8px 20px', borderRadius: 8, background: canProceed ? 'var(--primary)' : 'var(--surface-2)', color: canProceed ? 'white' : 'var(--t3)', border: 'none', fontWeight: 600, fontSize: 14, cursor: canProceed ? 'pointer' : 'not-allowed', opacity: canProceed ? 1 : 0.6 }}
+          >
+            Next →
+          </button>
+        </div>
 
-  const getFieldIcon = (type: SignatureField['type']) => {
-    switch (type) {
-      case 'signature':
-        return <Signature className="w-4 h-4" />;
-      case 'initial':
-        return <Edit className="w-4 h-4" />;
-      case 'date':
-        return <Calendar className="w-4 h-4" />;
-      case 'text':
-        return <FileText className="w-4 h-4" />;
-      case 'checkbox':
-        return <CheckSquare className="w-4 h-4" />;
-    }
-  };
+        {/* Body */}
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '40px 24px' }}>
+          <div style={{ width: '100%', maxWidth: 660 }}>
 
-  // Add event listener for mouse movement when field type is selected
-  useEffect(() => {
-    if (typeof window === 'undefined' || !selectedFieldType) return;
+            {/* Recipients */}
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{ color: 'var(--t1)', fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Add Recipients</h2>
+              <p style={{ color: 'var(--t3)', fontSize: 14, marginBottom: 20 }}>Who needs to sign this document?</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {signers.map((signer, i) => {
+                  const isDraggingThis = signerDragIndex === i;
+                  const isDropTarget  = signerDragOverIndex === i && signerDragIndex !== i;
+                  const query = signerSearch[signer.id] ?? '';
+                  const isDropdownOpen = openDropdown === signer.id;
+                  const filteredContacts = query.trim().length > 0
+                    ? contacts.filter(c => {
+                        const fullName = formatContactName(c).toLowerCase();
+                        const email = (c.email ?? '').toLowerCase();
+                        const q = query.toLowerCase();
+                        return fullName.includes(q) || email.includes(q);
+                      }).slice(0, 6)
+                    : [];
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const cursor = window.document.querySelector('.fixed.pointer-events-none');
-      if (cursor) {
-        cursor.setAttribute('style', `left: ${e.clientX + 10}px; top: ${e.clientY + 10}px`);
-      }
-    };
+                  const selectContact = (c: Contact) => {
+                    updateSigner(signer.id, {
+                      name: formatContactName(c),
+                      email: c.email ?? '',
+                      role: c.role ?? '',
+                      contactId: c.id,
+                    });
+                    setSignerSearch(prev => ({ ...prev, [signer.id]: '' }));
+                    setOpenDropdown(null);
+                  };
 
-    window.document.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.document.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [selectedFieldType]);
+                  const clearContact = () => {
+                    updateSigner(signer.id, { name: '', email: '', role: '', contactId: undefined });
+                    setSignerSearch(prev => ({ ...prev, [signer.id]: '' }));
+                  };
 
-  const handlePreviewEmail = (signer: Signer) => {
-    setSelectedSigner(signer);
-    setShowEmailPreview(true);
-  };
+                  return (
+                  <div
+                    key={signer.id}
+                    draggable
+                    onDragStart={e => handleSignerDragStart(e, i)}
+                    onDragOver={e => handleSignerDragOver(e, i)}
+                    onDrop={e => handleSignerDrop(e, i)}
+                    onDragEnd={handleSignerDragEnd}
+                    style={{
+                      display: 'flex', gap: 12, padding: 16,
+                      background: 'var(--surface)',
+                      border: `1px solid ${isDropTarget ? 'var(--brand-1)' : 'var(--border)'}`,
+                      borderLeft: `4px solid ${signer.color}`,
+                      borderRadius: 10,
+                      opacity: isDraggingThis ? 0.4 : 1,
+                      transition: 'opacity 120ms, border-color 120ms',
+                      cursor: 'grab',
+                    }}
+                  >
+                    {/* Drag grip */}
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3, flexShrink: 0, cursor: 'grab', paddingRight: 2, opacity: 0.3 }}>
+                      {[0,1,2].map(row => (
+                        <div key={row} style={{ display: 'flex', gap: 3 }}>
+                          <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--t2)' }} />
+                          <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--t2)' }} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: signer.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 14, flexShrink: 0, marginTop: 2 }}>
+                      {i + 1}
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-  const renderStep = () => {
-    switch (step) {
-      case 'recipients':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Add Recipients</h3>
-              <p className="text-sm text-gray-500">
-                Add the people who need to sign this document
-              </p>
-            </div>
+                      {/* ── Contact search ── */}
+                      {signer.contactId ? (
+                        /* Selected from Team */
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', background: signer.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+                            {signer.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{signer.name}</div>
+                            <div style={{ fontSize: 11, color: 'var(--t3)' }}>{signer.email}</div>
+                          </div>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--status-green)', border: '1px solid var(--status-green)', padding: '2px 6px', flexShrink: 0 }}>
+                            From Team
+                          </span>
+                          <button onClick={clearContact} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0 }} title="Change">
+                            <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="Remove" />
+                          </button>
+                        </div>
+                      ) : (
+                        /* Search input */
+                        <div style={{ position: 'relative' }}>
+                          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>
+                            Search Team or enter name
+                          </label>
+                          <div style={{ position: 'relative' }}>
+                            <img src="/TM-Search-negro.svg" className="pxi-sm icon-muted" alt="" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                            <input
+                              type="text"
+                              value={query || signer.name}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setSignerSearch(prev => ({ ...prev, [signer.id]: val }));
+                                updateSigner(signer.id, { name: val, contactId: undefined });
+                                setOpenDropdown(val.trim() ? signer.id : null);
+                              }}
+                              onFocus={() => { if ((query || signer.name).trim()) setOpenDropdown(signer.id); }}
+                              onBlur={() => setTimeout(() => setOpenDropdown(null), 150)}
+                              placeholder="Type a name or email…"
+                              style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                            />
+                          </div>
+                          {/* Dropdown */}
+                          {isDropdownOpen && (filteredContacts.length > 0 || query.trim()) && (
+                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--surface-2)', border: '1px solid var(--border-2)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', marginTop: 2 }}>
+                              {filteredContacts.map(c => (
+                                <button
+                                  key={c.id}
+                                  onMouseDown={() => selectContact(c)}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-3)')}
+                                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                                >
+                                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--t2)', flexShrink: 0 }}>
+                                    {c.firstName[0]}{c.lastName[0]}
+                                  </div>
+                                  <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: 13, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatContactName(c)}</div>
+                                    {c.email && <div style={{ fontSize: 11, color: 'var(--t3)' }}>{c.email}</div>}
+                                  </div>
+                                  {c.role && <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', color: 'var(--t4)', flexShrink: 0 }}>{c.role}</span>}
+                                </button>
+                              ))}
+                              {filteredContacts.length === 0 && query.trim() && (
+                                <div style={{ padding: '9px 12px', fontSize: 12, color: 'var(--t3)', fontStyle: 'italic' }}>
+                                  No team members found — will be added to Team on send
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-            <div className="space-y-4">
-              {signers.map((signer) => (
-                <div key={signer.id} className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className="text-sm font-medium text-gray-900">Recipient {signer.id}</h4>
+                      {/* Email (shown when not from Team) */}
+                      {!signer.contactId && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                          <div>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Email *</label>
+                            <input
+                              type="email"
+                              value={signer.email}
+                              onChange={e => updateSigner(signer.id, { email: e.target.value })}
+                              placeholder="john@example.com"
+                              style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Role (optional)</label>
+                            <input
+                              type="text"
+                              value={signer.role}
+                              onChange={e => updateSigner(signer.id, { role: e.target.value })}
+                              placeholder="e.g., Artist, Manager"
+                              style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Role (shown when from Team, editable) */}
+                      {signer.contactId && (
+                        <div>
+                          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Role (optional)</label>
+                          <input
+                            type="text"
+                            value={signer.role}
+                            onChange={e => updateSigner(signer.id, { role: e.target.value })}
+                            placeholder="e.g., Artist, Manager"
+                            style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      )}
+
+                      {/* New contact notice */}
+                      {!signer.contactId && signer.name.trim() && signer.email.trim() && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--t3)', fontStyle: 'italic' }}>
+                          <img src="/The Manager_Iconografia-11.svg" className="pxi-sm icon-muted" alt="" style={{ opacity: 0.5 }} />
+                          Will be added to Team on send
+                        </div>
+                      )}
+
+                    </div>
                     {signers.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveSigner(signer.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                      <button onClick={() => removeSigner(signer.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', alignSelf: 'flex-start', padding: 4 }}>
+                        <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                       </button>
                     )}
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
-                        Name
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          value={signer.name}
-                          onChange={(e) => handleUpdateSigner(signer.id, { name: e.target.value })}
-                          className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                          placeholder="John Smith"
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
-                        Email
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="email"
-                          value={signer.email}
-                          onChange={(e) => handleUpdateSigner(signer.id, { email: e.target.value })}
-                          className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                          placeholder="john@example.com"
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
-                        Role
-                      </label>
-                      <input
-                        type="text"
-                        value={signer.role}
-                        onChange={(e) => handleUpdateSigner(signer.id, { role: e.target.value })}
-                        className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                        style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
-                        placeholder="e.g., Artist, Manager, Attorney"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              <button
-                type="button"
-                onClick={handleAddSigner}
-                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
-              >
-                <Plus className="w-4 h-4" />
-                Add Another Recipient
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
-                Signing Order
-              </label>
-              <div className="flex gap-2">
+                  );
+                })}
                 <button
-                  type="button"
-                  onClick={() => setSigningOrder('parallel')}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border ${
-                    signingOrder === 'parallel'
-                      ? 'border-primary bg-primary/10 text-primary font-medium'
-                      : 'border-gray-300 text-gray-600 hover:border-primary hover:bg-primary/5'
-                  }`}
-                  style={signingOrder !== 'parallel' ? { borderColor: 'var(--border)', color: 'var(--t2)' } : {}}
+                  onClick={addSigner}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 8, border: '1px dashed var(--border)', background: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}
                 >
-                  Parallel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSigningOrder('sequential')}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border ${
-                    signingOrder === 'sequential'
-                      ? 'border-primary bg-primary/10 text-primary font-medium'
-                      : 'border-gray-300 text-gray-600 hover:border-primary hover:bg-primary/5'
-                  }`}
-                  style={signingOrder !== 'sequential' ? { borderColor: 'var(--border)', color: 'var(--t2)' } : {}}
-                >
-                  Sequential
+                  <Plus size={15} />
+                  Add Another Recipient
                 </button>
               </div>
-              <p className="text-xs" style={{ color: 'var(--t3)' }}>
-                {signingOrder === 'parallel'
-                  ? 'All recipients receive the document at the same time.'
-                  : 'Recipients sign one at a time in the order listed above.'}
-              </p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium border"
-                style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep('fields')}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
-                disabled={signers.some(s => !s.name || !s.email)}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        );
-      
-      case 'fields':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Add Signature Fields</h3>
-              <p className="text-sm text-gray-500">
-                Specify what each recipient needs to fill out. Click on a field type, then click on the document to place it, or drag existing fields to reposition them.
-              </p>
-            </div>
+            {/* ── CC Recipients ──────────────────────────────────── */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ marginBottom: 12 }}>
+                <h2 style={{ color: 'var(--t1)', fontSize: 20, fontWeight: 700, marginBottom: 4 }}>CC</h2>
+                <p style={{ color: 'var(--t3)', fontSize: 14, marginBottom: 20 }}>These people receive copies of all signing emails but won't be asked to sign.</p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {ccList.map((cc, i) => {
+                  const isDraggingThis = ccDragIndex === i;
+                  const isDropTarget  = ccDragOverIndex === i && ccDragIndex !== i;
+                  const q = ccSearch[cc.id] ?? '';
+                  const isDropdownOpen = ccDropdownOpen === cc.id;
+                  const filtered = q.trim().length > 0
+                    ? contacts.filter(c => {
+                        const fullName = formatContactName(c).toLowerCase();
+                        const email = (c.email ?? '').toLowerCase();
+                        const qLow = q.toLowerCase();
+                        return fullName.includes(qLow) || email.includes(qLow);
+                      }).slice(0, 6)
+                    : [];
 
-            <div className="sub-tabs mb-4">
-              {signers.map((signer) => (
-                <button
-                  key={signer.id}
-                  onClick={() => setActiveSignerId(signer.id)}
-                  className={`sub-tab ${activeSignerId === signer.id ? 'active' : ''}`}
-                >
-                  {signer.name || `Recipient ${signer.id}`}
-                </button>
-              ))}
-            </div>
+                  const selectCcContact = (c: Contact) => {
+                    setCcList(prev => prev.map(item => item.id === cc.id
+                      ? { ...item, name: formatContactName(c), email: c.email ?? '', role: c.role ?? '', contactId: c.id }
+                      : item
+                    ));
+                    setCcSearch(prev => ({ ...prev, [cc.id]: '' }));
+                    setCcDropdownOpen(null);
+                  };
 
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="md:w-1/3 space-y-4">
-                <h4 className="text-sm font-medium text-gray-700">Signature Fields</h4>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setSelectedFieldType('signature')}
-                    className={`w-full flex items-center gap-2 p-2 text-sm text-left border rounded-md ${
-                      selectedFieldType === 'signature' 
-                        ? 'border-primary bg-primary/5' 
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <span className="p-1 bg-primary/10 rounded">
-                      <Signature className="w-4 h-4" />
-                    </span>
-                    Signature
-                  </button>
-                  <button
-                    onClick={() => setSelectedFieldType('initial')}
-                    className={`w-full flex items-center gap-2 p-2 text-sm text-left border rounded-md ${
-                      selectedFieldType === 'initial' 
-                        ? 'border-primary bg-primary/5' 
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <span className="p-1 bg-primary/10 rounded">
-                      <Edit className="w-4 h-4" />
-                    </span>
-                    Initial
-                  </button>
-                  <button
-                    onClick={() => setSelectedFieldType('date')}
-                    className={`w-full flex items-center gap-2 p-2 text-sm text-left border rounded-md ${
-                      selectedFieldType === 'date' 
-                        ? 'border-primary bg-primary/5' 
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <span className="p-1 bg-primary/10 rounded">
-                      <Calendar className="w-4 h-4" />
-                    </span>
-                    Date
-                  </button>
-                  <button
-                    onClick={() => setSelectedFieldType('text')}
-                    className={`w-full flex items-center gap-2 p-2 text-sm text-left border rounded-md ${
-                      selectedFieldType === 'text' 
-                        ? 'border-primary bg-primary/5' 
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <span className="p-1 bg-primary/10 rounded">
-                      <FileText className="w-4 h-4" />
-                    </span>
-                    Text
-                  </button>
-                  <button
-                    onClick={() => setSelectedFieldType('checkbox')}
-                    className={`w-full flex items-center gap-2 p-2 text-sm text-left border rounded-md ${
-                      selectedFieldType === 'checkbox' 
-                        ? 'border-primary bg-primary/5' 
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <span className="p-1 bg-primary/10 rounded">
-                      <CheckSquare className="w-4 h-4" />
-                    </span>
-                    Checkbox
-                  </button>
-                </div>
+                  const clearCc = () => {
+                    setCcList(prev => prev.map(item => item.id === cc.id
+                      ? { ...item, name: '', email: '', role: '', contactId: undefined }
+                      : item
+                    ));
+                    setCcSearch(prev => ({ ...prev, [cc.id]: '' }));
+                  };
 
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Added Fields</h4>
-                  {signers.find(s => s.id === activeSignerId)?.fields.filter(f => f.page === currentPage).length ? (
-                    <div className="space-y-2">
-                      {signers.find(s => s.id === activeSignerId)?.fields
-                        .filter(f => f.page === currentPage)
-                        .map((field) => (
-                          <div key={field.id} className="flex items-center justify-between p-2 bg-white border rounded-md">
-                            <div className="flex items-center gap-2">
-                              <span className="p-1 bg-primary/10 rounded text-xs">
-                                {getFieldIcon(field.type)}
-                              </span>
-                              <span className="text-sm">{field.label}</span>
+                  return (
+                    <div
+                      key={cc.id}
+                      draggable
+                      onDragStart={e => handleCcDragStart(e, i)}
+                      onDragOver={e => handleCcDragOver(e, i)}
+                      onDrop={e => handleCcDrop(e, i)}
+                      onDragEnd={handleCcDragEnd}
+                      style={{
+                        display: 'flex', gap: 12, padding: 16,
+                        background: 'var(--surface)',
+                        border: `1px solid ${isDropTarget ? 'var(--brand-1)' : 'var(--border)'}`,
+                        borderLeft: '4px solid var(--status-blue)',
+                        borderRadius: 10,
+                        opacity: isDraggingThis ? 0.4 : 1,
+                        transition: 'opacity 120ms, border-color 120ms',
+                        cursor: 'grab',
+                      }}
+                    >
+                      {/* Drag grip */}
+                      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3, flexShrink: 0, cursor: 'grab', paddingRight: 2, opacity: 0.3 }}>
+                        {[0,1,2].map(row => (
+                          <div key={row} style={{ display: 'flex', gap: 3 }}>
+                            <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--t2)' }} />
+                            <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--t2)' }} />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* CC label avatar */}
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--status-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bg)', fontWeight: 700, fontSize: 10, flexShrink: 0, marginTop: 2, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>
+                        CC
+                      </div>
+
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                        {/* ── Contact search / selected ── */}
+                        {cc.contactId ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
+                            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--status-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bg)', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+                              {cc.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
-                            <button
-                              onClick={() => handleRemoveField(activeSignerId, field.id)}
-                              className="text-gray-400 hover:text-red-500"
-                            >
-                              <Trash2 className="w-4 h-4" />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cc.name}</div>
+                              <div style={{ fontSize: 11, color: 'var(--t3)' }}>{cc.email}</div>
+                            </div>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--status-green)', border: '1px solid var(--status-green)', padding: '2px 6px', flexShrink: 0 }}>
+                              From Team
+                            </span>
+                            <button onClick={clearCc} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0 }} title="Change">
+                              <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="Remove" />
                             </button>
                           </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 p-2 bg-gray-50 rounded-md">
-                      No fields added to this page yet. Select a field type and click on the document to add it.
-                    </p>
-                  )}
-                </div>
+                        ) : (
+                          <div style={{ position: 'relative' }}>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>
+                              Search Team or enter name
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                              <img src="/TM-Search-negro.svg" className="pxi-sm icon-muted" alt="" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                              <input
+                                type="text"
+                                value={q || cc.name}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setCcSearch(prev => ({ ...prev, [cc.id]: val }));
+                                  setCcList(prev => prev.map(item => item.id === cc.id ? { ...item, name: val, contactId: undefined } : item));
+                                  setCcDropdownOpen(val.trim() ? cc.id : null);
+                                }}
+                                onFocus={() => { if ((q || cc.name).trim()) setCcDropdownOpen(cc.id); }}
+                                onBlur={() => setTimeout(() => setCcDropdownOpen(null), 150)}
+                                placeholder="Type a name or email…"
+                                style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            {isDropdownOpen && (filtered.length > 0 || q.trim()) && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--surface-2)', border: '1px solid var(--border-2)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', marginTop: 2 }}>
+                                {filtered.map(c => (
+                                  <button
+                                    key={c.id}
+                                    onMouseDown={() => selectCcContact(c)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-3)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                                  >
+                                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--t2)', flexShrink: 0 }}>
+                                      {c.firstName[0]}{c.lastName[0]}
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{ fontSize: 13, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatContactName(c)}</div>
+                                      {c.email && <div style={{ fontSize: 11, color: 'var(--t3)' }}>{c.email}</div>}
+                                    </div>
+                                    {c.role && <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', color: 'var(--t4)', flexShrink: 0 }}>{c.role}</span>}
+                                  </button>
+                                ))}
+                                {filtered.length === 0 && q.trim() && (
+                                  <div style={{ padding: '9px 12px', fontSize: 12, color: 'var(--t3)', fontStyle: 'italic' }}>
+                                    No team members found — will be added to Team on send
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Instructions</h4>
-                  <div className="p-3 bg-blue-50 rounded-md">
-                    <ul className="text-xs text-blue-700 space-y-1">
-                      <li>• Select a field type from above</li>
-                      <li>• Click on the document to place the field</li>
-                      <li>• Drag fields to reposition them</li>
-                      <li>• Use the page navigation to add fields to different pages</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="md:w-2/3">
-                <div className="bg-gray-50 border rounded-lg p-4 h-[500px] flex flex-col">
-                  <div className="flex justify-between items-center p-2 border-b border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-700">Document Preview</h4>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage <= 1}
-                        className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30"
-                      >
-                        Previous
-                      </button>
-                      <span className="text-xs text-gray-500">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage >= totalPages}
-                        className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 p-4 overflow-auto">
-                    <div 
-                      ref={documentRef}
-                      className="bg-white border shadow-sm p-8 min-h-full relative cursor-crosshair"
-                      onClick={handleDocumentClick}
-                      onMouseMove={handleDragMove}
-                      onMouseUp={handleDragEnd}
-                      onMouseLeave={handleDragEnd}
-                    >
-                      {/* Simulated document content */}
-                      {currentPage === 1 && (
-                        <div className="space-y-4">
-                          <div className="text-center mb-8">
-                            <h1 className="text-xl font-bold">{document?.title || 'Agreement'}</h1>
-                            <p className="text-sm text-gray-500">Page 1 of {totalPages}</p>
-                          </div>
-                          
-                          <p className="text-sm">
-                            This Agreement (the "Agreement") is made and entered into as of the date of the last signature below (the "Effective Date"), by and between the parties identified below.
-                          </p>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">WHEREAS:</p>
-                            <p className="text-sm">The parties wish to establish the terms and conditions under which they will work together;</p>
-                            <p className="text-sm">NOW, THEREFORE, in consideration of the mutual covenants contained herein, the parties agree as follows:</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">1. DEFINITIONS</p>
-                            <p className="text-sm">1.1 "Confidential Information" means any information disclosed by one party to the other party, either directly or indirectly, in writing, orally or by inspection of tangible objects.</p>
-                            <p className="text-sm">1.2 "Services" means the services to be provided as described in this Agreement.</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">2. TERM</p>
-                            <p className="text-sm">2.1 This Agreement shall commence on the Effective Date and shall continue until terminated in accordance with the provisions of this Agreement.</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {currentPage === 2 && (
-                        <div className="space-y-4">
-                          <div className="text-center mb-8">
-                            <p className="text-sm text-gray-500">Page 2 of {totalPages}</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">3. COMPENSATION</p>
-                            <p className="text-sm">3.1 In consideration for the Services, the Client shall pay the Provider the amounts specified in Exhibit A.</p>
-                            <p className="text-sm">3.2 All payments shall be made within thirty (30) days of receipt of an invoice from the Provider.</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">4. CONFIDENTIALITY</p>
-                            <p className="text-sm">4.1 Each party agrees to maintain the confidentiality of the Confidential Information of the other party and to not disclose such Confidential Information to any third party without the prior written consent of the disclosing party.</p>
-                            <p className="text-sm">4.2 The obligations of confidentiality shall survive the termination of this Agreement for a period of three (3) years.</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">5. INTELLECTUAL PROPERTY</p>
-                            <p className="text-sm">5.1 All intellectual property rights in any materials created or developed by the Provider pursuant to this Agreement shall vest in the Client upon creation.</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {currentPage === 3 && (
-                        <div className="space-y-4">
-                          <div className="text-center mb-8">
-                            <p className="text-sm text-gray-500">Page 3 of {totalPages}</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">6. TERMINATION</p>
-                            <p className="text-sm">6.1 Either party may terminate this Agreement upon thirty (30) days' written notice to the other party.</p>
-                            <p className="text-sm">6.2 Upon termination, the Client shall pay the Provider for all Services performed up to the date of termination.</p>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">7. GENERAL</p>
-                            <p className="text-sm">7.1 This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements and understandings, whether written or oral, relating to the subject matter of this Agreement.</p>
-                            <p className="text-sm">7.2 This Agreement may only be amended by a written document signed by both parties.</p>
-                          </div>
-                          
-                          <div className="mt-12 space-y-8">
-                            <div className="grid grid-cols-2 gap-8">
-                              <div>
-                                <p className="text-sm font-medium">CLIENT:</p>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Signature</p>
-                                </div>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Name</p>
-                                </div>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Date</p>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <p className="text-sm font-medium">PROVIDER:</p>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Signature</p>
-                                </div>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Name</p>
-                                </div>
-                                <div className="mt-4 border-t border-gray-300 pt-2">
-                                  <p className="text-xs text-gray-500">Date</p>
-                                </div>
-                              </div>
+                        {/* Email + Role (when not from Team) */}
+                        {!cc.contactId && (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Email *</label>
+                              <input
+                                type="email"
+                                value={cc.email}
+                                onChange={e => setCcList(prev => prev.map(item => item.id === cc.id ? { ...item, email: e.target.value } : item))}
+                                placeholder="john@example.com"
+                                style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Role (optional)</label>
+                              <input
+                                type="text"
+                                value={cc.role}
+                                onChange={e => setCcList(prev => prev.map(item => item.id === cc.id ? { ...item, role: e.target.value } : item))}
+                                placeholder="e.g., Artist, Manager"
+                                style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                              />
                             </div>
                           </div>
-                        </div>
-                      )}
-                      
-                      {/* Render signature fields */}
-                      {signers.map(signer => 
-                        signer.fields
-                          .filter(field => field.page === currentPage)
-                          .map(field => (
-                            <div
-                              key={field.id}
-                              className={`absolute border-2 rounded flex items-center justify-center ${
-                                signer.id === activeSignerId 
-                                  ? 'border-primary bg-primary/5' 
-                                  : 'border-gray-300 bg-gray-50'
-                              }`}
-                              style={{
-                                left: `${field.position.x}px`,
-                                top: `${field.position.y}px`,
-                                width: `${field.position.width}px`,
-                                height: `${field.position.height}px`,
-                                cursor: signer.id === activeSignerId ? 'move' : 'not-allowed'
-                              }}
-                              onMouseDown={(e) => {
-                                if (signer.id === activeSignerId) {
-                                  handleDragStart(e, field);
-                                }
-                              }}
-                            >
-                              <div className="flex flex-col items-center justify-center w-full h-full">
-                                <div className="flex items-center gap-1">
-                                  {getFieldIcon(field.type)}
-                                  <span className="text-xs font-medium truncate max-w-[80px]">
-                                    {signer.name || `Recipient ${signer.id}`}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-gray-500">{field.label}</span>
-                              </div>
-                              {signer.id === activeSignerId && (
-                                <button
-                                  className="absolute -top-2 -right-2 bg-white rounded-full p-0.5 border border-gray-300 text-gray-500 hover:text-red-500"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveField(signer.id, field.id);
-                                  }}
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          ))
-                      )}
-                      
-                      {/* Cursor indicator when field type is selected */}
-                      {selectedFieldType && (
-                        <div className="fixed pointer-events-none text-primary opacity-70">
-                          {getFieldIcon(selectedFieldType)}
-                        </div>
-                      )}
+                        )}
+
+                        {/* Role (when from Team, editable) */}
+                        {cc.contactId && (
+                          <div>
+                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-mono)' }}>Role (optional)</label>
+                            <input
+                              type="text"
+                              value={cc.role}
+                              onChange={e => setCcList(prev => prev.map(item => item.id === cc.id ? { ...item, role: e.target.value } : item))}
+                              placeholder="e.g., Artist, Manager"
+                              style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                            />
+                          </div>
+                        )}
+
+                        {/* New contact notice */}
+                        {!cc.contactId && cc.name.trim() && cc.email.trim() && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--t3)', fontStyle: 'italic' }}>
+                            <img src="/The Manager_Iconografia-11.svg" className="pxi-sm icon-muted" alt="" style={{ opacity: 0.5 }} />
+                            Will be added to Team on send
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Remove */}
+                      <button onClick={() => setCcList(prev => prev.filter(item => item.id !== cc.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', alignSelf: 'flex-start', padding: 4 }}>
+                        <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
+                      </button>
                     </div>
-                  </div>
-                </div>
+                  );
+                })}
+                <button
+                  onClick={() => {
+                    const id = `cc-${Date.now()}`;
+                    setCcList(prev => [...prev, { id, name: '', email: '', role: '' }]);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 8, border: '1px dashed var(--border)', background: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}
+                >
+                  <Plus size={15} />
+                  Add CC Recipient
+                </button>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setStep('recipients')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep('message')}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        );
-      
-      case 'message':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Customize Email</h3>
-              <p className="text-sm text-gray-500">
-                Personalize the message that will be sent to recipients
+            {/* Signing order */}
+            <div style={{ marginBottom: 24, padding: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+              <h3 style={{ color: 'var(--t1)', fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Signing Order</h3>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                {(['parallel', 'sequential'] as SigningOrder[]).map(order => (
+                  <button
+                    key={order}
+                    onClick={() => setSigningOrder(order)}
+                    style={{
+                      flex: 1, padding: '10px 16px', borderRadius: 8,
+                      border: `2px solid ${signingOrder === order ? 'var(--primary)' : 'var(--border)'}`,
+                      background: signingOrder === order ? 'rgba(99,102,241,0.08)' : 'var(--surface-2)',
+                      color: signingOrder === order ? 'var(--primary)' : 'var(--t2)',
+                      cursor: 'pointer', fontSize: 14, fontWeight: signingOrder === order ? 700 : 400,
+                    }}
+                  >
+                    {order.charAt(0).toUpperCase() + order.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--t3)', margin: 0 }}>
+                {signingOrder === 'parallel'
+                  ? 'All recipients receive the document at the same time.'
+                  : 'Recipients sign one at a time in the order listed.'}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email Subject
-                </label>
-                <input
-                  type="text"
-                  value={emailSubject}
-                  onChange={(e) => setEmailSubject(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email Message
-                </label>
-                <textarea
-                  value={emailMessage}
-                  onChange={(e) => setEmailMessage(e.target.value)}
-                  rows={6}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
-                  Expiration Date (optional)
-                </label>
-                <input
-                  type="date"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
-                />
-                <p className="mt-1 text-xs" style={{ color: 'var(--t3)' }}>
-                  If set, the signing request will expire and recipients will no longer be able to sign after this date.
-                </p>
+            {/* Email */}
+            <div style={{ marginBottom: 24, padding: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+              <h3 style={{ color: 'var(--t1)', fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Email to Recipients</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Subject</label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={e => setEmailSubject(e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Message</label>
+                  <textarea
+                    value={emailMessage}
+                    onChange={e => setEmailMessage(e.target.value)}
+                    rows={3}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--t1)', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setStep('fields')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep('review')}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
-              >
-                Continue
-              </button>
+            {/* Expiry */}
+            <div style={{ marginBottom: 32, padding: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+              <h3 style={{ color: 'var(--t1)', fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Expiry Date <span style={{ fontWeight: 400, color: 'var(--t3)' }}>(optional)</span></h3>
+              <TMDatePicker value={expiresAt} onChange={(date) => setExpiresAt(date)} />
+            </div>
+
+            <button
+              onClick={() => setStep('editor')}
+              disabled={!canProceed}
+              style={{ width: '100%', padding: 14, borderRadius: 10, background: canProceed ? 'var(--primary)' : 'var(--surface-2)', color: canProceed ? 'white' : 'var(--t3)', border: 'none', fontWeight: 700, fontSize: 16, cursor: canProceed ? 'pointer' : 'not-allowed', opacity: canProceed ? 1 : 0.6 }}
+            >
+              Continue — Place Signature Fields →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── EDITOR step ────────────────────────────────────────────────────────────
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+
+      {/* Top bar */}
+      <div style={{ height: 56, display: 'flex', alignItems: 'center', padding: '0 16px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', gap: 12, flexShrink: 0 }}>
+        <button onClick={onClose} style={{ padding: '6px 8px', borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--t3)', display: 'flex' }}>
+          <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="" />
+        </button>
+        <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+        <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" style={{ flexShrink: 0 }} />
+        <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--t1)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.title}</span>
+        <div style={{ display: 'flex', gap: 8, fontSize: 12, alignItems: 'center', color: 'var(--t3)', flexShrink: 0 }}>
+          <button onClick={() => setStep('recipients')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 12, padding: 0 }}>
+            <Users size={12} style={{ display: 'inline', marginRight: 4 }} />1. Recipients
+          </button>
+          <ChevronRight size={12} />
+          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>2. Place Fields</span>
+          <ChevronRight size={12} />
+          <span>3. Send</span>
+        </div>
+        <button
+          onClick={handleSend}
+          disabled={isSending}
+          style={{ padding: '8px 22px', borderRadius: 8, background: 'var(--brand-1)', color: 'white', border: 'none', fontWeight: 700, fontSize: 14, cursor: isSending ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: isSending ? 0.7 : 1, flexShrink: 0 }}
+        >
+          {isSending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <img src="/TM-Send-negro.svg" className="pxi-md icon-white" alt="" />}
+          Send
+        </button>
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* ── Left sidebar ─────────────────────────────────────────────────── */}
+        <div style={{ width: 256, background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+
+          {/* Signers */}
+          <div style={{ padding: '16px 14px 0' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Signers</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {signers.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSignerId(s.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8,
+                    border: `1.5px solid ${activeSignerId === s.id ? s.color : 'var(--border)'}`,
+                    background: activeSignerId === s.id ? `${s.color}14` : 'var(--surface-2)',
+                    cursor: 'pointer', textAlign: 'left', width: '100%',
+                  }}
+                >
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ color: 'white', fontSize: 11, fontWeight: 700 }}>{s.name[0]?.toUpperCase() || '?'}</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name || 'Unnamed'}</div>
+                    <div style={{ fontSize: 10, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.role || s.email}</div>
+                  </div>
+                  <span style={{ fontSize: 10, background: 'var(--surface-3)', borderRadius: 10, padding: '2px 5px', color: 'var(--t2)', flexShrink: 0 }}>
+                    {fields.filter(f => f.recipientId === s.id).length}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
-        );
-      
-      case 'review':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Review and Send</h3>
-              <p className="text-sm text-gray-500">
-                Review the document and recipient details before sending
-              </p>
-            </div>
 
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Document</h4>
-                <div className="flex items-start gap-3">
-                  <FileText className="w-5 h-5 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{document?.title || 'Document'}</p>
-                    <p className="text-xs text-gray-500">{document?.fileName || 'document.pdf'}</p>
-                  </div>
-                </div>
+          <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+
+          {/* Field palette */}
+          <div style={{ padding: '0 14px' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
+              {paletteType ? '↑ Click document to place' : 'Add Fields'}
+            </p>
+            {paletteType && (
+              <div style={{ marginBottom: 8, padding: '7px 10px', borderRadius: 6, background: 'var(--status-yellow-bg)', border: '1px solid var(--status-yellow)', fontSize: 11, color: 'var(--status-yellow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Click document to place <strong>{FIELD_PALETTE.find(p => p.type === paletteType)?.label}</strong></span>
+                <button onClick={() => setPaletteType(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--status-yellow)', padding: 0 }}>
+                  <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
+                </button>
               </div>
-              
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Recipients</h4>
-                <div className="space-y-3">
-                  {signers.map((signer) => (
-                    <div key={signer.id} className="flex items-start gap-3">
-                      <User className="w-5 h-5 text-gray-400 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{signer.name}</p>
-                        <p className="text-xs text-gray-500">{signer.email}</p>
-                        <p className="text-xs text-gray-500">{signer.role || 'No role specified'}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {signer.fields.length} field{signer.fields.length !== 1 ? 's' : ''} to complete
-                        </p>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {FIELD_PALETTE.map(item => (
+                <button
+                  key={item.type}
+                  onClick={() => setPaletteType(paletteType === item.type ? null : item.type)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', borderRadius: 7,
+                    border: `1.5px solid ${paletteType === item.type ? (activeSigner?.color || 'var(--primary)') : 'var(--border)'}`,
+                    background: paletteType === item.type ? `${activeSigner?.color || 'var(--primary)'}14` : 'var(--surface-2)',
+                    cursor: 'pointer', textAlign: 'left', width: '100%', fontSize: 13,
+                    color: paletteType === item.type ? (activeSigner?.color || 'var(--primary)') : 'var(--t1)',
+                    fontWeight: paletteType === item.type ? 600 : 400,
+                  }}
+                >
+                  <span style={{ color: paletteType === item.type ? (activeSigner?.color || 'var(--primary)') : 'var(--t3)' }}>
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+
+          {/* Fields on this page */}
+          <div style={{ padding: '0 14px 14px', flex: 1, overflow: 'auto' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
+              Fields — Page {currentPage}
+            </p>
+            {pageFields.length === 0 ? (
+              <p style={{ fontSize: 12, color: 'var(--t3)', textAlign: 'center', padding: '10px 0' }}>No fields on this page.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {pageFields.map(f => {
+                  const signer = signers.find(s => s.id === f.recipientId);
+                  return (
+                    <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px', borderRadius: 6, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: signer?.color || 'var(--border)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--t1)' }}>{f.label}</div>
+                        <div style={{ fontSize: 10, color: 'var(--t3)' }}>{signer?.name || 'Unknown'}</div>
                       </div>
-                      <button
-                        onClick={() => handlePreviewEmail(signer)}
-                        className="px-3 py-1 text-xs text-primary bg-primary/10 rounded hover:bg-primary/20"
-                      >
-                        Preview Email
+                      <button onClick={() => removeField(f.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: 2, display: 'flex' }}>
+                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Email Message</h4>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-900">{emailSubject}</p>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{emailMessage}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setStep('message')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handleSendForSignature}
-                disabled={isSending || sendComplete}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
-              >
-                {isSending ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white\" xmlns="http://www.w3.org/2000/svg\" fill="none\" viewBox="0 0 24 24">
-                      <circle className="opacity-25\" cx="12\" cy="12\" r="10\" stroke="currentColor\" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sending...
-                  </>
-                ) : sendComplete ? (
-                  <>
-                    <svg className="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Sent!
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Send for Signature
-                  </>
-                )}
-              </button>
-            </div>
-            
-            {sendComplete && (
-              <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-400 rounded-md">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-green-700">
-                      Document sent successfully! Recipients will receive an email with instructions to sign.
-                    </p>
-                    <div className="mt-4">
-                      <div className="-mx-2 -my-1.5 flex">
-                        <button
-                          type="button"
-                          onClick={onClose}
-                          className="px-2 py-1.5 rounded-md text-sm font-medium text-green-700 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        );
-      
-      default:
-        return null;
-    }
-  };
+        </div>
 
-  return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title="Prepare Document for Signature"
-        maxWidth="5xl"
-      >
-        {renderStep()}
-      </Modal>
-      
-      {/* Email Preview Modal */}
-      {selectedSigner && (
-        <SignatureEmailPreview
-          isOpen={showEmailPreview}
-          onClose={() => setShowEmailPreview(false)}
-          document={document}
-          signerName={selectedSigner.name}
-          signerEmail={selectedSigner.email}
-          signerRole={selectedSigner.role}
-          fields={selectedSigner.fields}
-        />
-      )}
-    </>
+        {/* ── Document canvas ───────────────────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+          {/* Page nav bar */}
+          <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', flexShrink: 0, position: 'relative' }}>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--surface-3)', color: 'var(--t1)', cursor: currentPage <= 1 ? 'not-allowed' : 'pointer', opacity: currentPage <= 1 ? 0.4 : 1, display: 'flex', alignItems: 'center' }}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500, minWidth: 60, textAlign: 'center' }}>Page {currentPage}</span>
+            <button
+              onClick={() => setCurrentPage(p => p + 1)}
+              style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--surface-3)', color: 'var(--t1)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <ChevronRight size={14} />
+            </button>
+            {paletteType && (
+              <div style={{ position: 'absolute', right: 16, fontSize: 12, color: 'var(--status-yellow)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--status-yellow)', display: 'inline-block' }} />
+                Click anywhere on the document to place
+              </div>
+            )}
+          </div>
+
+          {/* Scrollable canvas */}
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: 32, background: 'var(--bg)' }}>
+            {/* Document sheet — 850px wide, height matches actual PDF page aspect ratio */}
+            <div style={{ position: 'relative', width: 850, height: sheetHeight, background: 'white', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', flexShrink: 0 }}>
+
+              {/* PDF iframe — pointer-events off while placing/dragging */}
+              {documentUrl ? (
+                <iframe
+                  key={`p${currentPage}`}
+                  src={`${documentUrl}#page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                  title="Document preview"
+                  style={{
+                    position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none',
+                    pointerEvents: paletteType || dragging ? 'none' : 'auto',
+                  }}
+                />
+              ) : (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)', gap: 10 }}>
+                  <img src="/TM-File-negro.svg" className="pxi-xl icon-muted" alt="" />
+                  <span style={{ fontSize: 14 }}>No document preview available</span>
+                </div>
+              )}
+
+              {/* Overlay — captures clicks/drags for field placement */}
+              <div
+                ref={overlayRef}
+                onClick={handleOverlayClick}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onMouseLeave={onMouseUp}
+                style={{
+                  position: 'absolute', inset: 0,
+                  cursor: paletteType ? 'crosshair' : dragging ? 'grabbing' : 'default',
+                  pointerEvents: paletteType || dragging ? 'auto' : 'none',
+                }}
+              >
+                {pageFields.map(f => {
+                  const signer = signers.find(s => s.id === f.recipientId);
+                  const color = signer?.color || '#4F46E5';
+                  return (
+                    <div
+                      key={f.id}
+                      onMouseDown={e => startDrag(e, f)}
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        position: 'absolute',
+                        left: `${f.x}%`, top: `${f.y}%`,
+                        width: `${f.width}%`, height: `${f.height}%`,
+                        border: `2px solid ${color}`,
+                        borderRadius: 4,
+                        background: `${color}22`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'move',
+                        userSelect: 'none',
+                        pointerEvents: 'auto',
+                        boxSizing: 'border-box',
+                        minWidth: 50, minHeight: 22,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color, fontWeight: 600, overflow: 'hidden', padding: '0 4px', pointerEvents: 'none' }}>
+                        {FIELD_PALETTE.find(p => p.type === f.type)?.icon}
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {signer?.name || 'Signer'}
+                        </span>
+                      </div>
+                      <button
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={e => { e.stopPropagation(); removeField(f.id); }}
+                        style={{ position: 'absolute', top: -9, right: -9, width: 18, height: 18, borderRadius: '50%', background: color, border: '2px solid white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', padding: 0 }}
+                      >
+                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-white" alt="" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
 }

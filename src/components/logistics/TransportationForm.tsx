@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, DollarSign, FileText, X, Plus } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, DollarSign, Plus } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import { TransportationProvider, TravelItinerary } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
 
@@ -65,14 +66,14 @@ export default function TransportationForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center gap-3 mb-4">
         {getTransportIcon()}
-        <h3 className="text-lg font-medium text-charcoal uppercase">
+        <h3 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>
           {initialData ? 'Edit Transportation' : 'Add Transportation'}
         </h3>
       </div>
 
       {/* Transportation Type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t2)' }}>
           Transportation Type
         </label>
         <div className="grid grid-cols-4 gap-3">
@@ -160,16 +161,10 @@ export default function TransportationForm({
                 <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700">
                   Date
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="date"
-                    id="departureDate"
+                <div className="mt-1">
+                  <TMDatePicker
                     value={formData.departureDate || ''}
-                    onChange={(e) => setFormData({ ...formData, departureDate: e.target.value })}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    onChange={(date) => setFormData({ ...formData, departureDate: date })}
                     required
                   />
                 </div>
@@ -220,16 +215,10 @@ export default function TransportationForm({
                 <label htmlFor="arrivalDate" className="block text-sm font-medium text-gray-700">
                   Date
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="date"
-                    id="arrivalDate"
+                <div className="mt-1">
+                  <TMDatePicker
                     value={formData.arrivalDate || ''}
-                    onChange={(e) => setFormData({ ...formData, arrivalDate: e.target.value })}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    onChange={(date) => setFormData({ ...formData, arrivalDate: date })}
                     required
                   />
                 </div>
@@ -273,7 +262,7 @@ export default function TransportationForm({
       {/* Booking Details */}
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" />
+          <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" />
           Booking Details
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

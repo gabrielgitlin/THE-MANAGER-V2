@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, AlertCircle, ExternalLink, RefreshCw, Trash2, Settings as SettingsIcon } from 'lucide-react';
 import { calendarIntegrationService, CalendarConnection } from '../../lib/calendarIntegration';
 
 interface CalendarConnectionModalProps {
@@ -187,32 +186,33 @@ export default function CalendarConnectionModal({
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-25" onClick={onClose} />
 
-        <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+        <div className="relative shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderRadius: 0 }}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--border)' }}>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Calendar Connections</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-xl font-bold" style={{ color: 'var(--t1)' }}>Calendar Connections</h2>
+              <p className="text-sm mt-1" style={{ color: 'var(--t2)' }}>
                 Connect external calendars to sync events automatically
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              style={{ color: 'var(--t3)' }}
             >
-              <X className="h-6 w-6" />
+              <img src="/TM-Close-negro.svg" className="pxi-xl icon-white" alt="" />
             </button>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="mx-6 mt-4 p-3 border rounded-md flex items-start gap-2" style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)' }}>
+              <img src="/TM-Info-negro.svg" className="pxi-lg icon-muted flex-shrink-0 mt-0.5" alt="" />
               <div className="flex-1">
-                <p className="text-sm text-red-800">{error}</p>
+                <p className="text-sm" style={{ color: '#ff6666' }}>{error}</p>
                 <button
                   onClick={() => setError(null)}
-                  className="text-xs text-red-600 hover:text-red-700 mt-1"
+                  className="text-xs mt-1"
+                  style={{ color: '#ff4444' }}
                 >
                   Dismiss
                 </button>
@@ -224,19 +224,20 @@ export default function CalendarConnectionModal({
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
             {loading && connections.length === 0 ? (
               <div className="text-center py-8">
-                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Loading connections...</p>
+                <img src="/TM-Refresh-negro.svg" className="pxi-xl icon-muted animate-spin mx-auto mb-2" alt="" />
+                <p className="text-sm" style={{ color: 'var(--t2)' }}>Loading connections...</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {connections.map((connection) => (
                   <div
                     key={connection.id}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
-                      connection.sync_enabled
-                        ? 'border-green-200 bg-green-50'
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
+                    className={`p-4 border-2 transition-colors`}
+                    style={{
+                      borderColor: connection.sync_enabled ? 'var(--brand-1)' : 'var(--border)',
+                      backgroundColor: 'var(--surface-2)',
+                      borderRadius: 0
+                    }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3 flex-1">
@@ -251,32 +252,32 @@ export default function CalendarConnectionModal({
                           />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-sm font-medium text-gray-900">
+                          <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                             {connection.account_name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
                             {connection.sync_enabled ? (
-                              <span className="inline-flex items-center gap-1 text-xs text-green-700">
-                                <Check className="w-3 h-3" />
+                              <span className="inline-flex items-center gap-1 text-xs" style={{ color: 'var(--brand-1)' }}>
+                                <img src="/The Manager_Iconografia-11.svg" className="pxi-sm" alt="" />
                                 Active
                               </span>
                             ) : (
-                              <span className="text-xs text-gray-500">Paused</span>
+                              <span className="text-xs" style={{ color: 'var(--t2)' }}>Paused</span>
                             )}
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs" style={{ color: 'var(--t3)' }}>•</span>
+                            <span className="text-xs" style={{ color: 'var(--t2)' }}>
                               {formatLastSync(connection.last_synced_at)}
                             </span>
                           </div>
                           {connection.sync_error && (
-                            <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
+                            <div className="mt-2 text-xs flex items-center gap-1" style={{ color: '#ff4444' }}>
+                              <img src="/TM-Info-negro.svg" className="pxi-sm icon-muted" alt="" />
                               {connection.sync_error}
                             </div>
                           )}
                           {connection.provider === 'ical' && connection.ical_url && (
-                            <div className="mt-2 text-xs text-gray-500 truncate flex items-center gap-1">
-                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                            <div className="mt-2 text-xs truncate flex items-center gap-1" style={{ color: 'var(--t2)' }}>
+                              <img src="/TM-ExternalLink-negro.svg" className="pxi-sm flex-shrink-0" alt="" />
                               <span className="truncate">{connection.ical_url}</span>
                             </div>
                           )}
@@ -286,34 +287,35 @@ export default function CalendarConnectionModal({
                         <button
                           onClick={() => handleSync(connection.id, connection.provider)}
                           disabled={syncing === connection.id || !connection.sync_enabled}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ color: 'var(--t2)', backgroundColor: 'transparent' }}
                           title="Sync now"
                         >
-                          <RefreshCw
-                            className={`w-4 h-4 ${syncing === connection.id ? 'animate-spin' : ''}`}
-                          />
+                          <img src="/TM-Refresh-negro.svg" className={`pxi-md icon-muted ${syncing === connection.id ? 'animate-spin' : ''}`} alt="" />
                         </button>
                         <button
                           onClick={() => handleDelete(connection.id)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                          className="p-2 rounded"
+                          style={{ color: 'var(--t2)', backgroundColor: 'transparent' }}
                           title="Disconnect"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                         </button>
                       </div>
                     </div>
 
                     {/* Connection Options */}
-                    <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="mt-4 pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
                       <div className="flex items-center gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={connection.sync_enabled}
                             onChange={() => handleToggleSync(connection.id, connection.sync_enabled)}
-                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                            className="h-4 w-4 rounded"
+                            style={{ accentColor: 'var(--brand-1)', borderColor: 'var(--border)' }}
                           />
-                          <span className="text-sm text-gray-700">Sync enabled</span>
+                          <span className="text-sm" style={{ color: 'var(--t1)' }}>Sync enabled</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -325,9 +327,10 @@ export default function CalendarConnectionModal({
                               });
                               loadConnections();
                             }}
-                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                            className="h-4 w-4 rounded"
+                            style={{ accentColor: 'var(--brand-1)', borderColor: 'var(--border)' }}
                           />
-                          <span className="text-sm text-gray-700">Notifications</span>
+                          <span className="text-sm" style={{ color: 'var(--t1)' }}>Notifications</span>
                         </label>
                       </div>
                     </div>
@@ -336,13 +339,13 @@ export default function CalendarConnectionModal({
 
                 {connections.length === 0 && (
                   <div className="text-center py-12">
-                    <div className="text-gray-400 mb-4">
+                    <div className="mb-4" style={{ color: 'var(--t3)' }}>
                       <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">No calendars connected</h3>
-                    <p className="text-sm text-gray-500 mb-6">
+                    <h3 className="text-lg font-medium mb-1" style={{ color: 'var(--t1)' }}>No calendars connected</h3>
+                    <p className="text-sm mb-6" style={{ color: 'var(--t2)' }}>
                       Connect your calendars to sync events automatically
                     </p>
                   </div>
@@ -352,7 +355,7 @@ export default function CalendarConnectionModal({
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="p-6 border-t" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-2)' }}>
             {!showAddModal ? (
               <div className="flex items-center justify-between">
                 <button

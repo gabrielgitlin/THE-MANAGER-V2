@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface SpotifyImportModalProps {
@@ -14,9 +14,11 @@ interface ImportResult {
   artist?: string;
   imported?: number;
   skipped?: number;
+  failed?: number;
   details?: {
     importedAlbums: { title: string; tracks: number }[];
     skippedAlbums: { title: string; reason: string }[];
+    failedAlbums?: { title: string; reason: string }[];
   };
   error?: string;
 }
@@ -69,9 +71,14 @@ export default function SpotifyImportModal({
 
       setResult(data);
 
-      if (data.success) {
+      // Refresh catalog whenever at least one album was imported, even if others failed
+      if ((data.imported ?? 0) > 0) {
+        onImportComplete();
+      }
+
+      // Auto-close only on a fully clean success
+      if (data.success && (data.failed ?? 0) === 0) {
         setTimeout(() => {
-          onImportComplete();
           handleClose();
         }, 3000);
       }
@@ -99,22 +106,23 @@ export default function SpotifyImportModal({
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-30" onClick={handleClose} />
 
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full">
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <div style={{ background: 'var(--surface)', borderRadius: 0, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' }} className="relative max-w-2xl w-full">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', borderBottom: `1px solid var(--border)` }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: 'var(--t1)' }}>
               Import from Spotify
             </h2>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-500"
+              style={{ color: 'var(--t3)' }}
+              className="hover:opacity-80"
             >
-              <X className="w-6 h-6" />
+              <img src="/TM-Close-negro.svg" className="pxi-xl icon-muted" alt="" />
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--t1)', marginBottom: '8px' }}>
                 Spotify Artist URL
               </label>
               <input
@@ -122,10 +130,10 @@ export default function SpotifyImportModal({
                 value={spotifyUrl}
                 onChange={(e) => setSpotifyUrl(e.target.value)}
                 placeholder="https://open.spotify.com/artist/..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                style={{ width: '100%', padding: '8px 16px', border: `1px solid var(--border)`, background: 'var(--surface-2)' }}
                 disabled={isImporting}
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p style={{ marginTop: '8px', fontSize: '14px', color: 'var(--t2)' }}>
                 Paste the Spotify URL of the artist to import their entire catalog.
                 Duplicate albums will be automatically skipped.
               </p>
@@ -133,33 +141,39 @@ export default function SpotifyImportModal({
 
             {result && (
               <div
-                className={`p-4 rounded-md ${
-                  result.success
-                    ? 'bg-green-50 border border-green-200'
-                    : 'bg-red-50 border border-red-200'
-                }`}
+                style={{
+                  padding: '16px',
+                  borderRadius: 0,
+                  border: `1px solid ${result.success ? 'var(--border)' : 'var(--border)'}`,
+                  background: result.success ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+                }}
               >
                 <div className="flex items-start">
                   {result.success ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                    <img src="/The Manager_Iconografia-11.svg" className="pxi-lg icon-green mr-3 flex-shrink-0 mt-0.5" alt="" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
+                    <img src="/TM-Info-negro.svg" className="pxi-lg icon-danger mr-3 flex-shrink-0 mt-0.5" alt="" />
                   )}
-                  <div className="flex-1">
+                  <div style={{ flex: 1 }}>
                     <h3
-                      className={`text-sm font-medium ${
-                        result.success ? 'text-green-800' : 'text-red-800'
-                      }`}
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: result.success ? 'rgba(34, 197, 94, 0.8)' : 'rgba(239, 68, 68, 0.8)'
+                      }}
                     >
                       {result.success ? 'Import Successful!' : 'Import Failed'}
                     </h3>
-                    {result.success && result.details && (
-                      <div className="mt-2 text-sm text-green-700">
+                    {result.details && (
+                      <div style={{ marginTop: '8px', fontSize: '14px', color: result.success ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.8)' }}>
                         <p className="font-medium mb-1">
                           Artist: {result.artist}
                         </p>
                         <p>Imported: {result.imported} albums</p>
                         <p>Skipped: {result.skipped} albums (already exist)</p>
+                        {typeof result.failed === 'number' && result.failed > 0 && (
+                          <p>Failed: {result.failed} albums</p>
+                        )}
 
                         {result.details.importedAlbums.length > 0 && (
                           <div className="mt-3">
@@ -186,10 +200,23 @@ export default function SpotifyImportModal({
                             </ul>
                           </div>
                         )}
+
+                        {result.details.failedAlbums && result.details.failedAlbums.length > 0 && (
+                          <div className="mt-3">
+                            <p className="font-medium mb-1" style={{ color: 'rgba(239, 68, 68, 0.9)' }}>Failed Albums:</p>
+                            <ul className="list-disc list-inside space-y-1 ml-2" style={{ color: 'rgba(239, 68, 68, 0.9)' }}>
+                              {result.details.failedAlbums.map((album, idx) => (
+                                <li key={idx}>
+                                  {album.title} - {album.reason}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
                     {result.error && (
-                      <p className="mt-2 text-sm text-red-700">{result.error}</p>
+                      <p style={{ marginTop: '8px', fontSize: '14px', color: 'rgba(239, 68, 68, 0.8)' }}>{result.error}</p>
                     )}
                   </div>
                 </div>
@@ -197,10 +224,11 @@ export default function SpotifyImportModal({
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', padding: '24px', borderTop: `1px solid var(--border)`, background: 'var(--surface-2)' }}>
             <button
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              style={{ padding: '8px 16px', fontSize: '14px', fontWeight: '500', color: 'var(--t1)', background: 'var(--surface)', border: `1px solid var(--border)` }}
+              className="hover:opacity-80"
               disabled={isImporting}
             >
               Cancel
@@ -217,7 +245,7 @@ export default function SpotifyImportModal({
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4" />
+                  <img src="/TM-Upload-negro.svg" className="pxi-md icon-white" alt="" />
                   Import Catalog
                 </>
               )}

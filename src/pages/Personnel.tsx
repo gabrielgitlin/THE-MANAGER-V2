@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter } from 'lucide-react';
 import PersonnelList from '../components/personnel/PersonnelList';
 import PersonnelForm from '../components/personnel/PersonnelForm';
 import Modal from '../components/Modal';
@@ -79,15 +78,8 @@ export default function Personnel() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Personnel Management</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage team members, artists, and collaborators
-        </p>
-      </div>
-
       {error && (
-        <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
+        <div className="mb-8 p-4 border-l-4 text-red-700" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--status-red)' }}>
           <p className="text-sm">{error}</p>
         </div>
       )}
@@ -96,13 +88,14 @@ export default function Personnel() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
               <input
                 type="text"
                 placeholder="Search personnel..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
@@ -110,7 +103,8 @@ export default function Personnel() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="block shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             >
               <option value="all">All Types</option>
               <option value="songwriter">Songwriters</option>

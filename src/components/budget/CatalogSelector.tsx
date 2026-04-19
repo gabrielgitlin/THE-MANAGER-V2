@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Music, Album as AlbumIcon, ChevronDown, ChevronRight, X, Check } from 'lucide-react';
+import { Plus, Music, Album as AlbumIcon, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Album, Track } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { CATALOG } from '../../data/catalog';
@@ -153,10 +153,10 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
             Catalog {totalSelected > 0 && <span className="text-primary">({totalSelected} selected)</span>}
           </label>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs" style={{ color: 'var(--t2)' }}>
             Select existing tracks or create new ones
           </p>
         </div>
@@ -164,13 +164,14 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <img src="/TM-Search-negro.svg" className="pxi-md icon-muted absolute left-3 top-1/2 transform -translate-y-1/2" alt="" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search albums and tracks..."
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
         />
       </div>
 
@@ -178,7 +179,8 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
       <button
         type="button"
         onClick={() => setShowNewTrackForm(!showNewTrackForm)}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-primary hover:text-primary transition-colors"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed text-sm font-medium hover:opacity-80 transition-opacity"
+        style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}
       >
         <Plus className="w-4 h-4" />
         Create New Track (Not in Catalog)
@@ -186,20 +188,21 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
 
       {/* New Track Form */}
       {showNewTrackForm && (
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+        <div className="p-4 border space-y-3" style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium text-gray-900">New Track</h4>
+            <h4 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>New Track</h4>
             <button
               type="button"
               onClick={() => setShowNewTrackForm(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="hover:opacity-80"
+              style={{ color: 'var(--t2)' }}
             >
-              <X className="w-4 h-4" />
+              <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
             </button>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--t1)' }}>
               Track Title *
             </label>
             <input
@@ -207,13 +210,14 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
               value={newTrackForm.title}
               onChange={(e) => setNewTrackForm({ ...newTrackForm, title: e.target.value })}
               placeholder="Enter track title"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2 text-sm border focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--t1)' }}>
                 Duration
               </label>
               <input
@@ -221,12 +225,13 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
                 value={newTrackForm.duration}
                 onChange={(e) => setNewTrackForm({ ...newTrackForm, duration: e.target.value })}
                 placeholder="3:45"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--t1)' }}>
                 ISRC (Optional)
               </label>
               <input
@@ -234,7 +239,8 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
                 value={newTrackForm.isrc}
                 onChange={(e) => setNewTrackForm({ ...newTrackForm, isrc: e.target.value })}
                 placeholder="USRC12345678"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
           </div>
@@ -243,7 +249,7 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
             type="button"
             onClick={handleAddNewTrack}
             disabled={!newTrackForm.title.trim()}
-            className="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Add Track
           </button>
@@ -253,19 +259,20 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
       {/* New Tracks List */}
       {newTracks.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+          <h4 className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
             New Tracks (Not Yet in Catalog)
           </h4>
           {newTracks.map((track) => (
             <div
               key={track.tempId}
-              className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg"
+              className="flex items-center justify-between p-3 border"
+              style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}
             >
               <div className="flex items-center gap-3 flex-1">
-                <Music className="w-4 h-4 text-blue-600" />
+                <Music className="w-4 h-4 text-primary" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{track.title}</p>
-                  <div className="flex gap-3 text-xs text-gray-500">
+                  <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{track.title}</p>
+                  <div className="flex gap-3 text-xs" style={{ color: 'var(--t2)' }}>
                     {track.duration && <span>{track.duration}</span>}
                     {track.isrc && <span>ISRC: {track.isrc}</span>}
                   </div>
@@ -274,9 +281,10 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
               <button
                 type="button"
                 onClick={() => handleRemoveNewTrack(track.tempId)}
-                className="p-1 text-gray-400 hover:text-red-500"
+                className="p-1 hover:text-red-500"
+                style={{ color: 'var(--t2)' }}
               >
-                <X className="w-4 h-4" />
+                <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
               </button>
             </div>
           ))}
@@ -285,12 +293,12 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
 
       {/* Catalog Albums and Tracks */}
       <div className="space-y-2 max-h-96 overflow-y-auto">
-        <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+        <h4 className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
           Catalog
         </h4>
 
         {filteredAlbums.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8" style={{ color: 'var(--t2)' }}>
             <Music className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No albums found</p>
           </div>
@@ -300,19 +308,20 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
             const isSelected = isAlbumSelected(album);
 
             return (
-              <div key={album.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div key={album.id} className="border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
                 {/* Album Header */}
-                <div className="bg-white">
-                  <div className="flex items-center gap-2 p-3 hover:bg-gray-50">
+                <div style={{ background: 'var(--surface)' }}>
+                  <div className="flex items-center gap-2 p-3 hover:opacity-80">
                     <button
                       type="button"
                       onClick={() => toggleAlbumExpansion(album.id)}
-                      className="p-1 hover:bg-gray-100 rounded"
+                      className="p-1 hover:opacity-80"
+                      style={{ color: 'var(--t2)' }}
                     >
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-gray-500" />
+                        <ChevronDown className="w-4 h-4" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                        <ChevronRight className="w-4 h-4" />
                       )}
                     </button>
 
@@ -323,29 +332,30 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
                         onChange={() => handleAlbumSelection(album)}
                         className="rounded border-gray-300 text-primary focus:ring-primary"
                       />
-                      <AlbumIcon className="w-5 h-5 text-gray-400" />
+                      <AlbumIcon className="w-5 h-5" style={{ color: 'var(--t2)' }} />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{album.title || 'Untitled'}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{album.title || 'Untitled'}</p>
+                        <p className="text-xs" style={{ color: 'var(--t2)' }}>
                           {album.artist || 'Unknown Artist'} • {album.format || 'Album'} • {album.tracks?.length || 0} tracks
                         </p>
                       </div>
                       {isSelected && (
-                        <Check className="w-4 h-4 text-primary" />
+                        <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                       )}
                     </label>
                   </div>
 
                   {/* Track List */}
                   {isExpanded && album.tracks && album.tracks.length > 0 && (
-                    <div className="border-t border-gray-100 bg-gray-50">
+                    <div className="border-t" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
                       {album.tracks.map((track) => {
                         const isTrackSelected = selectedTracks.includes(track.id);
 
                         return (
                           <label
                             key={track.id}
-                            className="flex items-center gap-3 px-3 py-2 pl-12 hover:bg-gray-100 cursor-pointer"
+                            className="flex items-center gap-3 px-3 py-2 pl-12 hover:opacity-80 cursor-pointer"
+                            style={{ color: 'var(--t1)' }}
                           >
                             <input
                               type="checkbox"
@@ -353,17 +363,17 @@ export default function CatalogSelector({ selectedTracks, onSelectionChange, rel
                               onChange={() => handleTrackSelection(track.id)}
                               className="rounded border-gray-300 text-primary focus:ring-primary"
                             />
-                            <Music className="w-4 h-4 text-gray-400" />
+                            <Music className="w-4 h-4" style={{ color: 'var(--t2)' }} />
                             <div className="flex-1">
-                              <p className="text-sm text-gray-900">{track?.title || 'Untitled Track'}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-sm" style={{ color: 'var(--t1)' }}>{track?.title || 'Untitled Track'}</p>
+                              <p className="text-xs" style={{ color: 'var(--t2)' }}>
                                 {track?.trackNumber && `Track ${track.trackNumber}`}
                                 {track?.duration && ` • ${track.duration}`}
                                 {track?.isrc && ` • ${track.isrc}`}
                               </p>
                             </div>
                             {isTrackSelected && (
-                              <Check className="w-4 h-4 text-primary" />
+                              <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                             )}
                           </label>
                         );

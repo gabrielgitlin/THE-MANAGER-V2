@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Bell, Globe, Shield, LogOut, Mail, Phone, Lock, Key, Users, LockKeyhole, UserPlus, Trash2 } from 'lucide-react';
+import { User, Bell, Globe, Shield, LogOut, Mail, Lock, Key, Users, LockKeyhole, UserPlus, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { hasPermission, getPermissionsForRole, Permission, Role, getModuleAccess, getAccessLevelLabel, getAvailableAccessLevels, AccessLevel, ModulePermissions } from '../lib/permissions';
 import PlatformIntegrations from '../components/settings/PlatformIntegrations';
 import AnalyticsIntegrations from '../components/settings/AnalyticsIntegrations';
 import InviteUserModal from '../components/settings/InviteUserModal';
+import Onboarding from '../components/Onboarding';
 import { getTeamMembers, getUserPermissions, updateUserPermission, updateUserRole, TeamMember, UserPermission } from '../lib/userManagement';
 
 const SETTINGS_CATEGORIES = [
@@ -15,6 +16,7 @@ const SETTINGS_CATEGORIES = [
   { id: 'analytics', name: 'Analytics', icon: Bell },
   { id: 'security', name: 'Security', icon: Shield },
   { id: 'permissions', name: 'Permissions', icon: LockKeyhole },
+  { id: 'setup', name: 'Setup Wizard', icon: RotateCcw },
 ];
 
 export default function Settings() {
@@ -22,7 +24,8 @@ export default function Settings() {
   const { user, signOut } = useAuthStore();
   const [activeCategory, setActiveCategory] = useState('profile');
   const [isConnected, setIsConnected] = useState(false);
-  
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     fullName: user?.full_name || '',
@@ -143,15 +146,15 @@ export default function Settings() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-medium text-gray-900">Profile Settings</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Profile Settings</h2>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>
                 Update your personal information and preferences
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Full Name
                 </label>
                 <input
@@ -159,54 +162,74 @@ export default function Settings() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--t1)',
+                  }}
+                  className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Email
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="mt-1 relative shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-4 w-4 text-gray-400" />
+                    <Mail className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                   </div>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)',
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Phone
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="mt-1 relative shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-4 w-4 text-gray-400" />
+                    <img src="/TM-Phone-negro.svg" className="pxi-md icon-muted" alt="" />
                   </div>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)',
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Role
                 </label>
                 <input
                   type="text"
                   value={user?.role || ''}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm bg-gray-50"
+                  style={{
+                    backgroundColor: 'var(--surface-2)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--t2)',
+                  }}
+                  className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   readOnly
                 />
               </div>
@@ -216,7 +239,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={handleSaveProfile}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="btn-primary"
               >
                 Save Changes
               </button>
@@ -228,8 +251,8 @@ export default function Settings() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-medium text-gray-900">Notification Preferences</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Notification Preferences</h2>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>
                 Choose how you want to be notified
               </p>
             </div>
@@ -242,14 +265,18 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.email}
                     onChange={handleNotificationChange}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                    style={{
+                      borderColor: 'var(--border)',
+                      accentColor: 'var(--brand-1)',
+                    }}
+                    className="border focus:ring-primary"
                   />
                 </div>
                 <div className="ml-3">
-                  <label htmlFor="email_notifications" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="email_notifications" className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Email Notifications
                   </label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm" style={{ color: 'var(--t2)' }}>
                     Receive updates about your account via email
                   </p>
                 </div>
@@ -262,14 +289,18 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.browser}
                     onChange={handleNotificationChange}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                    style={{
+                      borderColor: 'var(--border)',
+                      accentColor: 'var(--brand-1)',
+                    }}
+                    className="border focus:ring-primary"
                   />
                 </div>
                 <div className="ml-3">
-                  <label htmlFor="browser_notifications" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="browser_notifications" className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Browser Notifications
                   </label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm" style={{ color: 'var(--t2)' }}>
                     Get notified in your browser when important events occur
                   </p>
                 </div>
@@ -280,7 +311,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={handleSaveNotifications}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="btn-primary"
               >
                 Save Preferences
               </button>
@@ -298,63 +329,78 @@ export default function Settings() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-medium text-gray-900">Security Settings</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Security Settings</h2>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>
                 Manage your account security and authentication
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Current Password
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="mt-1 relative shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-4 w-4 text-gray-400" />
+                    <Lock className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                   </div>
                   <input
                     type="password"
                     name="currentPassword"
                     value={formData.currentPassword}
                     onChange={handleInputChange}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)',
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   New Password
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="mt-1 relative shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Key className="h-4 w-4 text-gray-400" />
+                    <Key className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                   </div>
                   <input
                     type="password"
                     name="newPassword"
                     value={formData.newPassword}
                     onChange={handleInputChange}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)',
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Confirm New Password
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="mt-1 relative shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Key className="h-4 w-4 text-gray-400" />
+                    <Key className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                   </div>
                   <input
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)',
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
@@ -364,16 +410,20 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={handleSavePassword}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="btn-primary"
               >
                 Update Password
               </button>
             </div>
 
-            <div className="pt-6 border-t border-gray-200">
+            <div className="pt-6" style={{ borderTopColor: 'var(--border)', borderTopWidth: '1px' }}>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+                style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:opacity-80"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -387,15 +437,15 @@ export default function Settings() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-gray-900">Access Management</h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Access Management</h2>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>
                   Manage access permissions for team members
                 </p>
               </div>
               {isAdmin && (
                 <button
                   onClick={() => setIsInviteModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                  className="btn-primary"
                 >
                   <UserPlus className="w-4 h-4" />
                   Invite User
@@ -405,13 +455,17 @@ export default function Settings() {
 
             {isAdmin ? (
               <div className="space-y-6">
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <div style={{
+                  backgroundColor: 'rgba(68, 170, 153, 0.1)',
+                  borderLeft: '4px solid var(--brand-1)',
+                  padding: '1rem',
+                }}>
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <Users className="h-5 w-5 text-blue-400" />
+                      <Users className="h-5 w-5" style={{ color: 'var(--brand-1)' }} />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-blue-700">
+                      <p className="text-sm" style={{ color: 'var(--t1)' }}>
                         As an administrator, you can manage access permissions for all team members.
                       </p>
                     </div>
@@ -420,13 +474,18 @@ export default function Settings() {
 
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                       Team Member
                     </label>
                     <select
                       value={selectedMember || ''}
                       onChange={(e) => setSelectedMember(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      style={{
+                        backgroundColor: 'var(--surface)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--t1)',
+                      }}
+                      className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     >
                       <option value="">Select a team member</option>
                       {teamMembers.map((member) => (
@@ -440,13 +499,18 @@ export default function Settings() {
                   {selectedMember && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                           Module
                         </label>
                         <select
                           value={selectedModule || ''}
                           onChange={(e) => setSelectedModule(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          style={{
+                            backgroundColor: 'var(--surface)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--t1)',
+                          }}
+                          className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         >
                           <option value="">Select a module</option>
                           <option value="catalog">Catalog</option>
@@ -462,13 +526,18 @@ export default function Settings() {
 
                       {selectedModule && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                             Access Level
                           </label>
                           <select
                             value={selectedAccess || ''}
                             onChange={(e) => setSelectedAccess(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)',
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           >
                             <option value="">Select access level</option>
                             <option value="view">View Only</option>
@@ -483,7 +552,7 @@ export default function Settings() {
                         <div className="flex justify-end">
                           <button
                             onClick={handleUpdatePermissions}
-                            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                            className="btn-primary"
                           >
                             Update Access Level
                           </button>
@@ -495,21 +564,25 @@ export default function Settings() {
 
                 {/* Team Members Table */}
                 <div className="mt-8">
-                  <h3 className="text-md font-medium text-gray-900 mb-4">Team Members</h3>
+                  <h3 className="text-md font-medium mb-4" style={{ color: 'var(--t1)' }}>Team Members</h3>
 
                   {isLoadingMembers ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="text-sm text-gray-500">Loading team members...</div>
+                      <div className="text-sm" style={{ color: 'var(--t2)' }}>Loading team members...</div>
                     </div>
                   ) : teamMembers.length === 0 ? (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                      <Users className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">No team members</h3>
-                      <p className="mt-1 text-sm text-gray-500">Get started by inviting your first team member.</p>
+                    <div className="text-center py-8" style={{
+                      backgroundColor: 'var(--surface)',
+                      border: '2px dashed var(--border)',
+                      color: 'var(--t2)',
+                    }}>
+                      <Users className="mx-auto h-12 w-12" style={{ color: 'var(--t3)' }} />
+                      <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No team members</h3>
+                      <p className="mt-1 text-sm">Get started by inviting your first team member.</p>
                       <div className="mt-6">
                         <button
                           onClick={() => setIsInviteModalOpen(true)}
-                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                          className="btn-primary"
                         >
                           <UserPlus className="w-4 h-4" />
                           Invite User
@@ -517,52 +590,58 @@ export default function Settings() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-white shadow overflow-hidden border border-gray-200 sm:rounded-lg">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <div style={{
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      overflow: 'hidden',
+                    }}>
+                      <table className="min-w-full divide-y" style={{ borderColor: 'var(--border)' }}>
+                        <thead style={{ backgroundColor: 'var(--surface-2)' }}>
                           <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                               Team Member
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                               Email
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                               Role
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                               Joined
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody style={{ borderColor: 'var(--border)' }} className="divide-y">
                           {teamMembers.map((member) => (
                             <tr key={member.id}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <div className="h-10 w-10 flex-shrink-0">
-                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                      <span className="text-sm font-medium text-primary">
+                                    <div className="h-10 w-10 flex items-center justify-center" style={{
+                                      backgroundColor: 'rgba(68, 170, 153, 0.1)',
+                                    }}>
+                                      <span className="text-sm font-medium" style={{ color: 'var(--brand-1)' }}>
                                         {(member.full_name || member.email).charAt(0).toUpperCase()}
                                       </span>
                                     </div>
                                   </div>
                                   <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-900">
+                                    <div className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                                       {member.full_name || 'Unnamed User'}
                                     </div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                                 {member.email}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                <span className="badge-green text-xs leading-5 font-semibold">
                                   {member.role.replace('_', ' ')}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                                 {new Date(member.created_at).toLocaleDateString()}
                               </td>
                             </tr>
@@ -574,35 +653,59 @@ export default function Settings() {
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 p-6 rounded-lg">
+              <div style={{
+                backgroundColor: 'var(--surface)',
+                padding: '1.5rem',
+              }}>
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <LockKeyhole className="h-5 w-5 text-gray-400" />
+                    <LockKeyhole className="h-5 w-5" style={{ color: 'var(--t3)' }} />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-gray-900">Your Access Permissions</h3>
+                    <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Your Access Permissions</h3>
                     <div className="mt-4 space-y-4">
                       {['catalog', 'finance', 'legal', 'live', 'marketing', 'personnel', 'info', 'dashboard'].map(module => {
                         const accessLevel = getModuleAccess(user, module as any);
                         return (
                           <div key={module} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">{module.charAt(0).toUpperCase() + module.slice(1)}</span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              accessLevel ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span className="text-sm" style={{ color: 'var(--t2)' }}>{module.charAt(0).toUpperCase() + module.slice(1)}</span>
+                            <span className={accessLevel ? 'badge-green' : 'badge-brand'} style={{
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.75rem',
+                              fontWeight: '500',
+                            }}>
                               {accessLevel ? getAccessLevelLabel(accessLevel) : 'No Access'}
                             </span>
                           </div>
                         );
                       })}
                     </div>
-                    <p className="mt-4 text-sm text-gray-500">
+                    <p className="mt-4 text-sm" style={{ color: 'var(--t2)' }}>
                       Contact your administrator if you need additional access.
                     </p>
                   </div>
                 </div>
               </div>
             )}
+          </div>
+        );
+
+      case 'setup':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Setup Wizard</h2>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>
+                Re-run the initial setup to update your artist profile, platforms, and touring info.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="btn-primary px-6 py-3 flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Open Setup Wizard
+            </button>
           </div>
         );
 
@@ -613,13 +716,6 @@ export default function Settings() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Settings</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage your account settings and preferences
-        </p>
-      </div>
-
       <InviteUserModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
@@ -636,21 +732,24 @@ export default function Settings() {
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md ${
-                    activeCategory === category.id
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  style={{
+                    backgroundColor: activeCategory === category.id ? 'rgba(68, 170, 153, 0.1)' : 'transparent',
+                    color: activeCategory === category.id ? 'var(--brand-1)' : 'var(--t2)',
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium hover:opacity-80"
                 >
                   <Icon className="w-5 h-5" />
                   {category.name}
                 </button>
               );
             })}
-            <div className="pt-4 mt-4 border-t border-gray-200">
+            <div className="pt-4 mt-4" style={{ borderTopColor: 'var(--border)', borderTopWidth: '1px' }}>
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50"
+                style={{
+                  color: '#ef4444',
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium hover:opacity-80"
               >
                 <LogOut className="w-5 h-5" />
                 Sign Out
@@ -660,10 +759,23 @@ export default function Settings() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 bg-white shadow-md rounded-lg p-6">
+        <div style={{
+          backgroundColor: 'var(--surface)',
+          padding: '1.5rem',
+          flex: 1,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+        }}>
           {renderContent()}
         </div>
       </div>
+
+      {showOnboarding && (
+        <Onboarding
+          initialStep={1}
+          stepsCompleted={[]}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
     </div>
   );
 }

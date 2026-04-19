@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, MapPin, Phone, Mail, Building, Calendar, FileText, Link as LinkIcon, ExternalLink, Users, Truck, Plus, X, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, MapPin, Mail, Building, Calendar, Link as LinkIcon, Users, Truck, Plus, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, formatTime } from '../../lib/utils';
 import type { Show } from '../../types';
@@ -331,7 +331,7 @@ export default function ShowDay() {
   if (!selectedShow) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Select a show to view details</p>
+        <p style={{ color: 'var(--t3)' }}>Select a show to view details</p>
       </div>
     );
   }
@@ -339,38 +339,39 @@ export default function ShowDay() {
   return (
     <div>
       {/* Header with Show Selector and Basic Info */}
-      <div className="bg-white shadow-md rounded-lg p-4 mb-4">
+      <div className="shadow-md rounded-lg p-4 mb-4" style={{ backgroundColor: 'var(--surface)' }}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-medium text-gray-900 uppercase">{selectedShow.title}</h2>
-                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>{selectedShow.title}</h2>
+                <span className={`status-badge ${
                   selectedShow.status === 'confirmed'
-                    ? 'bg-green-100 text-green-800'
+                    ? 'badge-green'
                     : selectedShow.status === 'cancelled'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-beige text-black'
+                    ? 'badge-neutral'
+                    : 'badge-yellow'
                 }`}>
                   {selectedShow.status.charAt(0).toUpperCase() + selectedShow.status.slice(1)}
                 </span>
               </div>
-              <p className="text-sm text-gray-500">{formatDate(selectedShow.date)} • {selectedShow.time}</p>
+              <p className="text-sm" style={{ color: 'var(--t3)' }}>{formatDate(selectedShow.date)} • {selectedShow.time}</p>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
+              <Clock className="w-5 h-5" style={{ color: 'var(--brand-1)' }} />
               <div>
-                <p className="text-sm font-medium text-gray-900">{localTime}</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{localTime}</p>
               </div>
             </div>
-            
+
             <select
               value={selectedShowId || ''}
               onChange={(e) => setSelectedShowId(Number(e.target.value))}
-              className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="block rounded-md shadow-sm focus:ring-primary sm:text-sm"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             >
               {MOCK_SHOWS.map(show => (
                 <option key={show.id} value={show.id}>
@@ -381,10 +382,11 @@ export default function ShowDay() {
             
             <button
               onClick={() => navigate(`/live/show/${selectedShowId}`)}
-              className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+              className="text-sm flex items-center gap-1 hover:opacity-80"
+              style={{ color: 'var(--brand-1)' }}
             >
               Details
-              <ExternalLink className="w-4 h-4" />
+              <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-white" alt="" />
             </button>
           </div>
         </div>
@@ -395,18 +397,18 @@ export default function ShowDay() {
         {/* Left Column */}
         <div className="space-y-4">
           {/* Day Schedule */}
-          <div className="bg-white shadow-md rounded-lg p-4">
+          <div className="shadow-md rounded-lg p-4" style={{ backgroundColor: 'var(--surface)' }}>
             <div 
               className="flex justify-between items-center cursor-pointer"
               onClick={() => toggleSection('schedule')}
             >
-              <h2 className="text-lg font-medium text-gray-900 uppercase">
+              <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>
                 DAY SCHEDULE
               </h2>
               {expandedSections.schedule ? (
-                <ChevronUp className="w-5 h-5 text-gray-400" />
+                <ChevronUp className="w-5 h-5" style={{ color: 'var(--t3)' }} />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
+                <ChevronDown className="w-5 h-5" style={{ color: 'var(--t3)' }} />
               )}
             </div>
             
@@ -415,7 +417,7 @@ export default function ShowDay() {
                 {selectedShow.advances ? (
                   <div className="relative">
                     {/* Timeline line */}
-                    <div className="absolute left-16 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                    <div className="absolute left-16 top-0 bottom-0 w-0.5" style={{ backgroundColor: 'var(--border)' }}></div>
                     
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
@@ -423,9 +425,9 @@ export default function ShowDay() {
                           {selectedShow.advances.schedule.loadIn}
                         </div>
                         <div className="relative">
-                          <div className="absolute top-1/2 -left-2 w-3 h-3 rounded-full bg-primary -translate-y-1/2"></div>
+                          <div className="absolute top-1/2 -left-2 w-3 h-3 rounded-full -translate-y-1/2" style={{ backgroundColor: 'var(--brand-1)' }}></div>
                           <div className="pl-4">
-                            <h3 className="text-sm font-medium text-gray-900">Load In</h3>
+                            <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Load In</h3>
                           </div>
                         </div>
                       </div>
@@ -513,18 +515,18 @@ export default function ShowDay() {
           </div>
           
           {/* Venue Information */}
-          <div className="bg-white shadow-md rounded-lg p-4">
+          <div className="shadow-md rounded-lg p-4" style={{ backgroundColor: 'var(--surface)' }}>
             <div 
               className="flex justify-between items-center cursor-pointer"
               onClick={() => toggleSection('venue')}
             >
-              <h2 className="text-lg font-medium text-gray-900 uppercase">
+              <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>
                 VENUE INFORMATION
               </h2>
               {expandedSections.venue ? (
-                <ChevronUp className="w-5 h-5 text-gray-400" />
+                <ChevronUp className="w-5 h-5" style={{ color: 'var(--t3)' }} />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
+                <ChevronDown className="w-5 h-5" style={{ color: 'var(--t3)' }} />
               )}
             </div>
             
@@ -532,18 +534,18 @@ export default function ShowDay() {
               <div className="mt-4 space-y-4">
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--brand-1)' }} />
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700">Address</h3>
-                      <p className="text-sm text-gray-900">{venueInfo.address}</p>
+                      <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Address</h3>
+                      <p className="text-sm" style={{ color: 'var(--t1)' }}>{venueInfo.address}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-2">
-                    <Phone className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <img src="/TM-Phone-negro.svg" className="pxi-md icon-white mt-0.5 flex-shrink-0" alt="" />
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700">Phone</h3>
-                      <p className="text-sm text-gray-900">{venueInfo.phone}</p>
+                      <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Phone</h3>
+                      <p className="text-sm" style={{ color: 'var(--t1)' }}>{venueInfo.phone}</p>
                     </div>
                   </div>
                   
@@ -556,7 +558,7 @@ export default function ShowDay() {
                   </div>
                   
                   <div className="flex items-start gap-2">
-                    <FileText className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <img src="/TM-File-negro.svg" className="pxi-md icon-white mt-0.5 flex-shrink-0" alt="" />
                     <div>
                       <h3 className="text-sm font-medium text-gray-700">Notes</h3>
                       <p className="text-sm text-gray-900">{venueInfo.notes}</p>
@@ -578,7 +580,7 @@ export default function ShowDay() {
           </div>
           
           {/* Hotels */}
-          <div className="bg-white shadow-md rounded-lg p-4">
+          <div className="shadow-md rounded-lg p-4" style={{ backgroundColor: 'var(--surface)' }}>
             <div 
               className="flex justify-between items-center cursor-pointer"
               onClick={() => toggleSection('hotels')}
@@ -613,7 +615,7 @@ export default function ShowDay() {
                           </div>
                           
                           <div className="flex items-start gap-1">
-                            <Phone className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <img src="/TM-Phone-negro.svg" className="pxi-sm icon-muted mt-0.5 flex-shrink-0" alt="" />
                             <p className="text-xs text-gray-600">{hotel.phone}</p>
                           </div>
                           
@@ -625,7 +627,7 @@ export default function ShowDay() {
                           </div>
                           
                           <div className="flex items-start gap-1">
-                            <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <img src="/TM-File-negro.svg" className="pxi-sm icon-muted mt-0.5 flex-shrink-0" alt="" />
                             <p className="text-xs text-gray-600">
                               Confirmation: {hotel.confirmationNumber}
                             </p>
@@ -679,7 +681,7 @@ export default function ShowDay() {
                         
                         <div className="mt-2 space-y-1">
                           <div className="flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-gray-400" />
+                            <img src="/TM-Phone-negro.svg" className="pxi-sm icon-muted" alt="" />
                             <a href={`tel:${contact.phone}`} className="text-xs text-gray-600 hover:text-primary">
                               {contact.phone}
                             </a>
@@ -789,7 +791,7 @@ export default function ShowDay() {
                 onClick={() => navigate(`/live/show/${selectedShowId}/production`)}
                 className="flex items-center gap-2 p-2 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100"
               >
-                <FileText className="w-4 h-4 text-primary" />
+                <img src="/TM-File-negro.svg" className="pxi-md icon-white" alt="" />
                 Production Files
               </button>
               

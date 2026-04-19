@@ -33,17 +33,10 @@ export default function Live() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-charcoal font-title">LIVE</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage tours, shows, and live performances
-        </p>
-      </div>
-
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="uppercase">
+            <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
             </TabsTrigger>
           ))}

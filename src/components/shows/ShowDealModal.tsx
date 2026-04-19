@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, FileText, Calendar, TrendingUp, Package, Briefcase, Plus, Trash2 } from 'lucide-react';
+import { DollarSign, FileText, Calendar, TrendingUp, Package, Briefcase, Plus } from 'lucide-react';
 import type { ShowDeal, DealTemplate, ShowType, DealTicketTier, DealPayment, DealBonus, DealExpense, DealMerchTerms } from '../../types/deals';
 import { supabase } from '../../lib/supabase';
 
@@ -240,27 +240,27 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
 
-        <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
+        <div style={{ background: 'var(--surface)' }} className="relative rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div style={{ borderColor: 'var(--border)' }} className="px-6 py-4 border-b flex items-center justify-between">
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--t1)' }}>
               {dealId ? 'Edit Deal Terms' : 'Add Deal Terms'}
             </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-6 h-6" />
+            <button onClick={onClose} className="hover:opacity-80" style={{ color: 'var(--t3)' }}>
+              <img src="/TM-Close-negro.svg" className="pxi-xl icon-white" alt="" />
             </button>
           </div>
 
           {!dealId && (
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }} className="px-6 py-4 border-b">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--t1)' }}>
                     Show Type
                   </label>
                   <select
                     value={selectedShowType}
                     onChange={(e) => setSelectedShowType(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="w-full shadow-sm focus:border-primary focus:ring-primary" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   >
                     <option value="">Select show type...</option>
                     {showTypes.map(type => (
@@ -288,23 +288,17 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
             </div>
           )}
 
-          <div className="px-6 border-b border-gray-200 overflow-x-auto">
-            <nav className="flex space-x-4 min-w-max">
-              {tabs.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setCurrentTab(id as typeof currentTab)}
-                  className={`flex items-center gap-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    currentTab === id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </nav>
+          <div className="sub-tabs px-6">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setCurrentTab(id as typeof currentTab)}
+                className={`sub-tab ${currentTab === id ? 'active' : ''}`}
+              >
+                <Icon className="tab-icon" />
+                {label}
+              </button>
+            ))}
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -335,22 +329,22 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
             )}
           </div>
 
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }} className="px-6 py-4 border-t">
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
-                <p className="text-xs text-gray-500 uppercase">Expected Gross</p>
-                <p className="text-lg font-semibold">${calculateExpectedGross().toLocaleString()}</p>
+                <p className="text-xs uppercase" style={{ color: 'var(--t2)' }}>Expected Gross</p>
+                <p className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>${calculateExpectedGross().toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase">Projected Payout</p>
-                <p className="text-lg font-semibold">${calculateProjectedPayout().toLocaleString()}</p>
+                <p className="text-xs uppercase" style={{ color: 'var(--t2)' }}>Projected Payout</p>
+                <p className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>${calculateProjectedPayout().toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase">Deal Status</p>
+                <p className="text-xs uppercase" style={{ color: 'var(--t2)' }}>Deal Status</p>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="text-sm rounded border-gray-300"
+                  className="text-sm rounded" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 >
                   <option value="draft">Draft</option>
                   <option value="negotiating">Negotiating</option>
@@ -364,7 +358,7 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
             <div className="flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
               >
                 Cancel
               </button>
@@ -551,7 +545,7 @@ function TicketingTab({ ticketTiers, setTicketTiers, expectedGross }: any) {
                   onClick={() => removeTier(index)}
                   className="p-2 text-red-500 hover:text-red-700"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             </div>
@@ -648,7 +642,7 @@ function PaymentsTab({ payments, setPayments }: any) {
                   onClick={() => removePayment(index)}
                   className="p-2 text-red-500 hover:text-red-700"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             </div>
@@ -729,7 +723,7 @@ function BonusesTab({ bonuses, setBonuses }: any) {
                   onClick={() => removeBonus(index)}
                   className="p-2 text-red-500 hover:text-red-700"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             </div>
@@ -819,7 +813,7 @@ function ExpensesTab({ expenses, setExpenses }: any) {
                   onClick={() => removeExpense(index)}
                   className="p-2 text-red-500 hover:text-red-700"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             </div>

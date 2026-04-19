@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Upload, X, Loader2, CheckCheck, AlertTriangle, Download, Copy } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Modal from '../Modal';
 import ReactMarkdown from 'react-markdown';
 import { analyzeContract } from '../../lib/contractAnalysis';
@@ -94,44 +94,45 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
       title="AI Contract Analysis"
       maxWidth="5xl"
     >
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {!analysis ? (
           <>
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <FileText className="h-5 w-5 text-blue-400" />
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', borderLeft: `4px solid var(--primary)`, padding: '16px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flexShrink: 0 }}>
+                  <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', color: 'rgba(59, 130, 246, 0.7)' }}>
                     Upload a contract to analyze. Our AI will extract key information, identify potential risks, and provide recommendations.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <div className="flex flex-col items-center justify-center">
-                <Upload className="w-8 h-8 text-gray-400 mb-4" />
-                <div className="text-center">
+            <div style={{ border: `2px dashed var(--border)`, borderRadius: 0, padding: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/TM-Upload-negro.svg" className="pxi-xl icon-muted" alt="" style={{ marginBottom: '16px' }} />
+                <div style={{ textAlign: 'center' }}>
                   {selectedFile ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--t1)' }}>
                         {selectedFile.name}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSelectedFile(null)}
-                        className="p-1 text-gray-400 hover:text-gray-500"
+                        style={{ padding: '4px', color: 'var(--t3)' }}
+                        className="hover:opacity-80"
                       >
-                        <X className="w-4 h-4" />
+                        <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm text-gray-500">
+                      <p style={{ fontSize: '14px', color: 'var(--t2)' }}>
                         Drag and drop your file here, or{' '}
-                        <label className="text-primary hover:text-primary/80 cursor-pointer">
+                        <label style={{ color: 'var(--primary)', cursor: 'pointer' }} className="hover:opacity-80">
                           browse
                           <input
                             type="file"
@@ -141,7 +142,7 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
                           />
                         </label>
                       </p>
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--t2)' }}>
                         PDF, Word documents, or text files up to 10MB
                       </p>
                     </>
@@ -151,23 +152,24 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <AlertTriangle className="h-5 w-5 text-red-400" />
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: `4px solid #dc2626`, padding: '16px' }}>
+                <div style={{ display: 'flex' }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <img src="/TM-Info-negro.svg" className="pxi-lg icon-muted" alt="" />
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
+                  <div style={{ marginLeft: '12px' }}>
+                    <p style={{ fontSize: '14px', color: 'rgba(239, 68, 68, 0.8)' }}>{error}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="flex justify-end gap-3">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                style={{ padding: '8px 16px', fontSize: '14px', fontWeight: '500', color: 'var(--t1)', background: 'var(--surface)', border: `1px solid var(--border)`, borderRadius: 0, cursor: 'pointer' }}
+                className="hover:opacity-80"
               >
                 Cancel
               </button>
@@ -175,7 +177,8 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
                 type="button"
                 onClick={handleAnalyze}
                 disabled={!selectedFile || isAnalyzing}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '14px', fontWeight: '500', color: 'white', background: 'var(--primary)', borderRadius: 0, border: 'none', cursor: 'pointer', opacity: (!selectedFile || isAnalyzing) ? 0.5 : 1 }}
+                className="hover:opacity-80"
               >
                 {isAnalyzing ? (
                   <>
@@ -184,7 +187,7 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
                   </>
                 ) : (
                   <>
-                    <FileText className="w-4 h-4" />
+                    <img src="/TM-File-negro.svg" className="pxi-md icon-white" alt="" />
                     Analyze Contract
                   </>
                 )}
@@ -193,13 +196,13 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
           </>
         ) : (
           <>
-            <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <CheckCheck className="h-5 w-5 text-green-400" />
+            <div style={{ background: 'rgba(34, 197, 94, 0.1)', borderLeft: `4px solid #22c55e`, padding: '16px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flexShrink: 0 }}>
+                  <img src="/The Manager_Iconografia-11.svg" className="pxi-lg icon-green" alt="" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm text-green-700">
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', color: 'rgba(34, 197, 94, 0.8)' }}>
                     Analysis complete! Review the results below.
                   </p>
                 </div>
@@ -207,77 +210,110 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
             </div>
 
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{analysis.title}</h2>
-              <p className="text-sm text-gray-500 mb-4">
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--t1)', marginBottom: '8px' }}>{analysis.title}</h2>
+              <p style={{ fontSize: '14px', color: 'var(--t2)', marginBottom: '16px' }}>
                 Analyzed from: {selectedFile?.name}
               </p>
             </div>
 
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
+            <div style={{ borderBottom: `1px solid var(--border)` }}>
+              <nav style={{ display: 'flex', gap: '32px', marginBottom: '-1px' }}>
                 <button
                   onClick={() => setActiveTab('summary')}
-                  className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'summary'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  style={{
+                    paddingBottom: '16px',
+                    paddingLeft: '4px',
+                    paddingRight: '4px',
+                    borderBottom: activeTab === 'summary' ? `2px solid var(--primary)` : `2px solid transparent`,
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: activeTab === 'summary' ? 'var(--primary)' : 'var(--t2)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  className="hover:opacity-80"
                 >
                   Summary
                 </button>
                 <button
                   onClick={() => setActiveTab('keyTerms')}
-                  className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'keyTerms'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  style={{
+                    paddingBottom: '16px',
+                    paddingLeft: '4px',
+                    paddingRight: '4px',
+                    borderBottom: activeTab === 'keyTerms' ? `2px solid var(--primary)` : `2px solid transparent`,
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: activeTab === 'keyTerms' ? 'var(--primary)' : 'var(--t2)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  className="hover:opacity-80"
                 >
                   Key Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('risks')}
-                  className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'risks'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  style={{
+                    paddingBottom: '16px',
+                    paddingLeft: '4px',
+                    paddingRight: '4px',
+                    borderBottom: activeTab === 'risks' ? `2px solid var(--primary)` : `2px solid transparent`,
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: activeTab === 'risks' ? 'var(--primary)' : 'var(--t2)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  className="hover:opacity-80"
                 >
                   Risks
                 </button>
                 <button
                   onClick={() => setActiveTab('recommendations')}
-                  className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'recommendations'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  style={{
+                    paddingBottom: '16px',
+                    paddingLeft: '4px',
+                    paddingRight: '4px',
+                    borderBottom: activeTab === 'recommendations' ? `2px solid var(--primary)` : `2px solid transparent`,
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: activeTab === 'recommendations' ? 'var(--primary)' : 'var(--t2)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  className="hover:opacity-80"
                 >
                   Recommendations
                 </button>
               </nav>
             </div>
 
-            <div className="mt-4 max-h-[400px] overflow-y-auto p-2">
+            <div style={{ marginTop: '16px', maxHeight: '400px', overflowY: 'auto', padding: '8px' }}>
               {activeTab === 'summary' && (
-                <div className="prose prose-sm max-w-none">
+                <div>
                   <ReactMarkdown>{analysis.summary}</ReactMarkdown>
                 </div>
               )}
 
               {activeTab === 'keyTerms' && (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {analysis.keyTerms.map((term, index) => (
-                    <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                      <div className="flex justify-between">
-                        <div className="prose prose-sm max-w-none">
+                    <div key={index} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
                           <ReactMarkdown>{term}</ReactMarkdown>
                         </div>
                         <button
                           onClick={() => copyToClipboard(term)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          style={{ padding: '4px', color: 'var(--t3)' }}
+                          className="hover:opacity-80"
                         >
-                          <Copy className="w-4 h-4" />
+                          <img src="/TM-Copy-negro.svg" className="pxi-md icon-muted" alt="" />
                         </button>
                       </div>
                     </div>
@@ -286,18 +322,19 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
               )}
 
               {activeTab === 'risks' && (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {analysis.risks.map((risk, index) => (
-                    <div key={index} className="bg-red-50 p-3 rounded-lg">
-                      <div className="flex justify-between">
-                        <div className="prose prose-sm max-w-none">
+                    <div key={index} style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
                           <ReactMarkdown>{risk}</ReactMarkdown>
                         </div>
                         <button
                           onClick={() => copyToClipboard(risk)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          style={{ padding: '4px', color: 'var(--t3)' }}
+                          className="hover:opacity-80"
                         >
-                          <Copy className="w-4 h-4" />
+                          <img src="/TM-Copy-negro.svg" className="pxi-md icon-muted" alt="" />
                         </button>
                       </div>
                     </div>
@@ -306,18 +343,19 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
               )}
 
               {activeTab === 'recommendations' && (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {analysis.recommendations.map((recommendation, index) => (
-                    <div key={index} className="bg-blue-50 p-3 rounded-lg">
-                      <div className="flex justify-between">
-                        <div className="prose prose-sm max-w-none">
+                    <div key={index} style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px', borderRadius: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
                           <ReactMarkdown>{recommendation}</ReactMarkdown>
                         </div>
                         <button
                           onClick={() => copyToClipboard(recommendation)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          style={{ padding: '4px', color: 'var(--t3)' }}
+                          className="hover:opacity-80"
                         >
-                          <Copy className="w-4 h-4" />
+                          <img src="/TM-Copy-negro.svg" className="pxi-md icon-muted" alt="" />
                         </button>
                       </div>
                     </div>
@@ -326,7 +364,7 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
               )}
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: `1px solid var(--border)` }}>
               <button
                 type="button"
                 onClick={() => {
@@ -334,16 +372,18 @@ export default function ContractAnalysisModal({ isOpen, onClose, onSave }: Contr
                   setAnalysis(null);
                   setError(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                style={{ padding: '8px 16px', fontSize: '14px', fontWeight: '500', color: 'var(--t1)', background: 'var(--surface)', border: `1px solid var(--border)`, borderRadius: 0, cursor: 'pointer' }}
+                className="hover:opacity-80"
               >
                 Discard
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '14px', fontWeight: '500', color: 'white', background: 'var(--primary)', borderRadius: 0, border: 'none', cursor: 'pointer' }}
+                className="hover:opacity-80"
               >
-                <FileText className="w-4 h-4" />
+                <img src="/TM-File-negro.svg" className="pxi-md icon-white" alt="" />
                 Save Analysis
               </button>
             </div>

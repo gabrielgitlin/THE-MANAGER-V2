@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { DollarSign, Plus, ChevronRight, ArrowUpCircle, ArrowDownCircle, ArrowRight, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Calendar, Filter, ChevronLeft, Calendar as CalendarIcon, FileText, Pencil, Trash2, X, Check, Settings, Tag } from 'lucide-react';
+import { DollarSign, Plus, ChevronRight, ArrowUpCircle, ArrowDownCircle, ArrowRight, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Calendar, ChevronLeft, Calendar as CalendarIcon, Tag } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, Legend } from 'recharts';
 import type { TrackFinance, BudgetItem, BudgetCategory, TransactionType, IncomeStatus, ExpenseStatus, Budget, BudgetType } from '../types';
 import { mockFinances } from '../data/mockData';
@@ -415,19 +415,12 @@ export default function Finance() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-charcoal font-title">FINANCE</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Track and manage release budgets
-        </p>
-      </div>
-
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="general" className="uppercase">
+          <TabsTrigger value="general" >
             General
           </TabsTrigger>
-          <TabsTrigger value="budgets" className="uppercase">
+          <TabsTrigger value="budgets" >
             Budgets
           </TabsTrigger>
         </TabsList>
@@ -458,33 +451,33 @@ export default function Finance() {
           </button>
           <button
             onClick={() => setIsInvoiceModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-black border border-black hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--surface)] text-[var(--t1)] border border-black hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] transition-colors"
           >
-            <FileText className="w-5 h-5" />
+            <img src="/TM-File-negro.svg" className="pxi-lg icon-white" alt="" />
             <span className="font-medium whitespace-nowrap">New Invoice</span>
           </button>
         </div>
       </div>
 
       {/* Recent Movements */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-[var(--surface)] shadow-md overflow-hidden mb-8">
+        <div className="p-6 border-b border-[var(--border)]">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-charcoal uppercase">Recent Movements</h2>
+            <h2 className="text-lg font-medium text-[var(--t1)] uppercase">Recent Movements</h2>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-md transition-colors ${
-                  isFilterOpen ? 'bg-gray-100 text-charcoal' : 'bg-white text-gray-700 hover:bg-gray-50'
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border border-[var(--border)]  transition-colors ${
+                  isFilterOpen ? 'bg-[var(--surface-2)] text-[var(--t1)]' : 'bg-[var(--surface)] text-[var(--t2)] hover:bg-[var(--surface-2)]'
                 }`}
               >
-                <Filter className="w-4 h-4" />
+                <img src="/TM-Filter-negro.svg" className="pxi-md icon-muted" alt="" />
                 Filters
                 {isFilterOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               <Link
                 to="/finance/movements"
-                className="text-primary hover:text-black inline-flex items-center gap-1 text-sm font-medium"
+                className="text-primary hover:text-[var(--t1)] inline-flex items-center gap-1 text-sm font-medium"
               >
                 See All
                 <ArrowRight className="w-4 h-4" />
@@ -493,10 +486,10 @@ export default function Finance() {
           </div>
 
           {isFilterOpen && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t border-[var(--border)]">
               {/* Search */}
               <div className="lg:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Search
                 </label>
                 <input
@@ -504,19 +497,19 @@ export default function Finance() {
                   placeholder="Description..."
                   value={filters.searchQuery}
                   onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                 />
               </div>
 
               {/* Type Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Type
                 </label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters({ ...filters, type: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                 >
                   <option value="all">All Types</option>
                   <option value="Income">Income</option>
@@ -526,13 +519,13 @@ export default function Finance() {
 
               {/* Category Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Category
                 </label>
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({ ...filters, category: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                 >
                   <option value="all">All Categories</option>
                   {BUDGET_CATEGORIES.map((cat) => (
@@ -543,13 +536,13 @@ export default function Finance() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Status
                 </label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                 >
                   <option value="all">All Statuses</option>
                   <option value="received">Received</option>
@@ -562,7 +555,7 @@ export default function Finance() {
               {/* Amount Range */}
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                     Min Amount
                   </label>
                   <input
@@ -570,11 +563,11 @@ export default function Finance() {
                     placeholder="$0"
                     value={filters.amountMin}
                     onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                     Max Amount
                   </label>
                   <input
@@ -582,15 +575,15 @@ export default function Finance() {
                     placeholder="$∞"
                     value={filters.amountMax}
                     onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Clear Filters Button */}
               <div className="lg:col-span-6 flex justify-between items-center">
-                <span className="text-sm text-gray-600">
-                  Showing <span className="font-semibold text-charcoal">{fullyFilteredTransactions.length}</span> of {filteredTransactions.length} transactions
+                <span className="text-sm text-[var(--t3)]">
+                  Showing <span className="font-semibold text-[var(--t1)]">{fullyFilteredTransactions.length}</span> of {filteredTransactions.length} transactions
                 </span>
                 <button
                   onClick={() => setFilters({
@@ -601,7 +594,7 @@ export default function Finance() {
                     amountMax: '',
                     searchQuery: '',
                   })}
-                  className="text-sm text-gray-600 hover:text-charcoal font-medium"
+                  className="text-sm text-[var(--t3)] hover:text-[var(--t1)] font-medium"
                 >
                   Clear All Filters
                 </button>
@@ -612,41 +605,41 @@ export default function Finance() {
 
         {recentMovements.length === 0 ? (
           <div className="p-12 text-center">
-            <Filter className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No transactions match your filters</p>
+            <img src="/TM-Filter-negro.svg" className="pxi-xl icon-muted mx-auto mb-3" alt="" />
+            <p className="text-[var(--t3)] font-medium">No transactions match your filters</p>
             <p className="text-sm text-gray-400 mt-1">Try adjusting your filter criteria</p>
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-[var(--surface-2)]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Description
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-[var(--t3)] uppercase tracking-wider">
                 Status
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-[var(--surface)] divide-y divide-gray-200">
             {recentMovements.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tr key={item.id} className="hover:bg-[var(--surface-2)]">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--t3)]">
                   {formatDate(item.date)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--t1)]">
                   {item.description}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -658,7 +651,7 @@ export default function Finance() {
                     {item.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--t3)]">
                   {item.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
@@ -683,33 +676,33 @@ export default function Finance() {
       </div>
 
       {/* Financial Dashboard */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-[var(--surface)] shadow-md overflow-hidden mb-8">
+        <div className="p-6 border-b border-[var(--border)]">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-charcoal uppercase">Financial Overview</h2>
+            <h2 className="text-lg font-medium text-[var(--t1)] uppercase">Financial Overview</h2>
             <button
               onClick={() => setIsOverviewFilterOpen(!isOverviewFilterOpen)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-md transition-colors ${
-                isOverviewFilterOpen ? 'bg-gray-100 text-charcoal' : 'bg-white text-gray-700 hover:bg-gray-50'
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border border-[var(--border)]  transition-colors ${
+                isOverviewFilterOpen ? 'bg-[var(--surface-2)] text-[var(--t1)]' : 'bg-[var(--surface)] text-[var(--t2)] hover:bg-[var(--surface-2)]'
               }`}
             >
-              <Filter className="w-4 h-4" />
+              <img src="/TM-Filter-negro.svg" className="pxi-md icon-muted" alt="" />
               Filters
               {isOverviewFilterOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
 
           {isOverviewFilterOpen && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-[var(--surface-2)] border border-[var(--border)]">
               {/* Type Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Transaction Type
                 </label>
                 <select
                   value={overviewFilters.type}
                   onChange={(e) => setOverviewFilters({ ...overviewFilters, type: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary bg-[var(--surface)]"
                 >
                   <option value="all">All Types</option>
                   <option value="Income">Income Only</option>
@@ -719,13 +712,13 @@ export default function Finance() {
 
               {/* Category Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Category
                 </label>
                 <select
                   value={overviewFilters.category}
                   onChange={(e) => setOverviewFilters({ ...overviewFilters, category: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary bg-[var(--surface)]"
                 >
                   <option value="all">All Categories</option>
                   {BUDGET_CATEGORIES.map((cat) => (
@@ -736,13 +729,13 @@ export default function Finance() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Status
                 </label>
                 <select
                   value={overviewFilters.status}
                   onChange={(e) => setOverviewFilters({ ...overviewFilters, status: e.target.value as any })}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary bg-[var(--surface)]"
                 >
                   <option value="all">All Statuses</option>
                   <option value="received">Received</option>
@@ -754,7 +747,7 @@ export default function Finance() {
 
               {/* Start Date */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   Start Date
                 </label>
                 <input
@@ -764,13 +757,13 @@ export default function Finance() {
                     setCustomDateRange({ ...customDateRange, start: e.target.value });
                     setTimeFilter('custom');
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary bg-[var(--surface)]"
                 />
               </div>
 
               {/* End Date */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-1">
                   End Date
                 </label>
                 <input
@@ -780,13 +773,13 @@ export default function Finance() {
                     setCustomDateRange({ ...customDateRange, end: e.target.value });
                     setTimeFilter('custom');
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] focus:ring-primary focus:border-primary bg-[var(--surface)]"
                 />
               </div>
 
               {/* Date Range Presets */}
               <div className="col-span-2 md:col-span-5">
-                <label className="block text-xs font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-[var(--t2)] mb-2">
                   Quick Date Ranges
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -800,11 +793,11 @@ export default function Finance() {
                       });
                       setTimeFilter('custom');
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium  border transition-colors ${
                       timeFilter === 'week' || (timeFilter === 'custom' &&
                         Math.abs(new Date(customDateRange.end).getTime() - new Date(customDateRange.start).getTime()) === 7 * 24 * 60 * 60 * 1000)
                         ? 'bg-charcoal text-white border-charcoal'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-[var(--surface)] text-[var(--t2)] border-[var(--border)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
                     Last 7 Days
@@ -819,10 +812,10 @@ export default function Finance() {
                       });
                       setTimeFilter('custom');
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium  border transition-colors ${
                       timeFilter === 'month'
                         ? 'bg-charcoal text-white border-charcoal'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-[var(--surface)] text-[var(--t2)] border-[var(--border)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
                     Last 30 Days
@@ -837,10 +830,10 @@ export default function Finance() {
                       });
                       setTimeFilter('custom');
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium  border transition-colors ${
                       timeFilter === 'quarter'
                         ? 'bg-charcoal text-white border-charcoal'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-[var(--surface)] text-[var(--t2)] border-[var(--border)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
                     Last 90 Days
@@ -855,7 +848,7 @@ export default function Finance() {
                       });
                       setTimeFilter('custom');
                     }}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md border bg-white text-gray-700 border-gray-300 hover:bg-gray-50 transition-colors"
+                    className="px-3 py-1.5 text-xs font-medium border bg-[var(--surface)] text-[var(--t2)] border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors"
                   >
                     Year to Date
                   </button>
@@ -869,10 +862,10 @@ export default function Finance() {
                       });
                       setTimeFilter('custom');
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-medium  border transition-colors ${
                       timeFilter === 'year'
                         ? 'bg-charcoal text-white border-charcoal'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-[var(--surface)] text-[var(--t2)] border-[var(--border)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
                     Last 365 Days
@@ -881,8 +874,8 @@ export default function Finance() {
               </div>
 
               {/* Clear Button */}
-              <div className="col-span-2 md:col-span-5 flex justify-between items-center pt-2 border-t border-gray-200">
-                <span className="text-xs text-gray-600 font-medium">
+              <div className="col-span-2 md:col-span-5 flex justify-between items-center pt-2 border-t border-[var(--border)]">
+                <span className="text-xs text-[var(--t3)] font-medium">
                   {timeFilter === 'custom'
                     ? `Showing: ${formatDate(customDateRange.start)} - ${formatDate(customDateRange.end)}`
                     : `Showing: ${timeFilter === 'week' ? 'Last 7 days' : timeFilter === 'month' ? 'Last 30 days' : timeFilter === 'quarter' ? 'Last 90 days' : 'Last 365 days'}`
@@ -901,7 +894,7 @@ export default function Finance() {
                       end: new Date().toISOString().split('T')[0]
                     });
                   }}
-                  className="text-sm text-gray-600 hover:text-charcoal font-medium"
+                  className="text-sm text-[var(--t3)] hover:text-[var(--t1)] font-medium"
                 >
                   Reset All
                 </button>
@@ -909,43 +902,43 @@ export default function Finance() {
             </div>
           )}
 
-          <div className="inline-flex gap-1 bg-gray-100 p-1 rounded-lg">
+          <div className="inline-flex gap-1 bg-[var(--surface-2)] p-1">
             <button
               onClick={() => setTimeFilter('week')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${
+              className={`px-5 py-2.5 text-sm font-semibold  transition-all ${
                 timeFilter === 'week'
-                  ? 'bg-white text-charcoal shadow-sm'
-                  : 'text-gray-600 hover:text-charcoal'
+                  ? 'bg-[var(--surface)] text-[var(--t1)] shadow-sm'
+                  : 'text-[var(--t3)] hover:text-[var(--t1)]'
               }`}
             >
               Week
             </button>
             <button
               onClick={() => setTimeFilter('month')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${
+              className={`px-5 py-2.5 text-sm font-semibold  transition-all ${
                 timeFilter === 'month'
-                  ? 'bg-white text-charcoal shadow-sm'
-                  : 'text-gray-600 hover:text-charcoal'
+                  ? 'bg-[var(--surface)] text-[var(--t1)] shadow-sm'
+                  : 'text-[var(--t3)] hover:text-[var(--t1)]'
               }`}
             >
               Month
             </button>
             <button
               onClick={() => setTimeFilter('quarter')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${
+              className={`px-5 py-2.5 text-sm font-semibold  transition-all ${
                 timeFilter === 'quarter'
-                  ? 'bg-white text-charcoal shadow-sm'
-                  : 'text-gray-600 hover:text-charcoal'
+                  ? 'bg-[var(--surface)] text-[var(--t1)] shadow-sm'
+                  : 'text-[var(--t3)] hover:text-[var(--t1)]'
               }`}
             >
               Quarter
             </button>
             <button
               onClick={() => setTimeFilter('year')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${
+              className={`px-5 py-2.5 text-sm font-semibold  transition-all ${
                 timeFilter === 'year'
-                  ? 'bg-white text-charcoal shadow-sm'
-                  : 'text-gray-600 hover:text-charcoal'
+                  ? 'bg-[var(--surface)] text-[var(--t1)] shadow-sm'
+                  : 'text-[var(--t3)] hover:text-[var(--t1)]'
               }`}
             >
               Year
@@ -956,22 +949,22 @@ export default function Finance() {
         <div className="p-4 md:p-6 scroll-row">
           <div className="grid grid-cols-3 gap-4 md:gap-6 min-w-[400px]">
             <div>
-              <dt className="text-sm font-medium text-gray-500 whitespace-nowrap">Total Income</dt>
-              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-charcoal whitespace-nowrap">
+              <dt className="text-sm font-medium text-[var(--t3)] whitespace-nowrap">Total Income</dt>
+              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-[var(--t1)] whitespace-nowrap">
                 {formatCurrency(totalIncome)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500 whitespace-nowrap">Total Expenses</dt>
-              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-charcoal whitespace-nowrap">
+              <dt className="text-sm font-medium text-[var(--t3)] whitespace-nowrap">Total Expenses</dt>
+              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-[var(--t1)] whitespace-nowrap">
                 {formatCurrency(totalExpenses)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500 whitespace-nowrap">
+              <dt className="text-sm font-medium text-[var(--t3)] whitespace-nowrap">
                 Net {netProfit >= 0 ? 'Profit' : 'Loss'}
               </dt>
-              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-charcoal whitespace-nowrap">
+              <dd className="mt-1 text-2xl md:text-3xl font-semibold text-[var(--t1)] whitespace-nowrap">
                 {formatCurrency(Math.abs(netProfit))}
               </dd>
             </div>
@@ -980,12 +973,12 @@ export default function Finance() {
       </div>
 
       {/* Cashflow Chart */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+      <div className="bg-[var(--surface)] shadow-md p-6 mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium text-charcoal uppercase">Cashflow Over Time</h2>
+          <h2 className="text-lg font-medium text-[var(--t1)] uppercase">Cashflow Over Time</h2>
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-500">
+            <CalendarIcon className="w-4 h-4 text-[var(--t3)]" />
+            <span className="text-sm text-[var(--t3)]">
               {timeFilter === 'week' ? 'Last 7 days' : 
                timeFilter === 'month' ? 'This month' : 
                timeFilter === 'quarter' ? 'Last 3 months' :
@@ -1000,7 +993,7 @@ export default function Finance() {
               data={cashflowData}
               margin={{ top: 10, right: 30, left: 40, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
               <XAxis dataKey="displayMonth" />
               <YAxis 
                 tickFormatter={(value) => {
@@ -1022,23 +1015,23 @@ export default function Finance() {
                 type="monotone" 
                 dataKey="income" 
                 stackId="1" 
-                stroke="#10B981" 
-                fill="#D1FAE5" 
+                stroke="var(--status-green)" 
+                fill="var(--status-green)" 
                 name="Income"
               />
               <Area 
                 type="monotone" 
                 dataKey="expenses" 
                 stackId="2" 
-                stroke="#EF4444" 
-                fill="#FEE2E2" 
+                stroke="var(--status-red)" 
+                fill="var(--status-red)" 
                 name="Expenses"
               />
               <Area 
                 type="monotone" 
                 dataKey="net" 
-                stroke="#3B82F6" 
-                fill="#DBEAFE" 
+                stroke="var(--brand-1)" 
+                fill="var(--brand-1)" 
                 name="Net Cashflow"
               />
             </AreaChart>
@@ -1048,15 +1041,15 @@ export default function Finance() {
         <div className="mt-4 flex justify-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Income</span>
+            <span className="text-sm text-[var(--t3)]">Income</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Expenses</span>
+            <span className="text-sm text-[var(--t3)]">Expenses</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Net Cashflow</span>
+            <span className="text-sm text-[var(--t3)]">Net Cashflow</span>
           </div>
         </div>
       </div>
@@ -1069,7 +1062,7 @@ export default function Finance() {
                 setSelectedBudgetType('release');
                 setIsNewBudgetModalOpen(true);
               }}
-              className="flex items-center justify-center px-4 py-3 bg-[#ccdbe2] text-black border border-black hover:bg-[#b8ccd4] transition-colors"
+              className="flex items-center justify-center px-4 py-3 bg-[#ccdbe2] text-[var(--t1)] border border-black hover:bg-[#b8ccd4] transition-colors"
             >
               <span className="font-medium uppercase">New Release Budget</span>
             </button>
@@ -1096,15 +1089,15 @@ export default function Finance() {
                 setSelectedBudgetType('custom');
                 setIsNewBudgetModalOpen(true);
               }}
-              className="flex items-center justify-center px-4 py-3 bg-white text-black border border-black hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-center px-4 py-3 bg-[var(--surface)] text-[var(--t1)] border border-black hover:bg-[var(--surface-2)] transition-colors"
             >
               <span className="font-medium uppercase">New Custom Budget</span>
             </button>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2 bg-white shadow-md rounded-lg p-6">
+            <div className="lg:col-span-2 bg-[var(--surface)] shadow-md p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-charcoal uppercase">Budget vs Spent</h2>
+                <h2 className="text-lg font-medium text-[var(--t1)] uppercase">Budget vs Spent</h2>
               </div>
 
               <div className="h-64">
@@ -1118,7 +1111,7 @@ export default function Finance() {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                    <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" horizontal={true} vertical={false} />
                     <XAxis
                       type="number"
                       tickFormatter={(value) => {
@@ -1130,7 +1123,7 @@ export default function Finance() {
                     <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} />
                     <Tooltip
                       formatter={(value) => formatCurrency(Number(value))}
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '0px' }}
                     />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                       {[
@@ -1145,14 +1138,14 @@ export default function Finance() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Budget Usage</span>
-                  <span className="text-sm font-semibold text-charcoal">
+                  <span className="text-sm text-[var(--t3)]">Budget Usage</span>
+                  <span className="text-sm font-semibold text-[var(--t1)]">
                     {totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0}%
                   </span>
                 </div>
-                <div className="mt-2 h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div className="mt-2 h-3 bg-[var(--surface-3)] rounded-full overflow-hidden">
                   <div
                     style={{ width: `${totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0}%` }}
                     className={`h-full rounded-full transition-all ${
@@ -1163,30 +1156,30 @@ export default function Finance() {
               </div>
             </div>
 
-            <div className="bg-white shadow-md rounded-lg p-6">
-              <h2 className="text-lg font-medium text-charcoal uppercase mb-6">Summary</h2>
+            <div className="bg-[var(--surface)] shadow-md p-6">
+              <h2 className="text-lg font-medium text-[var(--t1)] uppercase mb-6">Summary</h2>
               <div className="space-y-6">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Total Budget</dt>
-                  <dd className="mt-1 text-3xl font-semibold text-charcoal">
+                  <dt className="text-sm font-medium text-[var(--t3)]">Total Budget</dt>
+                  <dd className="mt-1 text-3xl font-semibold text-[var(--t1)]">
                     {formatCurrency(totalBudget)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Total Spent</dt>
+                  <dt className="text-sm font-medium text-[var(--t3)]">Total Spent</dt>
                   <dd className="mt-1 text-3xl font-semibold text-red-600">
                     {formatCurrency(totalSpent)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Remaining</dt>
+                  <dt className="text-sm font-medium text-[var(--t3)]">Remaining</dt>
                   <dd className="mt-1 text-3xl font-semibold text-green-600">
                     {formatCurrency(remainingBudget)}
                   </dd>
                 </div>
-                <div className="pt-4 border-t border-gray-200">
-                  <dt className="text-sm font-medium text-gray-500">Active Budgets</dt>
-                  <dd className="mt-1 text-3xl font-semibold text-charcoal">
+                <div className="pt-4 border-t border-[var(--border)]">
+                  <dt className="text-sm font-medium text-[var(--t3)]">Active Budgets</dt>
+                  <dd className="mt-1 text-3xl font-semibold text-[var(--t1)]">
                     {budgets.filter(b => b.status === 'in_progress').length}
                   </dd>
                 </div>
@@ -1194,15 +1187,15 @@ export default function Finance() {
             </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-charcoal uppercase">All Budgets</h2>
+          <div className="bg-[var(--surface)] shadow-md overflow-hidden">
+            <div className="p-6 border-b border-[var(--border)]">
+              <h2 className="text-lg font-medium text-[var(--t1)] uppercase">All Budgets</h2>
             </div>
 
             {budgets.length === 0 ? (
               <div className="p-12 text-center">
                 <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No budgets yet</p>
+                <p className="text-[var(--t3)] font-medium">No budgets yet</p>
                 <p className="text-sm text-gray-400 mt-1">Create one by clicking "New Budget" above</p>
               </div>
             ) : (
@@ -1213,7 +1206,7 @@ export default function Finance() {
 
                   return (
                     <div key={type} className="p-6">
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      <h3 className="text-sm font-semibold text-[var(--t3)] uppercase tracking-wider mb-4">
                         {type} Budgets ({typeBudgets.length})
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1228,21 +1221,21 @@ export default function Finance() {
                             <Link
                               key={budget.id}
                               to={`/finance/${budget.id}`}
-                              className="block p-4 rounded-lg border border-gray-200 hover:border-charcoal hover:shadow-md transition-all group"
+                              className="block p-4 border border-[var(--border)] hover:border-charcoal hover:shadow-md transition-all group"
                             >
                               <div className="flex justify-between items-start mb-3">
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-semibold text-charcoal truncate group-hover:text-black">
+                                  <h4 className="text-sm font-semibold text-[var(--t1)] truncate group-hover:text-[var(--t1)]">
                                     {budget.title}
                                   </h4>
-                                  <p className="text-xs text-gray-500 mt-0.5">{budget.artist}</p>
+                                  <p className="text-xs text-[var(--t3)] mt-0.5">{budget.artist}</p>
                                 </div>
                                 <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
                                   budget.status === 'completed'
                                     ? 'bg-green-100 text-green-800'
                                     : budget.status === 'in_progress'
                                     ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                    : 'bg-[var(--surface-2)] text-gray-800'
                                 }`}>
                                   {budget.status === 'in_progress' ? 'Active' : budget.status.charAt(0).toUpperCase() + budget.status.slice(1)}
                                 </span>
@@ -1250,12 +1243,12 @@ export default function Finance() {
 
                               <div className="space-y-2">
                                 <div className="flex justify-between text-xs">
-                                  <span className="text-gray-500">Spent</span>
-                                  <span className="font-medium text-charcoal">
+                                  <span className="text-[var(--t3)]">Spent</span>
+                                  <span className="font-medium text-[var(--t1)]">
                                     {formatCurrency(budgetSpent)} / {formatCurrency(budgetTotal)}
                                   </span>
                                 </div>
-                                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-[var(--surface-3)] rounded-full overflow-hidden">
                                   <div
                                     style={{ width: `${Math.min(spentPercentage, 100)}%` }}
                                     className={`h-full rounded-full ${
@@ -1266,7 +1259,7 @@ export default function Finance() {
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-400">
                                   <span>{Math.round(spentPercentage)}% used</span>
-                                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-charcoal transition-colors" />
+                                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[var(--t1)] transition-colors" />
                                 </div>
                               </div>
                             </Link>
@@ -1303,7 +1296,7 @@ export default function Finance() {
       >
         <form onSubmit={handleSubmitTransaction} className="space-y-6">
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="date" className="block text-sm font-medium text-[var(--t2)]">
               Date
             </label>
             <input
@@ -1311,13 +1304,13 @@ export default function Finance() {
               id="date"
               value={newTransaction.date}
               onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="description" className="block text-sm font-medium text-[var(--t2)]">
               Description
             </label>
             <input
@@ -1325,20 +1318,20 @@ export default function Finance() {
               id="description"
               value={newTransaction.description}
               onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="category" className="block text-sm font-medium text-[var(--t2)]">
               Category
             </label>
             <select
               id="category"
               value={newTransaction.category}
               onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value as BudgetCategory })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               {BUDGET_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
@@ -1349,19 +1342,19 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="amount" className="block text-sm font-medium text-[var(--t2)]">
               Amount
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="mt-1 relative shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
+                <span className="text-[var(--t3)] sm:text-sm">$</span>
               </div>
               <input
                 type="number"
                 id="amount"
                 value={newTransaction.amount}
                 onChange={(e) => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })}
-                className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-7 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 required
                 min="0"
                 step="0.01"
@@ -1370,14 +1363,14 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="status" className="block text-sm font-medium text-[var(--t2)]">
               Status
             </label>
             <select
               id="status"
               value={newTransaction.status}
               onChange={(e) => setNewTransaction({ ...newTransaction, status: e.target.value as IncomeStatus })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               {INCOME_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -1388,7 +1381,7 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="budget" className="block text-sm font-medium text-[var(--t2)]">
               Add to Budget
             </label>
             <select
@@ -1399,7 +1392,7 @@ export default function Finance() {
                 setSelectedBudgetId(value === 'new' || value === 'none' ? value : value);
                 if (value === 'new') setNewBudgetTitle('');
               }}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               <option value="none">Don't add to budget</option>
               {budgets.map((budget) => (
@@ -1415,14 +1408,14 @@ export default function Finance() {
                 placeholder="New budget name"
                 value={newBudgetTitle}
                 onChange={(e) => setNewBudgetTitle(e.target.value)}
-                className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-2 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 required
               />
             )}
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="notes" className="block text-sm font-medium text-[var(--t2)]">
               Notes
             </label>
             <textarea
@@ -1430,12 +1423,12 @@ export default function Finance() {
               value={newTransaction.notes || ''}
               onChange={(e) => setNewTransaction({ ...newTransaction, notes: e.target.value })}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-[var(--t2)]">
               Attachments
             </label>
             <div className="mt-1 space-y-2">
@@ -1465,7 +1458,7 @@ export default function Finance() {
                 type="file"
                 onChange={handleFileChange}
                 multiple
-                className="block w-full text-sm text-gray-500
+                className="block w-full text-sm text-[var(--t3)]
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-none file:border-0
                   file:text-sm file:font-semibold
@@ -1492,13 +1485,13 @@ export default function Finance() {
                 setSelectedBudgetId('none');
                 setNewBudgetTitle('');
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-[var(--t2)] bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-2)]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary"
             >
               Add Income
             </button>
@@ -1527,7 +1520,7 @@ export default function Finance() {
       >
         <form onSubmit={handleSubmitTransaction} className="space-y-6">
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="date" className="block text-sm font-medium text-[var(--t2)]">
               Date
             </label>
             
@@ -1536,13 +1529,13 @@ export default function Finance() {
               id="date"
               value={newTransaction.date}
               onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="description" className="block text-sm font-medium text-[var(--t2)]">
               Description
             </label>
             <input
@@ -1550,20 +1543,20 @@ export default function Finance() {
               id="description"
               value={newTransaction.description}
               onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="category" className="block text-sm font-medium text-[var(--t2)]">
               Category
             </label>
             <select
               id="category"
               value={newTransaction.category}
               onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value as BudgetCategory })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               {BUDGET_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
@@ -1574,19 +1567,19 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="amount" className="block text-sm font-medium text-[var(--t2)]">
               Amount
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="mt-1 relative shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
+                <span className="text-[var(--t3)] sm:text-sm">$</span>
               </div>
               <input
                 type="number"
                 id="amount"
                 value={newTransaction.amount}
                 onChange={(e) => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })}
-                className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-7 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 required
                 min="0"
                 step="0.01"
@@ -1595,14 +1588,14 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="status" className="block text-sm font-medium text-[var(--t2)]">
               Status
             </label>
             <select
               id="status"
               value={newTransaction.status}
               onChange={(e) => setNewTransaction({ ...newTransaction, status: e.target.value as ExpenseStatus })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               {EXPENSE_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -1613,7 +1606,7 @@ export default function Finance() {
           </div>
 
           <div>
-            <label htmlFor="budget-expense" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="budget-expense" className="block text-sm font-medium text-[var(--t2)]">
               Add to Budget
             </label>
             <select
@@ -1624,7 +1617,7 @@ export default function Finance() {
                 setSelectedBudgetId(value === 'new' || value === 'none' ? value : value);
                 if (value === 'new') setNewBudgetTitle('');
               }}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             >
               <option value="none">Don't add to budget</option>
               {budgets.map((budget) => (
@@ -1640,14 +1633,14 @@ export default function Finance() {
                 placeholder="New budget name"
                 value={newBudgetTitle}
                 onChange={(e) => setNewBudgetTitle(e.target.value)}
-                className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-2 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 required
               />
             )}
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="notes" className="block text-sm font-medium text-[var(--t2)]">
               Notes
             </label>
             <textarea
@@ -1655,12 +1648,12 @@ export default function Finance() {
               value={newTransaction.notes || ''}
               onChange={(e) => setNewTransaction({ ...newTransaction, notes: e.target.value })}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border-[var(--border)] shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-[var(--t2)]">
               Attachments
             </label>
             <div className="mt-1 space-y-2">
@@ -1690,7 +1683,7 @@ export default function Finance() {
                 type="file"
                 onChange={handleFileChange}
                 multiple
-                className="block w-full text-sm text-gray-500
+                className="block w-full text-sm text-[var(--t3)]
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-none file:border-0
                   file:text-sm file:font-semibold
@@ -1717,13 +1710,13 @@ export default function Finance() {
                 setSelectedBudgetId('none');
                 setNewBudgetTitle('');
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-[var(--t2)] bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-2)]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary"
             >
               Add Expense
             </button>
@@ -1779,7 +1772,7 @@ export default function Finance() {
       >
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--t2)] mb-2">
               Add New Category
             </label>
             <div className="flex gap-2">
@@ -1789,12 +1782,12 @@ export default function Finance() {
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
                 placeholder="Enter category name"
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-charcoal focus:ring-charcoal sm:text-sm"
+                className="flex-1 border-[var(--border)] shadow-sm focus:border-charcoal focus:ring-charcoal sm:text-sm"
               />
               <button
                 onClick={handleAddCategory}
                 disabled={!newCategoryName.trim()}
-                className="px-4 py-2 bg-charcoal text-white rounded-md hover:bg-charcoal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-charcoal text-white hover:bg-charcoal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -1802,14 +1795,14 @@ export default function Finance() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--t2)] mb-2">
               Existing Categories ({customCategories.length})
             </label>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {customCategories.map((category, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group"
+                  className="flex items-center justify-between p-3 bg-[var(--surface-2)] group"
                 >
                   {editingCategory?.index === index ? (
                     <div className="flex-1 flex items-center gap-2">
@@ -1821,40 +1814,40 @@ export default function Finance() {
                           if (e.key === 'Enter') handleUpdateCategory();
                           if (e.key === 'Escape') setEditingCategory(null);
                         }}
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-charcoal focus:ring-charcoal sm:text-sm"
+                        className="flex-1 border-[var(--border)] shadow-sm focus:border-charcoal focus:ring-charcoal sm:text-sm"
                         autoFocus
                       />
                       <button
                         onClick={handleUpdateCategory}
                         className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
                       >
-                        <Check className="w-4 h-4" />
+                        <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                       </button>
                       <button
                         onClick={() => setEditingCategory(null)}
-                        className="p-1.5 text-gray-500 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1.5 text-[var(--t3)] hover:bg-[var(--surface-3)] rounded transition-colors"
                       >
-                        <X className="w-4 h-4" />
+                        <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                       </button>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium text-charcoal">{category}</span>
+                        <span className="text-sm font-medium text-[var(--t1)]">{category}</span>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditingCategory({ index, name: category })}
-                          className="p-1.5 text-gray-500 hover:text-charcoal hover:bg-gray-200 rounded transition-colors"
+                          className="p-1.5 text-[var(--t3)] hover:text-[var(--t1)] hover:bg-[var(--surface-3)] rounded transition-colors"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                         </button>
                         <button
                           onClick={() => handleDeleteCategory(index)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1.5 text-[var(--t3)] hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                         </button>
                       </div>
                     </>
@@ -1862,19 +1855,19 @@ export default function Finance() {
                 </div>
               ))}
               {customCategories.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No categories yet</p>
+                <p className="text-sm text-[var(--t3)] text-center py-4">No categories yet</p>
               )}
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-[var(--border)]">
             <button
               onClick={() => {
                 setIsCategoryModalOpen(false);
                 setEditingCategory(null);
                 setNewCategoryName('');
               }}
-              className="w-full px-4 py-2 bg-gray-100 text-charcoal rounded-md hover:bg-gray-200 transition-colors font-medium"
+              className="w-full px-4 py-2 bg-[var(--surface-2)] text-[var(--t1)] hover:bg-[var(--surface-3)] transition-colors font-medium"
             >
               Done
             </button>

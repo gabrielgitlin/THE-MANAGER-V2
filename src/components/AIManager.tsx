@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Loader2, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { Loader2, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import OpenAI from 'openai';
@@ -208,8 +208,6 @@ export default function AIManager({ isOpen, onClose }: AIManagerProps) {
         navigate('/calendar');
       } else if (lower.includes('catalog')) {
         navigate('/catalog');
-      } else if (lower.includes('finance')) {
-        navigate('/finance');
       } else if (lower.includes('legal')) {
         navigate('/legal');
       } else if (lower.includes('live')) {
@@ -342,29 +340,31 @@ Database context for this query:${databaseContext || '\n\nNo relevant database d
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="shadow-xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderRadius: 0 }}>
+        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-beige rounded-full">
-              <Bot className="w-5 h-5 text-primary" />
+            <div className="p-2 rounded-full" style={{ backgroundColor: 'var(--surface-2)' }}>
+              <Bot className="w-5 h-5" style={{ color: 'var(--brand-1)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-gray-900">AI Manager</h2>
-              <p className="text-xs text-gray-500">Your intelligent assistant for THE MANAGER</p>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>AI Manager</h2>
+              <p className="text-xs" style={{ color: 'var(--t2)' }}>Your intelligent assistant for THE MANAGER</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMinimized(true)}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full transition-colors"
+              style={{ color: 'var(--t3)' }}
             >
               <Minimize2 className="w-5 h-5" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full transition-colors"
+              style={{ color: 'var(--t3)' }}
             >
-              <X className="w-5 h-5" />
+              <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="Close" />
             </button>
           </div>
         </div>
@@ -376,11 +376,12 @@ Database context for this query:${databaseContext || '\n\nNo relevant database d
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-4 ${
-                  message.role === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
+                className={`max-w-[80%] p-4`}
+                style={{
+                  backgroundColor: message.role === 'user' ? 'var(--brand-1)' : 'var(--surface-2)',
+                  color: 'var(--t1)',
+                  borderRadius: 0
+                }}
               >
                 <div className="flex items-center gap-2 mb-2">
                   {message.role === 'user' ? (
@@ -404,7 +405,7 @@ Database context for this query:${databaseContext || '\n\nNo relevant database d
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-lg p-4 bg-gray-100 text-gray-900">
+              <div className="max-w-[80%] p-4" style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderRadius: 0 }}>
                 <div className="flex items-center gap-2">
                   <Bot className="w-4 h-4" />
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -417,7 +418,7 @@ Database context for this query:${databaseContext || '\n\nNo relevant database d
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea
@@ -426,20 +427,21 @@ Database context for this query:${databaseContext || '\n\nNo relevant database d
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your workspace..."
-                className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:border-primary focus:ring-primary resize-none text-sm"
+                className="w-full p-3 pr-12 border resize-none text-sm"
                 rows={1}
-                style={{ minHeight: "44px", maxHeight: "120px" }}
+                style={{ minHeight: "44px", maxHeight: "120px", backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="absolute right-3 bottom-3 text-primary hover:text-primary disabled:opacity-50 transition-colors"
+                className="absolute right-3 bottom-3 disabled:opacity-50 transition-colors"
+                style={{ color: 'var(--brand-1)' }}
               >
-                <Send className="w-5 h-5" />
+                <img src="/TM-Send-negro.svg" className="pxi-lg icon-green" alt="Send" />
               </button>
             </div>
           </div>
-          <p className="mt-2 text-xs text-gray-500 text-center">
+          <p className="mt-2 text-xs text-center" style={{ color: 'var(--t2)' }}>
             AI Manager has access to your database and can help you navigate the platform
           </p>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Edit2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { Budget, BudgetType, Track, BudgetCategory } from '../../types';
 import ShowBudgetTemplate from './ShowBudgetTemplate';
 import CatalogSelector from './CatalogSelector';
@@ -231,7 +231,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="title" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
             Title
           </label>
           <input
@@ -239,13 +239,14 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
             id="title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             required
           />
         </div>
 
         <div>
-          <label htmlFor="artist" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="artist" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
             Artist
           </label>
           <input
@@ -253,7 +254,8 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
             id="artist"
             value={formData.artist}
             onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             required
           />
         </div>
@@ -262,14 +264,15 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
       {type === 'release' && (
         <>
           <div>
-            <label htmlFor="releaseType" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="releaseType" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Release Type
             </label>
             <select
               id="releaseType"
               value={formData.releaseType}
               onChange={(e) => setFormData({ ...formData, releaseType: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             >
               <option value="single">Single</option>
               <option value="ep">EP</option>
@@ -278,7 +281,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
           </div>
 
           <div>
-            <label htmlFor="releaseDate" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="releaseDate" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Release Date
             </label>
             <input
@@ -286,7 +289,8 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
               id="releaseDate"
               value={formData.releaseDate}
               onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             />
           </div>
 
@@ -301,7 +305,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
       {type === 'show' && (
         <>
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="date" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Show Date
             </label>
             <input
@@ -309,13 +313,14 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
               id="date"
               value={formData.startDate}
               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="venue" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="venue" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Venue
               </label>
               <input
@@ -323,12 +328,13 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                 id="venue"
                 value={formData.venue}
                 onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
 
             <div>
-              <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="city" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 City
               </label>
               <input
@@ -336,20 +342,21 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                 id="city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
           </div>
 
-          <div className="bg-beige p-4 rounded-lg">
+          <div className="p-4" style={{ background: 'var(--surface-2)' }}>
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm" style={{ color: 'var(--t1)' }}>
                 Use our live show budget template with pre-configured categories and common expense items.
               </p>
               <button
                 type="button"
                 onClick={() => setUseTemplate(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
               >
                 Use Template
               </button>
@@ -362,7 +369,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
         <>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="startDate" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Start Date
               </label>
               <input
@@ -370,12 +377,13 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                 id="startDate"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
 
             <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="endDate" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 End Date
               </label>
               <input
@@ -383,14 +391,15 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                 id="endDate"
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               />
             </div>
           </div>
 
           {shows && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Select Shows
               </label>
               <div className="mt-1 space-y-2">
@@ -407,7 +416,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                       }}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="ml-2 text-sm text-gray-900">{show.title}</span>
+                    <span className="ml-2 text-sm" style={{ color: 'var(--t1)' }}>{show.title}</span>
                   </label>
                 ))}
               </div>
@@ -419,19 +428,19 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
       {/* Budget Categories Section */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Budget Categories</h3>
+          <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Budget Categories</h3>
           <button
             type="button"
             onClick={() => {
               setIsAddingCategory(true);
               setEditingCategoryId(null);
-              setNewCategory({ 
-                name: '', 
-                description: '', 
-                color: '#' + Math.floor(Math.random()*16777215).toString(16) 
+              setNewCategory({
+                name: '',
+                description: '',
+                color: '#' + Math.floor(Math.random()*16777215).toString(16)
               });
             }}
-            className="flex items-center gap-2 text-sm text-primary hover:text-black"
+            className="flex items-center gap-2 text-sm text-primary hover:opacity-80"
           >
             <Plus className="w-4 h-4" />
             Add Category
@@ -442,26 +451,29 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
           {categories.map((category) => (
             <div
               key={category}
-              className="p-4 rounded-lg border hover:border-primary transition-colors relative group"
+              className="p-4 border hover:opacity-80 transition-opacity relative group"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">{category}</h4>
+                  <h4 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{category}</h4>
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     type="button"
                     onClick={() => handleEditCategory(category)}
-                    className="p-1 text-gray-400 hover:text-gray-600"
+                    className="p-1 hover:opacity-80"
+                    style={{ color: 'var(--t2)' }}
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteCategory(category)}
-                    className="p-1 text-gray-400 hover:text-red-500"
+                    className="p-1 hover:text-red-500"
+                    style={{ color: 'var(--t2)' }}
                   >
-                    <X className="w-4 h-4" />
+                    <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                   </button>
                 </div>
               </div>
@@ -471,9 +483,9 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
 
         {/* Add/Edit Category Form */}
         {isAddingCategory && (
-          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+          <div className="mt-4 p-4 border" style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 {editingCategoryId ? 'Edit Category' : 'New Category'}
               </h4>
               <button
@@ -481,28 +493,30 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                 onClick={() => {
                   setIsAddingCategory(false);
                   setEditingCategoryId(null);
-                  setNewCategory({ 
-                    name: '', 
-                    description: '', 
-                    color: '#' + Math.floor(Math.random()*16777215).toString(16) 
+                  setNewCategory({
+                    name: '',
+                    description: '',
+                    color: '#' + Math.floor(Math.random()*16777215).toString(16)
                   });
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="hover:opacity-80"
+                style={{ color: 'var(--t2)' }}
               >
-                <X className="w-4 h-4" />
+                <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Category Name
                 </label>
                 <input
                   type="text"
                   value={newCategory.name}
                   onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                   placeholder="e.g., Studio Time"
                 />
               </div>
@@ -513,20 +527,21 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
                   onClick={() => {
                     setIsAddingCategory(false);
                     setEditingCategoryId(null);
-                    setNewCategory({ 
-                      name: '', 
-                      description: '', 
-                      color: '#' + Math.floor(Math.random()*16777215).toString(16) 
+                    setNewCategory({
+                      name: '',
+                      description: '',
+                      color: '#' + Math.floor(Math.random()*16777215).toString(16)
                     });
                   }}
-                  className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                  className="px-3 py-1 text-sm hover:opacity-80"
+                  style={{ color: 'var(--t1)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={editingCategoryId ? handleUpdateCategory : handleAddCategory}
-                  className="px-3 py-1 text-sm text-white bg-primary rounded hover:bg-primary"
+                  className="px-3 py-1 text-sm text-white bg-primary hover:opacity-80"
                 >
                   {editingCategoryId ? 'Update Category' : 'Add Category'}
                 </button>
@@ -541,13 +556,14 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium border hover:opacity-80"
+          style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
         >
           Create Budget
         </button>

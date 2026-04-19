@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Download } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { CrewMember } from '../types';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -149,7 +149,7 @@ export default function FeeSummaryTable({ crew, showId }: FeeSummaryTableProps) 
           onClick={exportFeesReport}
           className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
         >
-          <Download className="w-4 h-4" />
+          <img src="/TM-Download-negro.svg" className="pxi-md icon-white" alt="" />
           Export Report
         </button>
       </div>

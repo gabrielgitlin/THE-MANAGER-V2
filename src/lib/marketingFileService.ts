@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { AssetSourceType } from './assetSources';
 
 export type FileCategory = 'press_kit' | 'brand_assets' | 'campaign' | 'analytics' | 'other';
 
@@ -11,10 +12,17 @@ export interface MarketingFile {
   category: FileCategory;
   description: string;
   file_url: string;
+  source_type?: AssetSourceType;
   shared: boolean;
   shared_with: string[];
   uploaded_by?: string;
   created_at: string;
+}
+
+export interface MarketingExternalLink {
+  sourceType: AssetSourceType;
+  url: string;
+  name?: string;
 }
 
 export interface CreateFileData {
@@ -104,6 +112,7 @@ export async function uploadFile(file: File, fileData: CreateFileData): Promise<
       category: fileData.category || 'other',
       description: fileData.description || '',
       file_url: urlData.publicUrl,
+      source_type: 'upload',
       shared: fileData.shared || false,
       shared_with: fileData.shared_with || [],
       uploaded_by: userId,
@@ -118,6 +127,43 @@ export async function uploadFile(file: File, fileData: CreateFileData): Promise<
     throw error;
   }
 
+  return {
+    ...data,
+    shared_with: data.shared_with || [],
+  };
+}
+
+/** Store an external cloud-link reference (Google Drive, Dropbox, etc.) as a marketing file. */
+export async function createExternalLinkFile(
+  link: MarketingExternalLink,
+  fileData: CreateFileData
+): Promise<MarketingFile> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('marketing_files')
+    .insert({
+      name: fileData.name || link.name || link.url,
+      type: 'link',
+      size: 0,
+      category: fileData.category || 'other',
+      description: fileData.description || '',
+      file_url: link.url,
+      source_type: link.sourceType,
+      shared: fileData.shared || false,
+      shared_with: fileData.shared_with || [],
+      uploaded_by: userId,
+      artist_id: fileData.artist_id || null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating marketing link record:', error);
+    throw error;
+  }
   return {
     ...data,
     shared_with: data.shared_with || [],
@@ -146,7 +192,8 @@ export async function updateFile(id: string, updates: UpdateFileData): Promise<M
 export async function deleteFile(id: string): Promise<void> {
   const file = await getFile(id);
 
-  if (file?.file_url) {
+  // Only remove the underlying blob for uploads — external links just drop the row.
+  if (file?.file_url && (!file.source_type || file.source_type === 'upload')) {
     const path = file.file_url.split('/').pop();
     if (path) {
       await supabase.storage.from('marketing-assets').remove([path]);

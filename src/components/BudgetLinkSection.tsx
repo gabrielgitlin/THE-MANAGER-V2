@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, TrendingUp, ExternalLink, Plus } from 'lucide-react';
+import { DollarSign, TrendingUp, Plus } from 'lucide-react';
 import type { Budget } from '../types';
 
 interface BudgetLinkSectionProps {
@@ -24,7 +24,7 @@ export default function BudgetLinkSection({ budget, entityType, entityName }: Bu
               to={`/finance/${budget.id}`}
               className="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:text-black transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
+              <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
               View Full Budget
             </Link>
           ) : (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Check, X, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Lock, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Permission, Role, AccessLevel, ModulePermissions } from '../lib/permissions';
 import { hasPermission, getAccessLevelLabel, getAvailableAccessLevels, getModuleAccess, updateModuleAccess } from '../lib/permissions';
 import { useAuthStore } from '../store/authStore';
@@ -58,28 +58,28 @@ export default function PermissionsPopup({ requiredPermission, isVisible, positi
 
   return (
     <div className={`absolute z-50 ${positionClasses[position]}`}>
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-80">
+      <div className="shadow-lg border p-4 w-80" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', borderRadius: 0 }}>
         <div className="flex items-center gap-2 mb-3">
-          <Lock className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-medium text-charcoal">
+          <Lock className="w-4 h-4" style={{ color: 'var(--t3)' }} />
+          <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
             Permissions
           </h3>
         </div>
 
         <div className="space-y-3">
           <div>
-            <div className="text-xs font-medium text-gray-500">Status</div>
-            <div className={`mt-1 flex items-center gap-1 text-sm ${
-              hasAccess ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <div className="text-xs font-medium" style={{ color: 'var(--t2)' }}>Status</div>
+            <div className={`mt-1 flex items-center gap-1 text-sm`}
+              style={{ color: hasAccess ? 'var(--brand-1)' : '#ff4444' }}
+            >
               {hasAccess ? (
                 <>
-                  <Check className="w-4 h-4" />
+                  <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                   Access Granted
                 </>
               ) : (
                 <>
-                  <X className="w-4 h-4" />
+                  <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
                   Access Denied
                 </>
               )}
@@ -87,17 +87,18 @@ export default function PermissionsPopup({ requiredPermission, isVisible, positi
           </div>
 
           <div>
-            <div className="text-xs font-medium text-gray-500">Your Access</div>
-            <div className="mt-1 text-sm text-charcoal">
+            <div className="text-xs font-medium" style={{ color: 'var(--t2)' }}>Your Access</div>
+            <div className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>
               {currentAccessLevel ? getAccessLevelLabel(currentAccessLevel) : 'No Access'}
             </div>
           </div>
 
           {canManagePermissions && (
-            <div className="pt-3 border-t">
+            <div className="pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
               <button
                 onClick={() => setShowManagePermissions(!showManagePermissions)}
-                className="flex items-center gap-2 text-sm text-primary hover:text-black"
+                className="flex items-center gap-2 text-sm"
+                style={{ color: 'var(--brand-1)' }}
               >
                 <Users className="w-4 h-4" />
                 Manage Team Access
@@ -111,13 +112,14 @@ export default function PermissionsPopup({ requiredPermission, isVisible, positi
               {showManagePermissions && (
                 <div className="mt-3 space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500">
+                    <label className="block text-xs font-medium" style={{ color: 'var(--t2)' }}>
                       Team Member
                     </label>
                     <select
                       value={selectedMember || ''}
                       onChange={(e) => setSelectedMember(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full border shadow-sm sm:text-sm"
+                      style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
                     >
                       <option value="">Select a team member</option>
                       {mockTeamMembers.map((member) => (
@@ -130,13 +132,14 @@ export default function PermissionsPopup({ requiredPermission, isVisible, positi
 
                   {selectedMember && (
                     <div>
-                      <label className="block text-xs font-medium text-gray-500">
+                      <label className="block text-xs font-medium" style={{ color: 'var(--t2)' }}>
                         Access Level
                       </label>
                       <select
                         value={selectedAccess || ''}
                         onChange={(e) => setSelectedAccess(e.target.value as AccessLevel)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full border shadow-sm sm:text-sm"
+                        style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
                       >
                         <option value="">Select access level</option>
                         {availableAccessLevels.map((level) => (
@@ -152,7 +155,8 @@ export default function PermissionsPopup({ requiredPermission, isVisible, positi
                     <div className="pt-2">
                       <button
                         onClick={handleUpdatePermissions}
-                        className="w-full px-3 py-2 text-sm text-white bg-primary rounded-md hover:bg-primary"
+                        className="w-full px-3 py-2 text-sm text-white"
+                        style={{ backgroundColor: 'var(--brand-1)', borderRadius: 0 }}
                       >
                         Update Access Level
                       </button>

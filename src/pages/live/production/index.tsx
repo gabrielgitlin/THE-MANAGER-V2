@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Upload, FileText, Image, Music, Download, Trash2, Plus, X, ExternalLink } from 'lucide-react';
+import { ChevronLeft, FileText, Image, Music, Plus } from 'lucide-react';
 import { formatDate } from '../../../lib/utils';
 import type { Show, ProductionFile } from '../../../types';
+import AssetInput from '../../../components/assets/AssetInput';
+import type { AssetSubmission } from '../../../lib/assetSources';
 
 
 const FILE_TYPES = [
@@ -23,12 +25,24 @@ export default function Production() {
   const [uploadType, setUploadType] = useState<string>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
-  const handleFileUpload = (showId: number, type: string, file: File) => {
+  const handleAssetSubmit = (showId: number, type: string, submission: AssetSubmission) => {
+    let url = '';
+    let name = submission.name;
+    if (submission.sourceType === 'upload' && submission.file) {
+      url = URL.createObjectURL(submission.file);
+      name = name || submission.file.name;
+    } else if (submission.url) {
+      url = submission.url;
+    } else {
+      return;
+    }
+
     const newFile: ProductionFile = {
       id: Math.max(0, ...Object.values(files).flat().map(f => f.id)) + 1,
-      name: file.name,
+      name,
       type,
-      url: URL.createObjectURL(file),
+      url,
+      sourceType: submission.sourceType,
       uploadedAt: new Date(),
       uploadedBy: 'Peter Grant',
       version: '1.0',
@@ -56,26 +70,24 @@ export default function Production() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/live')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm mb-4 hover:opacity-80"
+          style={{ color: 'var(--t3)' }}
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Live Events
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Production Files</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage technical riders, hospitality requirements, and other production assets
-        </p>
       </div>
 
       {/* Show Selection */}
       <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
           Select Show
         </label>
         <select
           value={selectedShow?.id || ''}
           onChange={(e) => setSelectedShow(shows.find(s => s.id === parseInt(e.target.value)) || null)}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          className="block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm"
+          style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
         >
           <option value="">Select a show</option>
           {shows.map((show) => (
@@ -87,20 +99,21 @@ export default function Production() {
       </div>
 
       {selectedShow && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="shadow rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
+          <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-gray-900">{selectedShow.title}</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>{selectedShow.title}</h2>
+                <p className="text-sm" style={{ color: 'var(--t3)' }}>
                   {formatDate(selectedShow.date)}
                 </p>
               </div>
               <button
                 onClick={() => setIsUploading(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
               >
-                <Upload className="w-4 h-4" />
+                <img src="/TM-Upload-negro.svg" className="pxi-md icon-white" alt="" />
                 Upload File
               </button>
             </div>
@@ -141,13 +154,13 @@ export default function Production() {
                             rel="noopener noreferrer"
                             className="p-1 text-gray-400 hover:text-gray-500"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
                           </a>
                           <button
                             onClick={() => window.open(file.url, '_blank')}
                             className="p-1 text-gray-400 hover:text-gray-500"
                           >
-                            <Download className="w-4 h-4" />
+                            <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
                           </button>
                           {showDeleteConfirm === file.id ? (
                             <div className="flex items-center gap-2">
@@ -169,7 +182,7 @@ export default function Production() {
                               onClick={() => setShowDeleteConfirm(file.id)}
                               className="p-1 text-gray-400 hover:text-red-500"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                             </button>
                           )}
                         </div>
@@ -212,7 +225,7 @@ export default function Production() {
                   }}
                   className="text-gray-400 hover:text-gray-500"
                 >
-                  <X className="h-5 w-5" />
+                  <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="" />
                 </button>
               </div>
               
@@ -238,23 +251,13 @@ export default function Production() {
                 ) : (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-4">
-                      Upload {FILE_TYPES.find(t => t.id === uploadType)?.label}
+                      Add {FILE_TYPES.find(t => t.id === uploadType)?.label}
                     </label>
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleFileUpload(selectedShow.id, uploadType, file);
-                        }
-                      }}
+                    <AssetInput
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                      className="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-primary file:text-white
-                        hover:file:bg-primary/90"
+                      onSubmit={(submission) => handleAssetSubmit(selectedShow.id, uploadType, submission)}
+                      submitLabel="Attach"
+                      resetOnSubmit={false}
                     />
                   </div>
                 )}

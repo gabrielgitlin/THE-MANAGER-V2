@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+
 export interface CalendarConnection {
   id: string;
   user_id: string;
@@ -194,65 +196,90 @@ export const calendarIntegrationService = {
       }
 
       const timeMin = new Date();
-      timeMin.setMonth(timeMin.getMonth() - 1);
+      timeMin.setMonth(timeMin.getMonth() - 3);   // 3 months back
       const timeMax = new Date();
-      timeMax.setMonth(timeMax.getMonth() + 6);
+      timeMax.setMonth(timeMax.getMonth() + 12);  // 12 months forward
 
-      const params = new URLSearchParams({
-        timeMin: timeMin.toISOString(),
-        timeMax: timeMax.toISOString(),
-        singleEvents: 'true',
-        orderBy: 'startTime',
-        maxResults: '250',
-      });
+      // Paginate through ALL pages so events past the first 250 aren't dropped
+      const allEvents: any[] = [];
+      let pageToken: string | undefined;
 
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${connection.access_token}`,
-          },
+      do {
+        const params = new URLSearchParams({
+          timeMin: timeMin.toISOString(),
+          timeMax: timeMax.toISOString(),
+          singleEvents: 'true',
+          orderBy: 'startTime',
+          maxResults: '2500',
+          ...(pageToken ? { pageToken } : {}),
+        });
+
+        const response = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
+          { headers: { Authorization: `Bearer ${connection.access_token}` } }
+        );
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Google Calendar API error ${response.status}: ${errText}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Google Calendar API error: ${response.statusText}`);
-      }
+        const page = await response.json();
+        allEvents.push(...(page.items || []));
+        pageToken = page.nextPageToken;
+      } while (pageToken);
 
-      const data = await response.json();
-      const events = data.items || [];
-
-      for (const event of events) {
+      // Build rows to upsert (batch instead of one-by-one)
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const rows = allEvents.map((event: any) => {
         const startDateTime = event.start.dateTime || event.start.date;
         const endDateTime = event.end?.dateTime || event.end?.date;
         const isAllDay = !event.start.dateTime;
 
-        const startDate = new Date(startDateTime);
-        const endDate = endDateTime ? new Date(endDateTime) : startDate;
+        let startDateStr: string;
+        let startTimeStr: string | null = null;
+        let endDateStr: string | undefined;
+        let endTimeStr: string | null = null;
 
-        await supabase.from('synced_events').upsert(
-          {
-            calendar_connection_id: connectionId,
-            provider_event_id: event.id,
-            title: event.summary || 'Untitled Event',
-            description: event.description,
-            start_date: startDate.toISOString().split('T')[0],
-            start_time: isAllDay ? null : startDate.toISOString().split('T')[1].substring(0, 5),
-            end_date: endDate.toISOString().split('T')[0],
-            end_time: isAllDay ? null : endDate.toISOString().split('T')[1].substring(0, 5),
-            location: event.location,
-            attendees: event.attendees,
-            timezone: event.start.timeZone,
-            is_all_day: isAllDay,
-            recurring_rule: event.recurrence ? event.recurrence.join(';') : null,
-            raw_data: event,
-            last_modified_at: event.updated,
-            synced_at: new Date().toISOString(),
-          },
-          {
-            onConflict: 'calendar_connection_id,provider_event_id',
-          }
-        );
+        if (isAllDay) {
+          startDateStr = startDateTime as string; // already "YYYY-MM-DD" — no UTC shift
+          endDateStr = endDateTime as string | undefined;
+        } else {
+          const startDate = new Date(startDateTime);
+          const endDate = endDateTime ? new Date(endDateTime) : startDate;
+          startDateStr = `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}`;
+          startTimeStr = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
+          endDateStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}`;
+          endTimeStr = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+        }
+
+        return {
+          calendar_connection_id: connectionId,
+          provider_event_id: event.id,
+          title: event.summary || 'Untitled Event',
+          description: event.description ?? null,
+          start_date: startDateStr,
+          start_time: startTimeStr,
+          end_date: endDateStr ?? null,
+          end_time: endTimeStr,
+          location: event.location ?? null,
+          attendees: event.attendees ?? null,
+          timezone: event.start.timeZone ?? null,
+          is_all_day: isAllDay,
+          recurring_rule: event.recurrence ? event.recurrence.join(';') : null,
+          raw_data: event,
+          last_modified_at: event.updated ?? null,
+          synced_at: new Date().toISOString(),
+        };
+      });
+
+      // Upsert in chunks of 500 to stay within Supabase payload limits
+      const CHUNK = 500;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const { error: upsertError } = await supabase
+          .from('synced_events')
+          .upsert(rows.slice(i, i + CHUNK), { onConflict: 'calendar_connection_id,provider_event_id' });
+        if (upsertError) throw upsertError;
       }
 
       await supabase
@@ -293,6 +320,8 @@ export const calendarIntegrationService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey ?? '',
         },
         body: JSON.stringify({
           refresh_token: connection.refresh_token,
@@ -483,26 +512,28 @@ export const calendarIntegrationService = {
     };
   },
 
-  // Sync all enabled connections
+  // Sync all enabled connections — attempts all, throws if any fail
   async syncAllConnections(): Promise<void> {
     const connections = await this.getConnections();
     const enabledConnections = connections.filter(c => c.sync_enabled);
 
-    const syncPromises = enabledConnections.map(connection => {
-      switch (connection.provider) {
-        case 'google':
-          return this.syncGoogleCalendar(connection.id);
-        case 'ical':
-          return this.syncICalFeed(connection.id);
-        case 'outlook':
-          // Implement Outlook sync
-          return Promise.resolve();
-        default:
-          return Promise.resolve();
-      }
-    });
+    const results = await Promise.allSettled(
+      enabledConnections.map(connection => {
+        switch (connection.provider) {
+          case 'google': return this.syncGoogleCalendar(connection.id);
+          case 'ical':   return this.syncICalFeed(connection.id);
+          default:       return Promise.resolve();
+        }
+      })
+    );
 
-    await Promise.allSettled(syncPromises);
+    const failures = results
+      .map((r, i) => r.status === 'rejected' ? `${enabledConnections[i]?.account_name}: ${(r as PromiseRejectedResult).reason?.message ?? r.reason}` : null)
+      .filter(Boolean);
+
+    if (failures.length) {
+      throw new Error(failures.join('\n'));
+    }
   },
 
   // Generate OAuth URL for Google Calendar
@@ -519,7 +550,7 @@ export const calendarIntegrationService = {
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
-      scope: 'https://www.googleapis.com/auth/calendar.readonly',
+      scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
       access_type: 'offline',
       prompt: 'consent',
     });
@@ -540,6 +571,8 @@ export const calendarIntegrationService = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey ?? '',
       },
       body: JSON.stringify({
         code,
@@ -567,7 +600,12 @@ export const calendarIntegrationService = {
       color: '#4285f4',
     });
 
-    await this.syncGoogleCalendar(connection.id);
+    // Sync is best-effort — connection is already saved above
+    try {
+      await this.syncGoogleCalendar(connection.id);
+    } catch (syncErr) {
+      console.warn('Initial sync failed (connection still saved):', syncErr);
+    }
 
     return connection;
   },

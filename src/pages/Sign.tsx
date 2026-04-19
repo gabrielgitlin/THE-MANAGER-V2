@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckCircle, AlertCircle, FileText, Loader2, X } from 'lucide-react';
+import { AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import OTPVerification from '../components/signing/OTPVerification';
 import SignatureCanvas from '../components/signing/SignatureCanvas';
+import { getPdfFirstPageSize } from '../lib/pdfPageSize';
 import {
   getSigningDataByToken,
   requestOTP,
@@ -46,11 +47,12 @@ interface SigningData {
   fields: SigningDataField[];
   completed_fields: string[]; // array of field IDs already completed
   page_count?: number;
+  document_url?: string;
 }
 
 // ─── Step type ────────────────────────────────────────────────────────────────
 
-type Step = 'loading' | 'otp' | 'signing' | 'review' | 'complete' | 'error';
+type Step = 'loading' | 'otp' | 'read' | 'signing' | 'review' | 'complete' | 'error';
 
 // ─── Signature modal ──────────────────────────────────────────────────────────
 
@@ -96,7 +98,7 @@ function SignatureModal({ fieldType, existingData, onSave, onClose }: SignatureM
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: '4px' }}
           >
-            <X size={20} />
+            <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="" />
           </button>
         </div>
         <p style={{ color: 'var(--t2)', fontSize: '13px', marginBottom: '16px' }}>
@@ -167,6 +169,11 @@ export default function Sign() {
   const [legalConsent, setLegalConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Current page for signing step
+  const [currentPage, setCurrentPage] = useState(1);
+  // Document sheet height, sized to match the actual PDF aspect ratio at 850px wide
+  const [sheetHeight, setSheetHeight] = useState(1100);
+
   // ─── Load signing data ──────────────────────────────────────────────────────
 
   const loadSigningData = useCallback(async () => {
@@ -177,7 +184,48 @@ export default function Sign() {
     }
 
     try {
-      const data = await getSigningDataByToken(accessToken) as SigningData;
+      const raw = await getSigningDataByToken(accessToken) as any;
+
+      // The edge function returns a different shape when OTP is not yet verified:
+      // { needs_otp: true, document_title, sender_name, message, recipient_email_hint }
+      if (raw.needs_otp && !raw.request) {
+        // Build a minimal SigningData so the OTP step can render
+        const otpData: SigningData = {
+          needs_otp: true,
+          request: {
+            id: '',
+            subject: raw.document_title || 'Document Signing',
+            message: raw.message || null,
+            status: 'pending',
+            expires_at: null,
+          },
+          recipient: {
+            id: '',
+            name: '',
+            email: raw.recipient_email_hint || '',
+            status: 'notified',
+            otp_verified: false,
+          },
+          sender_name: raw.sender_name,
+          fields: [],
+          completed_fields: [],
+        };
+        setSigningData(otpData);
+        setStep('otp');
+        return;
+      }
+
+      // Full signing data (OTP already verified or not required)
+      const data: SigningData = {
+        needs_otp: raw.needs_otp ?? false,
+        request: raw.request,
+        recipient: raw.recipient,
+        sender_name: raw.sender_name,
+        fields: raw.fields ?? [],
+        completed_fields: (raw.responses ?? []).map((r: any) => r.field_id),
+        page_count: raw.page_count,
+        document_url: raw.document_url ?? undefined,
+      };
 
       // Handle terminal states
       if (data.request.status === 'voided') {
@@ -199,8 +247,18 @@ export default function Sign() {
       setSigningData(data);
       setCompletedFieldIds(new Set(data.completed_fields ?? []));
 
+      // Detect actual PDF page dimensions for correct overlay sizing
+      if (data.document_url) {
+        getPdfFirstPageSize(data.document_url, 850)
+          .then(({ heightPx }) => setSheetHeight(heightPx))
+          .catch(() => setSheetHeight(1100));
+      }
+
       if (data.needs_otp && !data.recipient.otp_verified) {
         setStep('otp');
+      } else if (data.document_url && data.completed_fields.length === 0) {
+        // First visit after verification — let them read the document first
+        setStep('read');
       } else {
         setStep('signing');
       }
@@ -302,11 +360,12 @@ export default function Sign() {
   return (
     <div
       style={{
-        minHeight: '100vh',
-        background: 'var(--bg)',
+        height: '100vh',
+        background: step === 'signing' ? 'var(--surface)' : 'var(--bg)',
         color: 'var(--t1)',
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       {/* Header */}
@@ -322,7 +381,7 @@ export default function Sign() {
           flexShrink: 0,
         }}
       >
-        <FileText size={20} style={{ color: 'var(--primary)' }} />
+        <img src="/TM-File-negro.svg" className="pxi-lg icon-white" alt="" />
         <span
           style={{
             fontWeight: 600,
@@ -382,7 +441,7 @@ export default function Sign() {
               textAlign: 'center',
             }}
           >
-            <AlertCircle size={56} style={{ color: '#e53e3e', marginBottom: '20px' }} />
+            <AlertCircle size={56} style={{ color: 'var(--status-red)', marginBottom: '20px' }} />
             <h2 style={{ color: 'var(--t1)', marginBottom: '12px' }}>Unable to Load Document</h2>
             <p style={{ color: 'var(--t2)', maxWidth: '400px', lineHeight: 1.6 }}>{errorMessage}</p>
           </div>
@@ -413,7 +472,7 @@ export default function Sign() {
                 textAlign: 'center',
               }}
             >
-              <FileText size={36} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+              <img src="/TM-File-negro.svg" className="pxi-xl icon-white" style={{ marginBottom: '12px' }} alt="" />
               <h2 style={{ color: 'var(--t1)', marginBottom: '8px', fontSize: '18px' }}>
                 {signingData.request.subject}
               </h2>
@@ -445,245 +504,353 @@ export default function Sign() {
               onRequestOTP={handleRequestOTP}
               onVerifyOTP={handleVerifyOTP}
               emailHint={signingData.recipient.email}
-              recipientEmail={signingData.recipient.email}
             />
+          </div>
+        )}
+
+        {/* ── READ DOCUMENT ───────────────────────────────────────────────── */}
+        {step === 'read' && signingData && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: '900px', margin: '0 auto', width: '100%', padding: '24px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ color: 'var(--t1)', fontSize: '18px', marginBottom: '6px' }}>Review Document</h2>
+              <p style={{ color: 'var(--t2)', fontSize: '14px' }}>
+                Read the full document below before proceeding to sign.
+              </p>
+            </div>
+
+            {signingData.document_url ? (
+              <div
+                style={{
+                  flex: 1,
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  background: '#fff',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  marginBottom: '20px',
+                  minHeight: '70vh',
+                }}
+              >
+                <iframe
+                  src={signingData.document_url}
+                  title="Document Preview"
+                  style={{ width: '100%', height: '100%', minHeight: '70vh', border: 'none', display: 'block' }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: '200px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px dashed var(--border)',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  gap: '12px',
+                  color: 'var(--t3)',
+                }}
+              >
+                <img src="/TM-File-negro.svg" className="pxi-xl icon-muted" alt="" />
+                <p style={{ fontSize: '14px' }}>No file preview available for this document.</p>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              {signingData.document_url && (
+                <a
+                  href={signingData.document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    color: 'var(--t2)',
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <img src="/TM-Download-negro.svg" className="pxi-sm icon-white" alt="" />
+                  Open in new tab
+                </a>
+              )}
+              <button
+                onClick={() => setStep('signing')}
+                style={{
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 28px',
+                  borderRadius: '8px',
+                  background: 'var(--primary)',
+                  color: 'white',
+                  border: 'none',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Proceed to Sign
+                <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         )}
 
         {/* ── SIGNING ─────────────────────────────────────────────────────── */}
         {step === 'signing' && signingData && (
-          <div style={{ flex: 1, padding: '24px', maxWidth: '860px', margin: '0 auto', width: '100%' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)', overflow: 'hidden' }}>
 
-            {/* Progress bar */}
-            {fields.length > 0 && (
-              <div style={{ marginBottom: '24px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: '8px',
-                    fontSize: '13px',
-                    color: 'var(--t2)',
-                  }}
+            {/* Top progress bar + actions */}
+            <div style={{
+              background: 'var(--surface-2)',
+              borderBottom: '1px solid var(--border)',
+              height: 52,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 20px',
+              gap: 16,
+              flexShrink: 0,
+            }}>
+              {signingData.document_url && (
+                <button
+                  onClick={() => setStep('read')}
+                  style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface-3)', color: 'var(--t2)', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}
                 >
-                  <span>Progress</span>
-                  <span>{completedCount} of {fields.length} fields completed</span>
-                </div>
-                <div
-                  style={{
-                    height: '6px',
-                    background: 'var(--surface-2)',
-                    borderRadius: '3px',
-                    overflow: 'hidden',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${fields.length > 0 ? (completedCount / fields.length) * 100 : 0}%`,
-                      background: 'var(--primary)',
-                      borderRadius: '3px',
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Document pages with overlaid fields */}
-            {Array.from({ length: pageCount }, (_, i) => i + 1).map((pageNum) => {
-              const pageFields = fieldsByPage[pageNum] ?? [];
-              return (
-                <div key={pageNum} style={{ marginBottom: '32px' }}>
-                  <div
-                    style={{
-                      position: 'relative',
-                      background: 'white',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      minHeight: '500px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                    }}
-                  >
-                    {/* Page placeholder */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ccc',
-                        fontSize: '14px',
-                        fontStyle: 'italic',
-                        userSelect: 'none',
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      Page {pageNum}
-                    </div>
-
-                    {/* Overlaid fields */}
-                    {pageFields.map((field) => {
-                      const isDone = completedFieldIds.has(field.id);
-                      const isSignatureType = field.type === 'signature' || field.type === 'initial';
-
-                      return (
-                        <div
-                          key={field.id}
-                          style={{
-                            position: 'absolute',
-                            left: `${field.x}%`,
-                            top: `${field.y}%`,
-                            width: `${field.width}%`,
-                            height: `${field.height}%`,
-                            minWidth: '80px',
-                            minHeight: '32px',
-                          }}
-                        >
-                          {/* Signature / Initial */}
-                          {isSignatureType && (
-                            <button
-                              onClick={() => setSignatureModalField(field)}
-                              title={field.label ?? (field.type === 'initial' ? 'Initials' : 'Signature')}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                minHeight: '40px',
-                                border: `2px ${isDone ? 'solid' : 'dashed'} ${isDone ? '#22c55e' : 'var(--primary)'}`,
-                                borderRadius: '6px',
-                                background: isDone ? 'rgba(34,197,94,0.06)' : 'rgba(99,102,241,0.06)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                overflow: 'hidden',
-                                padding: 0,
-                              }}
-                            >
-                              {isDone && fieldSignatureData[field.id] ? (
-                                <img
-                                  src={fieldSignatureData[field.id]}
-                                  alt="Signature"
-                                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                />
-                              ) : (
-                                <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 500 }}>
-                                  {field.label ?? (field.type === 'initial' ? 'Click to initial' : 'Click to sign')}
-                                </span>
-                              )}
-                            </button>
-                          )}
-
-                          {/* Date */}
-                          {field.type === 'date' && (
-                            <input
-                              type="date"
-                              value={fieldValues[field.id] ?? ''}
-                              onChange={async (e) => {
-                                const val = e.target.value;
-                                setFieldValues((prev) => ({ ...prev, [field.id]: val }));
-                                if (val) await handleFieldSubmit(field, val);
-                              }}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                minHeight: '36px',
-                                padding: '4px 8px',
-                                border: `2px ${isDone ? 'solid #22c55e' : 'dashed var(--primary)'}`,
-                                borderRadius: '6px',
-                                background: isDone ? 'rgba(34,197,94,0.06)' : 'rgba(99,102,241,0.06)',
-                                color: 'var(--t1)',
-                                fontSize: '13px',
-                                boxSizing: 'border-box',
-                              }}
-                            />
-                          )}
-
-                          {/* Text */}
-                          {field.type === 'text' && (
-                            <input
-                              type="text"
-                              placeholder={field.label ?? 'Type here'}
-                              value={fieldValues[field.id] ?? ''}
-                              onChange={(e) => setFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                              onBlur={async () => {
-                                const val = fieldValues[field.id] ?? '';
-                                if (val) await handleFieldSubmit(field, val);
-                              }}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                minHeight: '36px',
-                                padding: '4px 8px',
-                                border: `2px ${isDone ? 'solid #22c55e' : 'dashed var(--primary)'}`,
-                                borderRadius: '6px',
-                                background: isDone ? 'rgba(34,197,94,0.06)' : 'rgba(99,102,241,0.06)',
-                                color: 'var(--t1)',
-                                fontSize: '13px',
-                                boxSizing: 'border-box',
-                              }}
-                            />
-                          )}
-
-                          {/* Checkbox */}
-                          {field.type === 'checkbox' && (
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={fieldValues[field.id] === 'true'}
-                                onChange={async (e) => {
-                                  const val = e.target.checked ? 'true' : 'false';
-                                  setFieldValues((prev) => ({ ...prev, [field.id]: val }));
-                                  await handleFieldSubmit(field, val);
-                                }}
-                                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--primary)' }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                  ← Document
+                </button>
+              )}
+              {fields.length > 0 && (
+                <>
+                  <div style={{ flex: 1, height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <div style={{ height: '100%', width: `${(completedCount / fields.length) * 100}%`, background: 'var(--brand-1)', borderRadius: 3, transition: 'width 0.3s ease' }} />
                   </div>
-                </div>
-              );
-            })}
-
-            {/* Continue to review button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                  <span style={{ fontSize: 13, color: 'var(--t2)', flexShrink: 0 }}>
+                    {completedCount} / {fields.length} field{fields.length !== 1 ? 's' : ''}
+                  </span>
+                </>
+              )}
               <button
                 onClick={() => setStep('review')}
                 disabled={!allRequiredComplete}
                 style={{
-                  padding: '12px 28px',
-                  borderRadius: '8px',
-                  background: allRequiredComplete ? 'var(--primary)' : 'var(--surface-2)',
+                  padding: '8px 18px', borderRadius: 8, border: 'none',
+                  background: allRequiredComplete ? 'var(--brand-1)' : 'var(--surface-3)',
                   color: allRequiredComplete ? 'white' : 'var(--t3)',
-                  border: 'none',
-                  fontSize: '15px',
-                  fontWeight: 600,
+                  fontWeight: 600, fontSize: 14,
                   cursor: allRequiredComplete ? 'pointer' : 'not-allowed',
-                  opacity: allRequiredComplete ? 1 : 0.6,
+                  flexShrink: 0,
                 }}
               >
-                Review & Sign
+                Review & Sign →
               </button>
             </div>
 
+            {/* Page navigation (only shown when doc has multiple pages) */}
+            {pageCount > 1 && (
+              <div style={{ background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '8px 20px', flexShrink: 0 }}>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  style={{ padding: '4px 12px', borderRadius: 4, border: '1px solid var(--border)', background: currentPage <= 1 ? 'var(--surface-3)' : 'var(--surface-2)', color: currentPage <= 1 ? 'var(--t3)' : 'var(--t1)', cursor: currentPage <= 1 ? 'default' : 'pointer', fontSize: 18, lineHeight: 1 }}
+                >
+                  ‹
+                </button>
+                <span style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>Page {currentPage} of {pageCount}</span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(pageCount, p + 1))}
+                  disabled={currentPage >= pageCount}
+                  style={{ padding: '4px 12px', borderRadius: 4, border: '1px solid var(--border)', background: currentPage >= pageCount ? 'var(--surface-3)' : 'var(--surface-2)', color: currentPage >= pageCount ? 'var(--t3)' : 'var(--t1)', cursor: currentPage >= pageCount ? 'default' : 'pointer', fontSize: 18, lineHeight: 1 }}
+                >
+                  ›
+                </button>
+              </div>
+            )}
+
+            {/* Document canvas — PDF iframe with field overlays on top */}
+            <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '24px' }}>
+              <div
+                style={{
+                  position: 'relative',
+                  width: 850,
+                  height: sheetHeight,
+                  background: 'white',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              >
+                {/* PDF rendered as iframe (non-interactive background) */}
+                {signingData.document_url ? (
+                  <iframe
+                    key={`sign-p${currentPage}`}
+                    src={`${signingData.document_url}#page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                    title="Document"
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', pointerEvents: 'none', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)', fontSize: 14, fontStyle: 'italic' }}>
+                    Page {currentPage}
+                  </div>
+                )}
+
+                {/* Interactive field overlays */}
+                {(fieldsByPage[currentPage] ?? []).map((field) => {
+                  const isDone = completedFieldIds.has(field.id);
+                  const borderStyle = isDone ? `2px solid #22c55e` : `2px dashed #4F46E5`;
+                  const bgDone = 'rgba(34,197,94,0.05)';
+                  const bgPending = 'rgba(79,70,229,0.07)';
+
+                  return (
+                    <div
+                      key={field.id}
+                      style={{
+                        position: 'absolute',
+                        left: `${field.x}%`,
+                        top: `${field.y}%`,
+                        width: `${field.width}%`,
+                        height: `${field.height}%`,
+                        minWidth: 60,
+                        minHeight: 28,
+                        zIndex: 10,
+                      }}
+                    >
+                      {/* Signature — draw canvas modal */}
+                      {field.type === 'signature' && (
+                        <button
+                          onClick={() => setSignatureModalField(field)}
+                          style={{
+                            width: '100%', height: '100%', minHeight: 40,
+                            border: borderStyle, borderRadius: 4,
+                            background: isDone ? bgDone : bgPending,
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            overflow: 'hidden', padding: 0,
+                          }}
+                        >
+                          {isDone && fieldSignatureData[field.id] ? (
+                            <img src={fieldSignatureData[field.id]} alt="Signature" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                          ) : (
+                            <span style={{ fontSize: 11, color: '#4F46E5', fontWeight: 600 }}>
+                              {isDone ? '✓ Signed' : 'Click to sign'}
+                            </span>
+                          )}
+                        </button>
+                      )}
+
+                      {/* Initials — text input (typed, not drawn) */}
+                      {field.type === 'initial' && (
+                        <input
+                          type="text"
+                          maxLength={5}
+                          placeholder="Initials"
+                          value={fieldValues[field.id] ?? ''}
+                          onChange={(e) => setFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                          onBlur={async () => {
+                            const val = (fieldValues[field.id] ?? '').trim();
+                            if (val) await handleFieldSubmit(field, val);
+                          }}
+                          onKeyDown={async (e) => {
+                            if (e.key === 'Enter') {
+                              const val = (fieldValues[field.id] ?? '').trim();
+                              if (val) await handleFieldSubmit(field, val);
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                          style={{
+                            width: '100%', height: '100%', minHeight: 36,
+                            padding: '2px 6px',
+                            border: borderStyle, borderRadius: 4,
+                            background: isDone ? bgDone : bgPending,
+                            color: '#111',
+                            fontSize: 16, fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700,
+                            textAlign: 'center',
+                            boxSizing: 'border-box', outline: 'none',
+                          }}
+                        />
+                      )}
+
+                      {/* Date */}
+                      {field.type === 'date' && (
+                        <input
+                          type="date"
+                          value={fieldValues[field.id] ?? ''}
+                          onChange={async (e) => {
+                            const val = e.target.value;
+                            setFieldValues((prev) => ({ ...prev, [field.id]: val }));
+                            if (val) await handleFieldSubmit(field, val);
+                          }}
+                          style={{
+                            width: '100%', height: '100%', minHeight: 36,
+                            padding: '4px 8px',
+                            border: borderStyle, borderRadius: 4,
+                            background: isDone ? bgDone : bgPending,
+                            color: '#111', fontSize: 13,
+                            boxSizing: 'border-box', outline: 'none',
+                          }}
+                        />
+                      )}
+
+                      {/* Text */}
+                      {field.type === 'text' && (
+                        <input
+                          type="text"
+                          placeholder={field.label ?? 'Type here'}
+                          value={fieldValues[field.id] ?? ''}
+                          onChange={(e) => setFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                          onBlur={async () => {
+                            const val = fieldValues[field.id] ?? '';
+                            if (val) await handleFieldSubmit(field, val);
+                          }}
+                          onKeyDown={async (e) => {
+                            if (e.key === 'Enter') {
+                              const val = fieldValues[field.id] ?? '';
+                              if (val) await handleFieldSubmit(field, val);
+                            }
+                          }}
+                          style={{
+                            width: '100%', height: '100%', minHeight: 36,
+                            padding: '4px 8px',
+                            border: borderStyle, borderRadius: 4,
+                            background: isDone ? bgDone : bgPending,
+                            color: '#111', fontSize: 13,
+                            boxSizing: 'border-box', outline: 'none',
+                          }}
+                        />
+                      )}
+
+                      {/* Checkbox */}
+                      {field.type === 'checkbox' && (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={fieldValues[field.id] === 'true'}
+                            onChange={async (e) => {
+                              const val = e.target.checked ? 'true' : 'false';
+                              setFieldValues((prev) => ({ ...prev, [field.id]: val }));
+                              await handleFieldSubmit(field, val);
+                            }}
+                            style={{ width: 22, height: 22, cursor: 'pointer', accentColor: '#4F46E5' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {!allRequiredComplete && requiredFields.length > 0 && (
-              <p style={{ textAlign: 'right', color: 'var(--t3)', fontSize: '13px', marginTop: '8px' }}>
+              <div style={{ textAlign: 'center', padding: '8px', color: 'var(--t3)', fontSize: 13, flexShrink: 0 }}>
                 {requiredFields.length - requiredCompletedCount} required field{requiredFields.length - requiredCompletedCount !== 1 ? 's' : ''} remaining
-              </p>
+              </div>
             )}
           </div>
         )}
@@ -758,7 +925,7 @@ export default function Sign() {
                       <span style={{ color: done ? 'var(--t1)' : 'var(--t3)' }}>
                         {field.label ?? field.type.charAt(0).toUpperCase() + field.type.slice(1)} — Page {field.page}
                         {field.required && !done && (
-                          <span style={{ color: '#e53e3e', marginLeft: '6px', fontSize: '12px' }}>Required</span>
+                          <span style={{ color: 'var(--status-red)', marginLeft: '6px', fontSize: '12px' }}>Required</span>
                         )}
                       </span>
                     </div>
@@ -855,7 +1022,7 @@ export default function Sign() {
               textAlign: 'center',
             }}
           >
-            <CheckCircle size={72} style={{ color: '#22c55e', marginBottom: '24px' }} />
+            <img src="/The Manager_Iconografia-11.svg" className="pxi-xl icon-green" style={{ marginBottom: '24px' }} alt="" />
             <h2 style={{ color: 'var(--t1)', marginBottom: '12px', fontSize: '24px' }}>Signing Complete</h2>
             <p style={{ color: 'var(--t2)', fontSize: '15px', maxWidth: '400px', lineHeight: 1.6 }}>
               You have successfully signed{signingData?.request.subject ? ` "${signingData.request.subject}"` : ' the document'}.

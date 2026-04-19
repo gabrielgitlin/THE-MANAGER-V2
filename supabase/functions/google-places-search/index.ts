@@ -3,7 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, x-google-api-key",
 };
 
 interface PlaceAutocompleteResult {
@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY') || req.headers.get('x-google-api-key');
     if (!apiKey) {
       console.error('GOOGLE_PLACES_API_KEY is not configured');
       return new Response(

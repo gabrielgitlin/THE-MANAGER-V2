@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Building, DollarSign, FileText, X, Plus, Check } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import { AccommodationProvider, AccommodationBooking } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
 
@@ -79,14 +80,14 @@ export default function AccommodationForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center gap-3 mb-4">
         <Building className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-medium text-charcoal uppercase">
+        <h3 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>
           {initialData ? 'Edit Accommodation' : 'Add Accommodation'}
         </h3>
       </div>
 
       {/* Provider */}
       <div>
-        <label htmlFor="provider" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="provider" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
           Accommodation Provider
         </label>
         <select
@@ -95,13 +96,14 @@ export default function AccommodationForm({
           onChange={(e) => {
             const providerId = e.target.value;
             const provider = providers.find(p => p.id === providerId);
-            setFormData({ 
-              ...formData, 
+            setFormData({
+              ...formData,
               providerId,
               amenities: provider?.amenities || []
             });
           }}
-          className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
         >
           <option value="">Select a provider</option>
           {providers.map((provider) => (
@@ -115,27 +117,26 @@ export default function AccommodationForm({
       {/* Check-in and Check-out */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--t2)' }}>
             <Calendar className="w-4 h-4 text-primary" />
             Check-in
           </h4>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="checkInDate" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="checkInDate" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                   Date
                 </label>
-                <input
-                  type="date"
-                  id="checkInDate"
-                  value={formData.checkInDate || ''}
-                  onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  required
-                />
+                <div className="mt-1">
+                  <TMDatePicker
+                    value={formData.checkInDate || ''}
+                    onChange={(date) => setFormData({ ...formData, checkInDate: date })}
+                    required
+                  />
+                </div>
               </div>
               <div>
-                <label htmlFor="checkInTime" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="checkInTime" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                   Time
                 </label>
                 <input
@@ -143,7 +144,8 @@ export default function AccommodationForm({
                   id="checkInTime"
                   value={formData.checkInTime || ''}
                   onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
               </div>
             </div>
@@ -151,27 +153,26 @@ export default function AccommodationForm({
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--t2)' }}>
             <Calendar className="w-4 h-4 text-primary" />
             Check-out
           </h4>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="checkOutDate" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="checkOutDate" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                   Date
                 </label>
-                <input
-                  type="date"
-                  id="checkOutDate"
-                  value={formData.checkOutDate || ''}
-                  onChange={(e) => setFormData({ ...formData, checkOutDate: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  required
-                />
+                <div className="mt-1">
+                  <TMDatePicker
+                    value={formData.checkOutDate || ''}
+                    onChange={(date) => setFormData({ ...formData, checkOutDate: date })}
+                    required
+                  />
+                </div>
               </div>
               <div>
-                <label htmlFor="checkOutTime" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="checkOutTime" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                   Time
                 </label>
                 <input
@@ -179,7 +180,8 @@ export default function AccommodationForm({
                   id="checkOutTime"
                   value={formData.checkOutTime || ''}
                   onChange={(e) => setFormData({ ...formData, checkOutTime: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
               </div>
             </div>
@@ -190,7 +192,7 @@ export default function AccommodationForm({
       {/* Room Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="roomType" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="roomType" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
             Room Type
           </label>
           <input
@@ -198,12 +200,13 @@ export default function AccommodationForm({
             id="roomType"
             value={formData.roomType || ''}
             onChange={(e) => setFormData({ ...formData, roomType: e.target.value })}
-            className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             placeholder="e.g., Standard, Deluxe, Suite"
           />
         </div>
         <div>
-          <label htmlFor="numberOfRooms" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="numberOfRooms" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
             Number of Rooms
           </label>
           <input
@@ -211,7 +214,8 @@ export default function AccommodationForm({
             id="numberOfRooms"
             value={formData.numberOfRooms || 1}
             onChange={(e) => setFormData({ ...formData, numberOfRooms: Number(e.target.value) })}
-            className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             min="1"
             required
           />
@@ -221,7 +225,7 @@ export default function AccommodationForm({
       {/* Booking Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="confirmationNumber" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="confirmationNumber" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
             Confirmation Number
           </label>
           <input
@@ -229,19 +233,21 @@ export default function AccommodationForm({
             id="confirmationNumber"
             value={formData.confirmationNumber || ''}
             onChange={(e) => setFormData({ ...formData, confirmationNumber: e.target.value })}
-            className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             placeholder="e.g., HH123456789"
           />
         </div>
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="status" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
             Status
           </label>
           <select
             id="status"
             value={formData.status || 'pending'}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as 'confirmed' | 'pending' | 'cancelled' })}
-            className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
           >
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
@@ -249,10 +255,10 @@ export default function AccommodationForm({
           </select>
         </div>
         <div>
-          <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="cost" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
             Cost
           </label>
-          <div className="mt-1 relative rounded-md shadow-sm">
+          <div className="mt-1 relative shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <DollarSign className="h-4 w-4 text-gray-400" />
             </div>
@@ -261,7 +267,8 @@ export default function AccommodationForm({
               id="cost"
               value={formData.cost || ''}
               onChange={(e) => setFormData({ ...formData, cost: Number(e.target.value) })}
-              className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="pl-10 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               placeholder="0.00"
               min="0"
               step="0.01"
@@ -272,20 +279,20 @@ export default function AccommodationForm({
 
       {/* Guests */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--t2)' }}>
           <Users className="w-4 h-4 text-primary" />
           Guests
         </h4>
-        <div className="space-y-2 max-h-60 overflow-y-auto border rounded-md p-2">
+        <div className="space-y-2 max-h-60 overflow-y-auto border p-2" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
           {CREW_MEMBERS.map((member) => (
-            <label key={member.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+            <label key={member.id} className="flex items-center p-2 rounded hover:opacity-80">
               <input
                 type="checkbox"
                 checked={(formData.guests || []).includes(String(member.id))}
                 onChange={(e) => {
                   const currentGuests = formData.guests || [];
                   const memberId = String(member.id);
-                  
+
                   if (e.target.checked) {
                     setFormData({
                       ...formData,
@@ -301,8 +308,8 @@ export default function AccommodationForm({
                 className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
               />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">{member.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{member.name}</p>
+                <p className="text-xs" style={{ color: 'var(--t3)' }}>
                   {member.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 </p>
               </div>
@@ -313,7 +320,7 @@ export default function AccommodationForm({
 
       {/* Amenities */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3">
+        <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>
           Amenities
         </h4>
         <div className="mb-3 flex flex-wrap gap-2">
@@ -337,7 +344,8 @@ export default function AccommodationForm({
           <select
             value={newAmenity}
             onChange={(e) => setNewAmenity(e.target.value)}
-            className="block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
           >
             <option value="">Select an amenity</option>
             {COMMON_AMENITIES.filter(amenity => !(formData.amenities || []).includes(amenity)).map((amenity) => (
@@ -350,7 +358,7 @@ export default function AccommodationForm({
           <button
             type="button"
             onClick={handleAddAmenity}
-            className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+            className="px-3 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
             disabled={!newAmenity}
           >
             Add
@@ -362,13 +370,14 @@ export default function AccommodationForm({
               type="text"
               value=""
               onChange={(e) => setNewAmenity(e.target.value)}
-              className="block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               placeholder="Enter custom amenity"
             />
             <button
               type="button"
               onClick={handleAddAmenity}
-              className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+              className="px-3 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
             >
               Add
             </button>
@@ -378,7 +387,7 @@ export default function AccommodationForm({
 
       {/* Notes */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="notes" className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
           Notes
         </label>
         <textarea
@@ -386,23 +395,25 @@ export default function AccommodationForm({
           value={formData.notes || ''}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={3}
-          className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
           placeholder="Add any special requirements or notes..."
         />
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className="flex justify-end gap-3 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium border hover:opacity-80"
+          style={{ color: 'var(--t2)', background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
         >
           {initialData ? 'Update Accommodation' : 'Add Accommodation'}
         </button>

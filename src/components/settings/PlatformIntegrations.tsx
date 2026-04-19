@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Check, X, RefreshCw } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { getIntegrations, saveIntegration, toggleIntegration, type PlatformIntegration } from '../../lib/platformSync';
 import { supabase } from '../../lib/supabase';
 
@@ -91,8 +91,8 @@ export default function PlatformIntegrations() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-charcoal font-title mb-2">PLATFORM INTEGRATIONS</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl font-bold font-title mb-2" style={{ color: 'var(--t1)' }}>PLATFORM INTEGRATIONS</h2>
+        <p className="text-sm" style={{ color: 'var(--t2)' }}>
           Connect your account to automatically sync shows to other platforms
         </p>
       </div>
@@ -104,18 +104,18 @@ export default function PlatformIntegrations() {
           const isEnabled = integration?.enabled || false;
 
           return (
-            <div key={platform.id} className="bg-white border border-gray-200 rounded-lg p-6">
+            <div key={platform.id} style={{ background: 'var(--surface)', borderColor: 'var(--border)' }} className="border rounded-lg p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
                   <div className={`w-12 h-12 ${platform.color} rounded-lg flex items-center justify-center`}>
                     <Music className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{platform.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{platform.description}</p>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>{platform.name}</h3>
+                    <p className="text-sm mt-1" style={{ color: 'var(--t2)' }}>{platform.description}</p>
                     {integration?.last_sync && (
-                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                        <RefreshCw className="w-3 h-3" />
+                      <p className="text-xs mt-2 flex items-center gap-1" style={{ color: 'var(--t2)' }}>
+                        <img src="/TM-Refresh-negro.svg" className="pxi-sm icon-muted" alt="" />
                         Last synced: {new Date(integration.last_sync).toLocaleString()}
                       </p>
                     )}
@@ -134,12 +134,12 @@ export default function PlatformIntegrations() {
                     >
                       {isEnabled ? (
                         <>
-                          <Check className="w-4 h-4 inline mr-1" />
+                          <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green inline mr-1" alt="" />
                           Enabled
                         </>
                       ) : (
                         <>
-                          <X className="w-4 h-4 inline mr-1" />
+                          <img src="/TM-Close-negro.svg" className="pxi-md icon-muted inline mr-1" alt="" />
                           Disabled
                         </>
                       )}
@@ -155,44 +155,44 @@ export default function PlatformIntegrations() {
               </div>
 
               {editingPlatform === platform.id && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
+                <div style={{ borderColor: 'var(--border)' }} className="mt-6 pt-6 border-t">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
                         API Key
                       </label>
                       <input
                         type="password"
                         value={formData.api_key}
                         onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                        className="w-full px-3 py-2 rounded-md focus:ring-primary focus:border-primary" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                         placeholder={`Your ${platform.name} API key`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
                         Artist Name
                       </label>
                       <input
                         type="text"
                         value={formData.artist_name}
                         onChange={(e) => setFormData({ ...formData, artist_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                        className="w-full px-3 py-2 rounded-md focus:ring-primary focus:border-primary" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                         placeholder={`Your artist name on ${platform.name}`}
                       />
                     </div>
 
                     {platform.id === 'songkick' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
                           Artist ID
                         </label>
                         <input
                           type="text"
                           value={formData.platform_artist_id}
                           onChange={(e) => setFormData({ ...formData, platform_artist_id: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                          className="w-full px-3 py-2 rounded-md focus:ring-primary focus:border-primary" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                           placeholder="Your Songkick artist ID"
                         />
                       </div>
@@ -210,7 +210,7 @@ export default function PlatformIntegrations() {
                           setEditingPlatform(null);
                           setFormData({ api_key: '', artist_name: '', platform_artist_id: '' });
                         }}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200"
+                        className="px-4 py-2 rounded-md text-sm font-medium hover:opacity-80" style={{ background: 'var(--surface-2)', color: 'var(--t1)' }}
                       >
                         Cancel
                       </button>

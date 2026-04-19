@@ -1,0 +1,3629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Manager — Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════════
+       DESIGN TOKENS
+    ══════════════════════════════════════════ */
+    :root {
+      --bg:        #0c0c0c;
+      --surface:   #141414;
+      --surface-2: #1a1a1a;
+      --surface-3: #222222;
+      --surface-4: #2a2a2a;
+
+      --border:   rgba(255,255,255,0.06);
+      --border-2: rgba(255,255,255,0.10);
+      --border-3: rgba(255,255,255,0.15);
+
+      --t1: #ffffff;
+      --t2: #cccccc;
+      --t3: #999999;
+      --t4: rgba(255,255,255,0.08);
+
+      --brand-1: #009C55;
+      --brand-2: #007A43;
+      --brand-3: #005C32;
+      --brand-glow: rgba(0,156,85,0.15);
+
+      --status-green:     #009C55;
+      --status-green-bg:  rgba(0,156,85,0.08);
+      --status-blue:      #ccdbe2;
+      --status-blue-bg:   rgba(204,219,226,0.08);
+      --status-yellow:    #DDAA44;
+      --status-yellow-bg: rgba(221,170,68,0.08);
+      --status-orange:    #E08A3C;
+      --status-orange-bg: rgba(224,138,60,0.08);
+      --status-red:       #DD5555;
+      --status-red-bg:    rgba(221,85,85,0.08);
+      --status-neutral:   #90928f;
+      --status-neutral-bg: rgba(144,146,143,0.08);
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      --space-3xl: 48px;
+      --section-gap: 28px;
+
+      --radius-sm:   0px;
+      --radius-md:   0px;
+      --radius-lg:   0px;
+      --radius-full: 9999px;
+
+      --palette-black:     #000000;
+      --palette-blue-gray: #ccdbe2;
+      --palette-cream:     #eef2ea;
+      --palette-gray:      #90928f;
+      --palette-green:     #009c55;
+
+      --font-mono: 'Roboto Mono', monospace;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-fast:   0.12s;
+      --duration-normal: 0.2s;
+      --duration-slow:   0.35s;
+    }
+
+    /* ══════════════════════════════════════════
+       RESET & BASE
+    ══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      background: var(--bg);
+      color: var(--t1);
+    }
+
+    body { min-height: 100vh; display: flex; }
+
+    a { color: inherit; text-decoration: none; }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      background: var(--surface-3);
+      color: var(--brand-1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════ */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo .wordmark {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-logo .sub {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .sidebar-nav {
+      padding: 12px 0;
+      flex: 1;
+    }
+
+    .sidebar-group {
+      padding: 8px 20px 4px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      font-size: 12px;
+      color: var(--t3);
+      cursor: pointer;
+      transition: color var(--duration-fast), background var(--duration-fast);
+      border-left: 2px solid transparent;
+      transition: all 0.12s;
+    }
+
+    .sidebar-link:hover { color: var(--t1); background: var(--surface-2); }
+    .sidebar-link.active { color: var(--brand-1); border-left-color: var(--brand-1); background: var(--brand-glow); }
+
+    .sidebar-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+    }
+
+    .topbar-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .content {
+      padding: 40px;
+      max-width: 1100px;
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION LAYOUT
+    ══════════════════════════════════════════ */
+    .ds-section {
+      margin-bottom: 64px;
+      scroll-margin-top: 70px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .section-desc {
+      font-size: 12px;
+      color: var(--t3);
+    }
+
+    .subsection {
+      margin-bottom: 28px;
+    }
+
+    .subsection-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    /* ══════════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════════ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .card-padded { padding: 20px; }
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-header-title { font-size: 13px; font-weight: 500; color: var(--t1); }
+    .card-header-sub { font-size: 11px; color: var(--t3); margin-top: 1px; }
+    .card-body { padding: 20px; }
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ══════════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 6px; font-family: inherit; font-weight: 500; cursor: pointer;
+      border: none; white-space: nowrap; user-select: none;
+      transition: all var(--duration-fast);
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    .btn-sm  { height: 30px; padding: 0 12px; font-size: 11px; border-radius: var(--radius-sm); gap: 4px; }
+    .btn-md  { height: 36px; padding: 0 16px; font-size: 13px; border-radius: var(--radius-sm); }
+    .btn-lg  { height: 40px; padding: 0 20px; font-size: 14px; border-radius: var(--radius-md); }
+
+    .btn-primary  { background: var(--brand-1); color: #fff; }
+    .btn-primary:hover { background: var(--brand-2); }
+    .btn-primary:active { background: var(--brand-3); transform: scale(0.98); }
+
+    .btn-secondary { background: transparent; border: 1px solid var(--border-2); color: var(--t2); }
+    .btn-secondary:hover { background: var(--surface-2); border-color: var(--border-3); color: var(--t1); }
+
+    .btn-ghost { background: transparent; border: none; color: var(--t3); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--t1); }
+
+    .btn-danger { background: transparent; border: 1px solid rgba(221,85,85,0.3); color: var(--status-red); }
+    .btn-danger:hover { background: var(--status-red-bg); }
+
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm);
+      background: transparent; border: none;
+      color: var(--t3); cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .btn-icon:hover { background: var(--surface-2); color: var(--t1); }
+
+    /* ══════════════════════════════════════════
+       BADGES
+    ══════════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 8px; border-radius: var(--radius-full);
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .badge-green  { background: var(--status-green-bg);  color: var(--status-green);  }
+    .badge-yellow { background: var(--status-yellow-bg); color: var(--status-yellow); }
+    .badge-orange { background: var(--status-orange-bg); color: var(--status-orange); }
+    .badge-red    { background: var(--status-red-bg);    color: var(--status-red);    }
+    .badge-brand  { background: var(--brand-glow);       color: var(--brand-1); box-shadow: 0 0 8px var(--brand-glow); }
+    .badge-blue    { background: var(--status-blue-bg); color: var(--status-blue); }
+    .badge-neutral { background: var(--status-neutral-bg); color: var(--status-neutral); }
+
+    /* ══════════════════════════════════════════
+       TABS
+    ══════════════════════════════════════════ */
+    .tm-tabs {
+      display: flex; align-items: stretch; height: 42px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tm-tab {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--t3); font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      padding: 0 16px; cursor: pointer; text-transform: uppercase;
+      letter-spacing: 0.05em; transition: color var(--duration-fast), border-color var(--duration-fast);
+      white-space: nowrap; display: flex; align-items: center; height: 100%;
+    }
+    .tm-tab:hover { color: var(--t1); }
+    .tm-tab.active { color: var(--brand-1); border-bottom-color: var(--brand-1); }
+
+    /* ══════════════════════════════════════════
+       FORMS
+    ══════════════════════════════════════════ */
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-family: var(--font-mono); font-size: 10px; font-weight: 500; color: var(--t3); text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-hint  { font-size: 11px; color: var(--t3); }
+    .form-error { font-size: 11px; color: var(--status-red); }
+
+    input[type="text"], input[type="email"], input[type="url"], input[type="number"],
+    select, textarea {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      color: var(--t1); padding: 9px 12px; font-family: inherit; font-size: 13px;
+      border-radius: var(--radius-sm); outline: none; height: 40px;
+      transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    textarea { height: auto; min-height: 80px; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--brand-1);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    /* ══════════════════════════════════════════
+       TABLE
+    ══════════════════════════════════════════ */
+    .data-table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      background: var(--surface-2); color: var(--t3);
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 10px 14px; text-align: left; white-space: nowrap;
+      border-bottom: 1px solid var(--border-2);
+    }
+    .data-table td {
+      padding: 10px 14px; color: var(--t2); border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .data-table tr:hover td { background: var(--surface-2); cursor: pointer; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* ══════════════════════════════════════════
+       PROGRESS
+    ══════════════════════════════════════════ */
+    .progress-bar {
+      height: 6px; background: var(--surface-3); border-radius: var(--radius-full); overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--brand-1); border-radius: var(--radius-full);
+      transition: width var(--duration-slow) var(--ease-out);
+    }
+
+    /* ══════════════════════════════════════════
+       METRIC CARDS
+    ══════════════════════════════════════════ */
+    .metric-grid {
+      display: grid; gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .metric-card { background: var(--surface); padding: 16px 18px; }
+    .metric-val { font-size: 24px; font-weight: 300; color: var(--t1); line-height: 1.1; }
+    .metric-lbl { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+    /* ══════════════════════════════════════════
+       DIVIDER
+    ══════════════════════════════════════════ */
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* ══════════════════════════════════════════
+       DESIGN SYSTEM SPECIFIC UI
+    ══════════════════════════════════════════ */
+
+    /* Token row */
+    .token-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      transition: background var(--duration-fast);
+      cursor: default;
+    }
+    .token-row:hover { background: var(--surface-2); }
+
+    .token-swatch {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      flex-shrink: 0; cursor: pointer; position: relative;
+      transition: transform var(--duration-fast);
+      border: 1px solid var(--border-2);
+    }
+    .token-swatch:hover { transform: scale(1.1); }
+    .token-swatch input[type="color"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%; border: none; padding: 0;
+    }
+
+    .token-name {
+      font-size: 12px; font-weight: 500; color: var(--t1);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      width: 140px; flex-shrink: 0;
+    }
+
+    .token-value {
+      font-size: 11px; color: var(--t3);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .token-copy {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: var(--radius-sm);
+      background: var(--surface-3); border: none;
+      font-family: inherit; font-size: 10px; color: var(--t3);
+      cursor: pointer; transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+    .token-copy:hover { background: var(--surface-4); color: var(--t1); }
+    .token-copy.copied { color: var(--brand-1); background: var(--brand-glow); }
+
+    /* Color group */
+    .color-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .color-group-header {
+      padding: 10px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Type specimen */
+    .type-specimen {
+      display: flex; align-items: baseline; gap: 16px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .type-specimen:last-child { border-bottom: none; }
+    .type-specimen-meta {
+      width: 160px; flex-shrink: 0;
+      font-size: 10px; color: var(--t3);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      line-height: 1.4;
+    }
+    .type-specimen-example { flex: 1; }
+
+    /* Spacing vis */
+    .space-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .space-bar { height: 10px; background: var(--brand-1); border-radius: 2px; opacity: 0.7; flex-shrink: 0; }
+    .space-label {
+      font-size: 10px; font-weight: 600; color: var(--t3);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      width: 120px; flex-shrink: 0; text-align: right;
+    }
+    .space-val { font-size: 11px; color: var(--t2); }
+
+    /* Radius vis */
+    .radius-row { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+    .radius-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .radius-box {
+      width: 64px; height: 64px;
+      background: var(--surface-3);
+      border: 1px solid var(--border-2);
+    }
+    .radius-label { font-size: 10px; color: var(--t3); text-align: center; }
+    .radius-val { font-size: 10px; color: var(--t3); font-family: monospace; }
+
+    /* Motion */
+    .motion-preview {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .motion-preview:last-child { border-bottom: none; }
+    .motion-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--brand-1); flex-shrink: 0;
+    }
+    .motion-bar-track {
+      flex: 1; height: 4px; background: var(--surface-3); border-radius: 2px;
+      position: relative; overflow: visible;
+    }
+    .motion-handle {
+      position: absolute; top: 50%; transform: translate(-6px, -50%);
+      width: 12px; height: 12px; border-radius: 50%; background: var(--brand-1);
+      left: 0; transition-property: left;
+    }
+    .motion-meta { width: 180px; flex-shrink: 0; font-size: 11px; color: var(--t2); }
+    .motion-code { font-size: 10px; color: var(--t3); font-family: monospace; margin-top: 2px; }
+
+    /* Component demo box */
+    .demo-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+
+    .demo-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .demo-row {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    }
+
+    /* Export panel */
+    .export-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .export-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .export-code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px; color: var(--t2); line-height: 1.8;
+      padding: 16px; white-space: pre-wrap; overflow-x: auto;
+      max-height: 300px; overflow-y: auto;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface-4); border: 1px solid var(--border-2);
+      color: var(--t1); padding: 8px 16px; border-radius: var(--radius-full);
+      font-size: 12px; font-weight: 500;
+      opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 9999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══════════════════════════════════════════
+       CALENDAR COMPONENTS
+    ══════════════════════════════════════════ */
+    /* Shared */
+    .cal-wrap { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+
+    /* Full big calendar */
+    .cal-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+    }
+    .cal-nav { display: flex; align-items: center; gap: 4px; }
+    .cal-nav-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; background: transparent;
+      border: 1px solid var(--border-2); color: var(--t3); cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .cal-nav-btn:hover { background: var(--surface-2); color: var(--t1); }
+    .cal-period { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--t1); min-width: 120px; text-align: center; }
+    .cal-view-toggle { display: flex; gap: 0; }
+    .cal-view-btn {
+      height: 28px; padding: 0 10px;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border: 1px solid var(--border-2); color: var(--t3);
+      background: transparent; cursor: pointer;
+      transition: all var(--duration-fast); margin-left: -1px;
+    }
+    .cal-view-btn.active { background: var(--brand-1); border-color: var(--brand-1); color: #fff; z-index: 1; }
+    .cal-view-btn:hover:not(.active) { background: var(--surface-2); color: var(--t1); }
+
+    .cal-dow-row {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .cal-dow {
+      padding: 6px 0; text-align: center;
+      font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+      color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .cal-grid-month { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-cell {
+      min-height: 72px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 6px; position: relative;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell-num {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--t3);
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px;
+    }
+    .cal-cell-num.today {
+      background: var(--brand-1); color: #fff; border-radius: 50%;
+    }
+    .cal-cell-num.other-month { color: var(--border-3); }
+    .cal-cell.weekend { background: rgba(255,255,255,0.01); }
+    .cal-event-pill {
+      display: block; padding: 2px 5px; margin-bottom: 2px;
+      font-size: 10px; font-weight: 500; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pill-show    { background: var(--brand-1); }
+    .pill-release { background: var(--status-blue-bg); color: var(--status-blue); }
+    .pill-travel  { background: var(--status-orange); }
+    .pill-task    { background: var(--surface-4); color: var(--t2); }
+
+    /* Month picker (year view — field component) */
+    .cal-year-picker {
+      background: var(--surface); border: 1px solid var(--border-2);
+      width: 320px; overflow: hidden;
+    }
+    .cal-year-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+    }
+    .cal-year-label {
+      font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--t1);
+    }
+    .cal-month-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--border); padding: 1px;
+    }
+    .cal-month-cell {
+      background: var(--surface); padding: 10px 6px; text-align: center; cursor: pointer;
+      font-family: var(--font-mono); font-size: 11px; color: var(--t2); font-weight: 500;
+      transition: background var(--duration-fast), color var(--duration-fast);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .cal-month-cell:hover { background: var(--surface-3); color: var(--t1); }
+    .cal-month-cell.active { background: var(--brand-1); color: #fff; }
+    .cal-month-cell.active .cal-month-dot { background: rgba(255,255,255,0.5); }
+    .cal-month-abbr { text-transform: uppercase; letter-spacing: 0.06em; }
+    .cal-month-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--brand-1); }
+    .cal-month-cell:not(.active) .cal-month-dot-empty { display: none; }
+
+    /* Date picker (month view — field component) */
+    .cal-datepicker {
+      background: var(--surface); border: 1px solid var(--border-2);
+      width: 256px; overflow: hidden;
+    }
+    .cal-dp-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+    }
+    .cal-dp-period {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--t1);
+    }
+    .cal-dp-nav {
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      background: transparent; border: 1px solid var(--border-2); color: var(--t3);
+      cursor: pointer; transition: all var(--duration-fast); font-size: 12px;
+    }
+    .cal-dp-nav:hover { background: var(--surface-2); color: var(--t1); }
+    .cal-dp-dow {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      padding: 6px 8px 2px;
+    }
+    .cal-dp-dow span {
+      font-family: var(--font-mono); font-size: 8px; font-weight: 600;
+      color: var(--t3); text-align: center; text-transform: uppercase;
+    }
+    .cal-dp-days {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      padding: 0 8px 8px; gap: 2px;
+    }
+    .cal-dp-day {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--t2);
+      cursor: pointer; border-radius: 50%;
+      transition: background var(--duration-fast), color var(--duration-fast);
+      margin: 0 auto;
+    }
+    .cal-dp-day:hover { background: var(--surface-3); color: var(--t1); }
+    .cal-dp-day.today { background: var(--brand-glow); color: var(--brand-1); font-weight: 600; }
+    .cal-dp-day.selected { background: var(--brand-1); color: #fff; font-weight: 600; }
+    .cal-dp-day.other { color: var(--border-3); cursor: default; }
+    .cal-dp-day.other:hover { background: transparent; color: var(--border-3); }
+    .cal-dp-day.has-event::after {
+      content: ''; display: block; width: 3px; height: 3px; border-radius: 50%;
+      background: var(--brand-1); position: absolute; bottom: 2px;
+    }
+    .cal-dp-day { position: relative; }
+
+    /* ══════════════════════════════════════════
+       PIXEL ICON COLOR FILTERS
+       Apply to <img> of black SVGs to colorize
+    ══════════════════════════════════════════ */
+    .icon-white  { filter: brightness(0) invert(1); }
+    .icon-green  { filter: brightness(0) saturate(100%) invert(40%) sepia(85%) saturate(600%) hue-rotate(118deg) brightness(95%) contrast(101%); }
+    .icon-red    { filter: brightness(0) invert(47%) sepia(74%) saturate(631%) hue-rotate(313deg) brightness(102%); }
+    .icon-yellow { filter: brightness(0) invert(72%) sepia(45%) saturate(654%) hue-rotate(4deg) brightness(98%); }
+    .icon-blue   { filter: brightness(0) invert(73%) sepia(22%) saturate(574%) hue-rotate(170deg) brightness(97%); }
+    .icon-muted  { filter: brightness(0) invert(60%); }
+    .icon-danger { filter: brightness(0) invert(47%) sepia(74%) saturate(631%) hue-rotate(313deg) brightness(102%); }
+    /* Standard sizes */
+    .pxi-sm { width: 14px; height: 14px; object-fit: contain; flex-shrink: 0; }
+    .pxi-md { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════
+       ICON CATALOG
+    ══════════════════════════════════════════ */
+    .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 2px; }
+    .icon-card {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 16px 8px 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: default; gap: 8px;
+      transition: background var(--duration-fast);
+    }
+    .icon-card:hover { background: var(--surface-2); }
+    .icon-preview {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-preview img { width: 24px; height: 24px; object-fit: contain; filter: invert(1); }
+    .icon-preview svg { width: 20px; height: 20px; stroke: var(--t2); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .icon-name { font-family: var(--font-mono); font-size: 9px; color: var(--t3); text-align: center; line-height: 1.3; }
+    .icon-tag {
+      font-family: var(--font-mono); font-size: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 2px 5px; border-radius: 0;
+    }
+    .icon-tag-pixel { background: var(--brand-glow); color: var(--brand-1); }
+    .icon-tag-lucide { background: var(--surface-3); color: var(--t3); }
+    .icon-tag-replace { background: var(--status-yellow-bg); color: var(--status-yellow); }
+
+    /* ══════════════════════════════════════════
+       LOGO USAGE
+    ══════════════════════════════════════════ */
+    .logo-swatch {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 24px; border: 1px solid var(--border); gap: 12px;
+    }
+    .logo-swatch img { max-height: 32px; object-fit: contain; }
+    .logo-swatch .logo-label { font-family: var(--font-mono); font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .logo-rule {
+      display: flex; align-items: flex-start; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--border); font-size: 12px; color: var(--t2);
+    }
+    .logo-rule:last-child { border-bottom: none; }
+    .logo-rule-mark { font-size: 14px; flex-shrink: 0; width: 18px; }
+
+    /* ══════════════════════════════════════════
+       POPUP MESSAGES
+    ══════════════════════════════════════════ */
+    .ds-toast {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface-3); border: 1px solid var(--border-2);
+      position: relative; overflow: hidden;
+      min-width: 300px; max-width: 400px;
+    }
+    .ds-toast::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .ds-toast-success::before { background: var(--status-green); }
+    .ds-toast-error::before   { background: var(--status-red); }
+    .ds-toast-warning::before { background: var(--status-yellow); }
+    .ds-toast-info::before    { background: var(--status-blue); }
+    .ds-toast-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .ds-toast-text { flex: 1; }
+    .ds-toast-title { font-size: 13px; font-weight: 500; color: var(--t1); }
+    .ds-toast-sub   { font-size: 11px; color: var(--t3); margin-top: 2px; }
+    .ds-toast-close {
+      background: none; border: none; color: var(--t3); cursor: pointer;
+      font-size: 14px; padding: 2px; line-height: 1;
+      transition: color var(--duration-fast);
+    }
+    .ds-toast-close:hover { color: var(--t1); }
+
+    .ds-alert {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border-left: 3px solid;
+    }
+    .ds-alert-success { background: var(--status-green-bg);  border-color: var(--status-green); }
+    .ds-alert-error   { background: var(--status-red-bg);    border-color: var(--status-red); }
+    .ds-alert-warning { background: var(--status-yellow-bg); border-color: var(--status-yellow); }
+    .ds-alert-info    { background: var(--status-blue-bg);  border-color: var(--status-blue); }
+    .ds-alert-title { font-size: 13px; font-weight: 500; color: var(--t1); }
+    .ds-alert-body  { font-size: 12px; color: var(--t2); margin-top: 3px; line-height: 1.5; }
+
+    .ds-dialog-wrap {
+      background: rgba(0,0,0,0.6); padding: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+    }
+    .ds-dialog {
+      background: var(--surface); border: 1px solid var(--border-2);
+      width: 380px; padding: 0; overflow: hidden;
+    }
+    .ds-dialog-header { padding: 20px 24px 0; }
+    .ds-dialog-title { font-size: 15px; font-weight: 600; color: var(--t1); }
+    .ds-dialog-body  { padding: 12px 24px 20px; font-size: 13px; color: var(--t2); line-height: 1.55; }
+    .ds-dialog-footer {
+      padding: 14px 24px; border-top: 1px solid var(--border);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+
+    /* ══════════════════════════════════════════
+       CHECKBOX & RADIO
+    ══════════════════════════════════════════ */
+    .check-group { display: flex; flex-direction: column; gap: 12px; }
+    .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .check-item input[type="checkbox"],
+    .check-item input[type="radio"] { display: none; }
+    .check-box {
+      width: 16px; height: 16px; border: 1px solid var(--border-2);
+      background: var(--surface-2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--duration-fast);
+    }
+    .check-box.round { border-radius: 50%; }
+    .check-item:has(input:checked) .check-box { background: var(--brand-1); border-color: var(--brand-1); }
+    .check-item:has(input:checked) .check-box::after { content: ''; display: block; }
+    .check-item:has(input[type="checkbox"]:checked) .check-box::after {
+      width: 9px; height: 5px;
+      border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .check-item:has(input[type="radio"]:checked) .check-box::after {
+      width: 6px; height: 6px; background: #fff; border-radius: 50%;
+    }
+    .check-label { font-size: 13px; color: var(--t2); line-height: 1; }
+    .check-item.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    /* ══════════════════════════════════════════
+       DROPDOWN MENU
+    ══════════════════════════════════════════ */
+    .tm-dropdown { position: relative; display: inline-block; }
+    .tm-dropdown-menu {
+      background: var(--surface-3); border: 1px solid var(--border-2);
+      min-width: 180px; padding: 4px 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .tm-dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; font-size: 13px; color: var(--t2);
+      cursor: pointer; transition: background var(--duration-fast), color var(--duration-fast);
+    }
+    .tm-dropdown-item:hover { background: var(--surface-4); color: var(--t1); }
+    .tm-dropdown-item.danger { color: var(--status-red); }
+    .tm-dropdown-item.danger:hover { background: var(--status-red-bg); color: var(--status-red); }
+    .tm-dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .tm-dropdown-label {
+      padding: 6px 14px 2px; font-size: 9px; font-weight: 600;
+      color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* ══════════════════════════════════════════
+       TOOLTIP
+    ══════════════════════════════════════════ */
+    .tooltip-wrap { position: relative; display: inline-flex; }
+    .tooltip-tip {
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface-4); border: 1px solid var(--border-2);
+      color: var(--t1); font-size: 11px; padding: 5px 9px;
+      white-space: nowrap; pointer-events: none; z-index: 999;
+      opacity: 0; transition: opacity var(--duration-fast);
+    }
+    .tooltip-tip::after {
+      content: ''; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent; border-top-color: var(--border-2);
+    }
+    .tooltip-wrap:hover .tooltip-tip { opacity: 1; }
+    .tooltip-tip.right {
+      left: calc(100% + 8px); top: 50%; bottom: auto;
+      transform: translateY(-50%);
+    }
+    .tooltip-tip.right::after {
+      top: 50%; left: -8px; transform: translateY(-50%);
+      border-top-color: transparent; border-right-color: var(--border-2);
+    }
+
+    /* ══════════════════════════════════════════
+       SKELETON LOADERS
+    ══════════════════════════════════════════ */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s ease infinite;
+    }
+    .skel-text  { height: 12px; width: 100%; margin-bottom: 8px; }
+    .skel-title { height: 18px; width: 60%; margin-bottom: 16px; }
+    .skel-kpi   { height: 32px; width: 80px; margin-bottom: 6px; }
+    .skel-kpi-label { height: 10px; width: 60px; }
+    .skel-block { height: 80px; width: 100%; }
+    .skel-row   { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1px; margin-bottom: 1px; }
+    .skel-cell  { height: 40px; }
+    .skel-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════
+       PAGINATION
+    ══════════════════════════════════════════ */
+    .tm-pagination { display: flex; align-items: center; gap: 2px; }
+    .tm-page-btn {
+      display: flex; align-items: center; justify-content: center;
+      min-width: 32px; height: 32px; padding: 0 8px;
+      font-size: 12px; font-weight: 500; font-family: var(--font-mono);
+      background: transparent; border: 1px solid transparent;
+      color: var(--t3); cursor: pointer;
+      transition: all var(--duration-fast); user-select: none;
+    }
+    .tm-page-btn:hover { background: var(--surface-2); color: var(--t1); border-color: var(--border-2); }
+    .tm-page-btn.active { background: var(--brand-1); color: #fff; border-color: var(--brand-1); }
+    .tm-page-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .tm-page-ellipsis { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; font-size: 12px; color: var(--t3); }
+    .pagination-info { font-size: 11px; color: var(--t3); margin-left: 12px; font-family: var(--font-mono); }
+
+    /* ══════════════════════════════════════════
+       FOLDER CONTAINERS
+    ══════════════════════════════════════════ */
+    /* Folder tab: top-left radius only, all others square */
+    .folder-tab {
+      border-top-left-radius: 4px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    /* Open folder: tab with no right/bottom border — flows into content below */
+    .folder-header {
+      display: inline-flex; align-items: center;
+      padding: 6px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-bottom: none;
+      border-top-left-radius: 4px;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+      color: var(--t2); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .folder-header.active { color: var(--brand-1); border-color: var(--brand-1); background: var(--brand-glow); }
+    .folder-body {
+      border: 1px solid var(--border-2);
+      background: var(--surface);
+    }
+    /* Active tab variant for tm-tabs system */
+    .folder-tab-row { display: flex; align-items: flex-end; gap: 0; }
+    .folder-tab-item {
+      display: flex; align-items: center;
+      padding: 8px 16px; height: 38px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+      color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em;
+      cursor: pointer; position: relative;
+      border-top-left-radius: 4px;
+      transition: color 0.12s, background 0.12s;
+    }
+    .folder-tab-item:hover { color: var(--t2); background: var(--surface-2); }
+    .folder-tab-item.active {
+      color: var(--brand-1);
+      background: var(--surface);
+      border-color: var(--border-2);
+      border-bottom-color: var(--surface); /* merges with content below */
+    }
+    .folder-tab-content {
+      border: 1px solid var(--border-2);
+      background: var(--surface);
+      margin-top: -1px; /* fuse with active tab's bottom */
+      padding: 20px;
+    }
+    /* Section label as folder tab */
+    .folder-section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-bottom: none;
+      border-top-left-radius: 4px;
+      font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+      color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* ══════════════════════════════════════════
+       LAYOUT PATTERNS
+    ══════════════════════════════════════════ */
+    .pattern-preview {
+      background: var(--bg); border: 1px solid var(--border-2);
+      overflow: hidden; font-size: 12px; color: var(--t2);
+    }
+    .p-header {
+      height: 48px; background: #111; border-bottom: 1px solid var(--border);
+      padding: 0 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+    }
+    .p-logo { width: 80px; height: 8px; background: var(--surface-3); }
+    .p-nav-dot { width: 32px; height: 4px; background: var(--surface-3); }
+    .p-nav-dot.active { background: var(--brand-1); }
+    .p-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-bottom: 16px; }
+    .p-kpi { background: var(--surface); padding: 16px; }
+    .p-kpi-val { font-size: 22px; font-weight: 300; color: var(--t1); margin-bottom: 4px; }
+    .p-kpi-lbl { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.06em; }
+    .p-kpi-sub { font-size: 10px; color: var(--status-green); margin-top: 2px; }
+    .p-chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; padding: 0 20px; }
+    .p-card { background: var(--surface); border: 1px solid var(--border); }
+    .p-card-hd { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 500; color: var(--t1); }
+    .p-card-bd { padding: 16px; }
+    .p-chart-ph { height: 100px; display: flex; align-items: center; justify-content: center; color: var(--t3); font-size: 10px; font-family: var(--font-mono); border: 1px dashed var(--border-2); }
+    .p-table-section { padding: 0 20px 20px; }
+    .p-filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .p-filter-input { flex: 1; height: 30px; background: var(--surface-2); border: 1px solid var(--border-2); }
+    .p-filter-select { width: 100px; height: 30px; background: var(--surface-2); border: 1px solid var(--border-2); }
+    .p-form-layout { display: grid; grid-template-columns: 1fr 280px; min-height: 260px; }
+    .p-form-main { padding: 20px; border-right: 1px solid var(--border); }
+    .p-form-sidebar { padding: 20px; background: var(--surface-2); }
+    .p-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .p-form-field { display: flex; flex-direction: column; gap: 4px; }
+    .p-form-lbl { height: 9px; width: 60%; background: var(--surface-3); }
+    .p-form-input { height: 36px; background: var(--surface-2); border: 1px solid var(--border-2); }
+    .p-form-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; background: var(--surface); }
+
+    /* Utils */
+    .flex { display: flex; }
+    .flex-col { display: flex; flex-direction: column; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .gap-6 { gap: 24px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 800px) {
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .text-t1 { color: var(--t1); }
+    .text-t2 { color: var(--t2); }
+    .text-t3 { color: var(--t3); }
+    .text-brand { color: var(--brand-1); }
+    .font-mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .text-11 { font-size: 11px; }
+    .text-12 { font-size: 12px; }
+    .text-13 { font-size: 13px; }
+    .fw-500 { font-weight: 500; }
+    .fw-600 { font-weight: 600; }
+    .w-full { width: 100%; }
+    .changed-indicator {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--brand-1); margin-left: 6px; vertical-align: middle;
+      box-shadow: 0 0 6px var(--brand-glow);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">The Manager</div>
+    <div class="sub">Design System · 2025</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-group">Tokens</div>
+    <a class="sidebar-link active" data-target="colors" onclick="scrollTo('colors')">
+      <span class="sidebar-dot"></span> Colors
+    </a>
+    <a class="sidebar-link" data-target="typography" onclick="scrollTo('typography')">
+      <span class="sidebar-dot"></span> Typography
+    </a>
+    <a class="sidebar-link" data-target="spacing" onclick="scrollTo('spacing')">
+      <span class="sidebar-dot"></span> Spacing
+    </a>
+    <a class="sidebar-link" data-target="radius" onclick="scrollTo('radius')">
+      <span class="sidebar-dot"></span> Radius
+    </a>
+    <a class="sidebar-link" data-target="motion" onclick="scrollTo('motion')">
+      <span class="sidebar-dot"></span> Motion
+    </a>
+
+    <div class="sidebar-group" style="margin-top: 12px;">Components</div>
+    <a class="sidebar-link" data-target="buttons" onclick="scrollTo('buttons')">
+      <span class="sidebar-dot"></span> Buttons
+    </a>
+    <a class="sidebar-link" data-target="cards" onclick="scrollTo('cards')">
+      <span class="sidebar-dot"></span> Cards
+    </a>
+    <a class="sidebar-link" data-target="tabs" onclick="scrollTo('tabs')">
+      <span class="sidebar-dot"></span> Tabs
+    </a>
+    <a class="sidebar-link" data-target="badges" onclick="scrollTo('badges')">
+      <span class="sidebar-dot"></span> Badges
+    </a>
+    <a class="sidebar-link" data-target="forms" onclick="scrollTo('forms')">
+      <span class="sidebar-dot"></span> Forms
+    </a>
+    <a class="sidebar-link" data-target="table" onclick="scrollTo('table')">
+      <span class="sidebar-dot"></span> Data Table
+    </a>
+    <a class="sidebar-link" data-target="metrics" onclick="scrollTo('metrics')">
+      <span class="sidebar-dot"></span> Metrics
+    </a>
+    <a class="sidebar-link" data-target="progress" onclick="scrollTo('progress')">
+      <span class="sidebar-dot"></span> Progress
+    </a>
+    <a class="sidebar-link" data-target="checkboxes" onclick="scrollTo('checkboxes')">
+      <span class="sidebar-dot"></span> Checkboxes & Radios
+    </a>
+    <a class="sidebar-link" data-target="dropdowns" onclick="scrollTo('dropdowns')">
+      <span class="sidebar-dot"></span> Dropdowns
+    </a>
+    <a class="sidebar-link" data-target="tooltips" onclick="scrollTo('tooltips')">
+      <span class="sidebar-dot"></span> Tooltips
+    </a>
+    <a class="sidebar-link" data-target="skeleton" onclick="scrollTo('skeleton')">
+      <span class="sidebar-dot"></span> Skeleton
+    </a>
+    <a class="sidebar-link" data-target="pagination" onclick="scrollTo('pagination')">
+      <span class="sidebar-dot"></span> Pagination
+    </a>
+    <a class="sidebar-link" data-target="calendar" onclick="scrollTo('calendar')">
+      <span class="sidebar-dot"></span> Calendar
+    </a>
+
+    <div class="sidebar-group" style="margin-top: 12px;">Brand</div>
+    <a class="sidebar-link" data-target="logo" onclick="scrollTo('logo')">
+      <span class="sidebar-dot"></span> Logo Usage
+    </a>
+    <a class="sidebar-link" data-target="icons" onclick="scrollTo('icons')">
+      <span class="sidebar-dot"></span> Icon System
+    </a>
+    <a class="sidebar-link" data-target="popups" onclick="scrollTo('popups')">
+      <span class="sidebar-dot"></span> Popup Messages
+    </a>
+    <a class="sidebar-link" data-target="folder-containers" onclick="scrollTo('folder-containers')">
+      <span class="sidebar-dot"></span> Folder Containers
+    </a>
+
+    <div class="sidebar-group" style="margin-top: 12px;">Patterns</div>
+    <a class="sidebar-link" data-target="pat-dashboard" onclick="scrollTo('pat-dashboard')">
+      <span class="sidebar-dot"></span> Dashboard
+    </a>
+    <a class="sidebar-link" data-target="pat-form" onclick="scrollTo('pat-form')">
+      <span class="sidebar-dot"></span> Form Layout
+    </a>
+    <a class="sidebar-link" data-target="pat-filter" onclick="scrollTo('pat-filter')">
+      <span class="sidebar-dot"></span> Filter + Table
+    </a>
+
+    <div class="sidebar-group" style="margin-top: 12px;">Tools</div>
+    <a class="sidebar-link" data-target="export" onclick="scrollTo('export')">
+      <span class="sidebar-dot"></span> Export CSS
+    </a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════════════════════════ MAIN ═══ -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">Design System</span>
+    <div class="topbar-actions">
+      <button class="btn btn-sm btn-secondary" onclick="resetTokens()">Reset Tokens</button>
+      <button class="btn btn-sm btn-primary" onclick="scrollTo('export')">Export CSS</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════ COLORS ═══════ -->
+    <section class="ds-section" id="colors">
+      <div class="section-header">
+        <span class="section-title">Colors</span>
+        <span class="section-desc">Click any swatch to edit live · Click value to copy</span>
+      </div>
+
+      <div class="color-group">
+        <div class="color-group-header">Surfaces</div>
+        <div id="tokens-surface"></div>
+      </div>
+
+      <div class="color-group">
+        <div class="color-group-header">Text Hierarchy</div>
+        <div id="tokens-text"></div>
+      </div>
+
+      <div class="color-group">
+        <div class="color-group-header">Brand Accent</div>
+        <div id="tokens-brand"></div>
+      </div>
+
+      <div class="color-group">
+        <div class="color-group-header">Status</div>
+        <div id="tokens-status"></div>
+      </div>
+
+      <div class="color-group">
+        <div class="color-group-header">Official Brand Palette — Brandbook 2025 (print / editorial)</div>
+        <div id="tokens-palette"></div>
+      </div>
+    </section>
+
+    <!-- ═══════ TYPOGRAPHY ═══════ -->
+    <section class="ds-section" id="typography">
+      <div class="section-header">
+        <span class="section-title">Typography</span>
+        <span class="section-desc">Two-typeface system — primary grotesk + technical monospace</span>
+      </div>
+
+      <!-- Typeface System -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border-2); margin-bottom:2px;">
+        <div style="background:var(--surface); padding:20px 24px;">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Primary</div>
+          <div style="font-size:22px;font-weight:700;color:var(--t1);margin-bottom:2px;">ABC Diatype</div>
+          <div style="font-size:12px;color:var(--t3);font-family:var(--font-mono);margin-bottom:14px;">→ Inter (digital substitute)</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.8;">
+            Bold / SemiBold — titles &amp; headlines<br/>
+            Medium / Regular — body &amp; subheadings<br/>
+            Always use Optical kerning
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--t1);">Bold</span>
+            <span style="font-size:15px;font-weight:600;color:var(--t1);">SemiBold</span>
+            <span style="font-size:15px;font-weight:500;color:var(--t2);">Medium</span>
+            <span style="font-size:15px;font-weight:400;color:var(--t2);">Regular</span>
+            <span style="font-size:15px;font-weight:300;color:var(--t3);">Light</span>
+          </div>
+        </div>
+        <div style="background:var(--surface); padding:20px 24px;">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Secondary</div>
+          <div style="font-size:22px;font-weight:700;color:var(--t1);font-family:var(--font-mono);margin-bottom:2px;">ABC Marfa Mono</div>
+          <div style="font-size:12px;color:var(--t3);font-family:var(--font-mono);margin-bottom:14px;">→ Roboto Mono (digital substitute)</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.8;">
+            Medium &amp; Bold weights only<br/>
+            Tracking: always +50 · UPPERCASE recommended<br/>
+            For: labels, metadata, timestamps, system UI
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:600;color:var(--t1);font-family:var(--font-mono);letter-spacing:0.05em;">BOLD</span>
+            <span style="font-size:13px;font-weight:500;color:var(--t2);font-family:var(--font-mono);letter-spacing:0.05em;">MEDIUM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pairing example -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:20px 24px;margin-bottom:2px;">
+        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Typeface Pairing — Primary content (Inter) + Secondary layer (Roboto Mono)</div>
+        <div style="font-size:18px;font-weight:600;color:var(--t1);margin-bottom:4px;">Revenue Breakdown — Q1 2026</div>
+        <div style="font-family:var(--font-mono);font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">FINANCE · STREAMING · LIVE</div>
+        <div style="font-size:14px;color:var(--t2);line-height:1.5;margin-bottom:12px;">Royalty income across all DSPs increased 34% quarter-over-quarter, driven by catalog expansion and playlist placement in Tier 1 editorial slots.</div>
+        <div style="display:flex;gap:24px;">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;">Streaming</div>
+            <div style="font-size:22px;font-weight:300;color:var(--t1);">$48,200</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;">Live</div>
+            <div style="font-size:22px;font-weight:300;color:var(--t1);">$76,500</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;">Sync</div>
+            <div style="font-size:22px;font-weight:300;color:var(--t1);">$12,000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Licensing note -->
+      <div style="background:var(--surface-blue-bg, var(--status-blue-bg));border:1px solid var(--status-blue);padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;">
+        <img src="../public/TM-Info-negro.svg" class="pxi-md icon-blue" style="margin-top:1px;flex-shrink:0;" />
+        <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+          <strong style="color:var(--status-blue);">Licensed typefaces:</strong> ABC Diatype and ABC Marfa Mono require purchase from
+          <span style="color:var(--t3);">abcdinamo.com</span>. Use Inter + Roboto Mono for all digital product and internal tools.
+          The licensed originals are reserved for brand marketing, presentations, and physical materials.
+        </div>
+      </div>
+
+      <div class="subsection-label">Type Scale</div>
+      <div class="card card-padded">
+        <div class="type-specimen">
+          <div class="type-specimen-meta">kpi<br/>24px · 300<br/><code>text-kpi</code></div>
+          <div class="type-specimen-example" style="font-size:24px;font-weight:300;color:var(--t1);">$124,500.00</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">H1<br/>18px · 600<br/><code>h1</code></div>
+          <div class="type-specimen-example" style="font-size:18px;font-weight:600;color:var(--t1);">Dashboard Overview</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">H2<br/>15px · 600<br/><code>h2</code></div>
+          <div class="type-specimen-example" style="font-size:15px;font-weight:600;color:var(--t1);">Revenue Breakdown</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">H3<br/>14px · 500<br/><code>h3</code></div>
+          <div class="type-specimen-example" style="font-size:14px;font-weight:500;color:var(--t2);">Streaming Platforms</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">Body<br/>14px · 400<br/><code>text-body</code></div>
+          <div class="type-specimen-example" style="font-size:14px;font-weight:400;color:var(--t2);line-height:1.45;">Track performance across all major streaming platforms and territories.</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">Data<br/>13px · 400<br/><code>text-data</code></div>
+          <div class="type-specimen-example" style="font-size:13px;color:var(--t2);">1,234,567 streams · $3,210.45 revenue · 12 territories</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">Nav / Section<br/>12px · 500–600<br/><code>text-nav</code></div>
+          <div class="type-specimen-example" style="font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;">Latest Releases</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">Label<br/>10px · 600<br/><code>label</code></div>
+          <div class="type-specimen-example" style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.05em;">Release Date</div>
+        </div>
+        <div class="type-specimen">
+          <div class="type-specimen-meta">Micro<br/>11px · 400<br/><code>text-micro</code></div>
+          <div class="type-specimen-example" style="font-size:11px;color:var(--t3);">Supporting metadata, footnotes, helper text</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SPACING ═══════ -->
+    <section class="ds-section" id="spacing">
+      <div class="section-header">
+        <span class="section-title">Spacing</span>
+        <span class="section-desc">8-point grid with named steps</span>
+      </div>
+      <div class="card card-padded">
+        <div id="spacing-viz"></div>
+      </div>
+    </section>
+
+    <!-- ═══════ RADIUS ═══════ -->
+    <section class="ds-section" id="radius">
+      <div class="section-header">
+        <span class="section-title">Border Radius</span>
+        <span class="section-desc">Square corners throughout — full only for badges/pills/avatars</span>
+      </div>
+      <div class="card card-padded">
+        <div class="radius-row">
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius:0;"></div>
+            <div class="radius-label">sm / md / lg<br/><span class="radius-val">0px (square)</span></div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius:9999px; width:96px;"></div>
+            <div class="radius-label">full<br/><span class="radius-val">9999px</span></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.6;">
+          All corners are square. <code>--radius-full</code> (9999px) is reserved for badges, traffic lights, and avatar circles only.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ MOTION ═══════ -->
+    <section class="ds-section" id="motion">
+      <div class="section-header">
+        <span class="section-title">Motion</span>
+        <span class="section-desc">Hover rows to preview animation</span>
+      </div>
+      <div class="card card-padded">
+        <div id="motion-preview"></div>
+      </div>
+    </section>
+
+    <!-- ═══════ BUTTONS ═══════ -->
+    <section class="ds-section" id="buttons">
+      <div class="section-header">
+        <span class="section-title">Buttons</span>
+      </div>
+
+      <div class="demo-box">
+        <div class="subsection">
+          <div class="subsection-label">Variants</div>
+          <div class="demo-row">
+            <button class="btn btn-md btn-primary">Add Track</button>
+            <button class="btn btn-md btn-secondary">Edit</button>
+            <button class="btn btn-md btn-ghost">Cancel</button>
+            <button class="btn btn-md btn-danger">Delete</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subsection">
+          <div class="subsection-label">Sizes</div>
+          <div class="demo-row" style="align-items:flex-end;">
+            <button class="btn btn-sm btn-primary">Small</button>
+            <button class="btn btn-md btn-primary">Medium</button>
+            <button class="btn btn-lg btn-primary">Large</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subsection">
+          <div class="subsection-label">States</div>
+          <div class="demo-row">
+            <button class="btn btn-md btn-primary" disabled>Disabled</button>
+            <button class="btn btn-md btn-secondary" disabled>Disabled</button>
+            <button class="btn-icon" title="Icon only">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subsection" style="margin-bottom:0;">
+          <div class="subsection-label">Usage</div>
+          <div style="font-size:12px;color:var(--t3);line-height:1.7;">
+            <code>.btn .btn-primary</code> — one per section max &nbsp;·&nbsp;
+            <code>.btn-danger</code> — destructive only, never primary &nbsp;·&nbsp;
+            <code>.btn-ghost</code> — lowest emphasis actions
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ CARDS ═══════ -->
+    <section class="ds-section" id="cards">
+      <div class="section-header">
+        <span class="section-title">Cards & Containers</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-header-title">Monthly Revenue</div>
+              <div class="card-header-sub">Jan 2026</div>
+            </div>
+            <button class="btn btn-sm btn-ghost">View All</button>
+          </div>
+          <div class="card-body">
+            <div style="font-size:24px;font-weight:300;color:var(--t1);">$24,500</div>
+            <div style="font-size:12px;color:var(--status-green);margin-top:4px;">↑ 12.5% vs last month</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-header-title">Quick Action</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--t2);">Card with header + footer for action buttons. Footer is always right-aligned.</p>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-sm btn-ghost">Cancel</button>
+            <button class="btn btn-sm btn-primary">Save</button>
+          </div>
+        </div>
+
+        <div class="card card-padded">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Padded Card</div>
+          <p style="font-size:13px;color:var(--t2);">Uniform padding on all sides. No header/body separation. Use for simple content blocks.</p>
+          <div style="margin-top:12px;">
+            <code>.tm-card-padded</code>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Metric Grid</div>
+          <div class="metric-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="metric-card">
+              <div class="metric-val">1.2M</div>
+              <div class="metric-lbl">Total Streams</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-val">$3.2K</div>
+              <div class="metric-lbl">Revenue</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-val">24</div>
+              <div class="metric-lbl">Tracks</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-val">12</div>
+              <div class="metric-lbl">Territories</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ TABS ═══════ -->
+    <section class="ds-section" id="tabs">
+      <div class="section-header">
+        <span class="section-title">Tabs</span>
+        <span class="section-desc">Fixed height · no layout shift on active</span>
+      </div>
+
+      <div class="card">
+        <div style="padding:0 20px;">
+          <div class="tm-tabs" id="demo-tabs">
+            <button class="tm-tab active" onclick="switchTab(this,'overview')">Overview</button>
+            <button class="tm-tab" onclick="switchTab(this,'catalog')">Catalog <span style="color:var(--t3);margin-left:4px;font-size:10px;">24</span></button>
+            <button class="tm-tab" onclick="switchTab(this,'finance')">Finance</button>
+            <button class="tm-tab" onclick="switchTab(this,'legal')">Legal</button>
+          </div>
+        </div>
+        <div class="card-body" id="demo-tab-content">
+          <p style="font-size:13px;color:var(--t2);">Primary tabs (42px) for page-level navigation. 12px uppercase with brand-1 underline on active.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;font-size:12px;color:var(--t3);">
+        Sub-tabs (36px) for section-level navigation use the same pattern at a smaller scale.
+        Active state: <code>color: var(--brand-1); border-bottom: 2px solid var(--brand-1)</code>
+      </div>
+    </section>
+
+    <!-- ═══════ BADGES ═══════ -->
+    <section class="ds-section" id="badges">
+      <div class="section-header">
+        <span class="section-title">Badges & Status</span>
+      </div>
+
+      <div class="demo-box">
+        <div class="subsection">
+          <div class="subsection-label">Status Badges</div>
+          <div class="demo-row">
+            <span class="badge badge-green">Released</span>
+            <span class="badge badge-yellow">Pending</span>
+            <span class="badge badge-orange">Review</span>
+            <span class="badge badge-red">Overdue</span>
+            <span class="badge badge-blue">Imported</span>
+            <span class="badge badge-brand">Featured</span>
+            <span class="badge badge-neutral">Archived</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subsection">
+          <div class="subsection-label">With Dot</div>
+          <div class="demo-row">
+            <span class="badge badge-green"><span class="badge-dot" style="background:var(--status-green);"></span>Active</span>
+            <span class="badge badge-blue"><span class="badge-dot" style="background:var(--status-blue);"></span>External</span>
+            <span class="badge badge-yellow"><span class="badge-dot" style="background:var(--status-yellow);"></span>Warning</span>
+            <span class="badge badge-red"><span class="badge-dot" style="background:var(--status-red);"></span>Error</span>
+            <span class="badge badge-neutral"><span class="badge-dot" style="background:var(--status-neutral);"></span>Archived</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subsection" style="margin-bottom:0;">
+          <div class="subsection-label">Traffic Lights</div>
+          <div class="demo-row">
+            <span class="flex items-center gap-2 text-12 text-t2">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--status-green);box-shadow:0 0 6px var(--status-green);display:inline-block;"></span>
+              Connected
+            </span>
+            <span class="flex items-center gap-2 text-12 text-t2">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--status-yellow);box-shadow:0 0 6px var(--status-yellow);display:inline-block;"></span>
+              Syncing
+            </span>
+            <span class="flex items-center gap-2 text-12 text-t2">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--status-red);box-shadow:0 0 6px var(--status-red);display:inline-block;"></span>
+              Offline
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ FORMS ═══════ -->
+    <section class="ds-section" id="forms">
+      <div class="section-header">
+        <span class="section-title">Form Inputs</span>
+      </div>
+
+      <div class="demo-box">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="form-field">
+            <label class="form-label">Artist Name <span style="color:var(--status-red);">*</span></label>
+            <input type="text" placeholder="Enter artist name" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Genre</label>
+            <select>
+              <option value="">Select genre</option>
+              <option>Pop</option><option>Rock</option>
+              <option>Hip-Hop</option><option>Electronic</option><option>Latin</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Country</label>
+            <input type="text" placeholder="Mexico" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Label</label>
+            <input type="text" placeholder="Independent" />
+          </div>
+        </div>
+        <div class="form-field mt-4">
+          <label class="form-label">Bio</label>
+          <textarea placeholder="Brief artist biography..." rows="3" style="width:100%;resize:vertical;"></textarea>
+          <span class="form-hint">Max 500 characters</span>
+        </div>
+        <div class="form-field mt-3">
+          <label class="form-label">Website</label>
+          <input type="url" placeholder="https://" style="border-color:var(--status-red);" value="not-a-url" />
+          <span class="form-error">Invalid URL format</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ TABLE ═══════ -->
+    <section class="ds-section" id="table">
+      <div class="section-header">
+        <span class="section-title">Data Table</span>
+        <span class="section-desc">40px rows · 13px data · compact density</span>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-header-title">Catalog</div>
+            <div class="card-header-sub">5 tracks</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-sm btn-ghost">Export</button>
+            <button class="btn btn-sm btn-primary">Add Track</button>
+          </div>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Track</th>
+                <th>Album</th>
+                <th class="num">Streams</th>
+                <th class="num">Revenue</th>
+                <th>ISRC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color:var(--t1);font-weight:500;">Amanecer</td>
+                <td>Luna Nueva</td><td class="num">1,234,567</td>
+                <td class="num" style="color:var(--brand-1);">$3,210</td>
+                <td style="font-family:monospace;font-size:11px;">USXX12345</td>
+              </tr>
+              <tr>
+                <td style="color:var(--t1);font-weight:500;">Noche Eterna</td>
+                <td>Luna Nueva</td><td class="num">890,432</td>
+                <td class="num" style="color:var(--brand-1);">$2,140</td>
+                <td style="font-family:monospace;font-size:11px;">USXX12346</td>
+              </tr>
+              <tr>
+                <td style="color:var(--t1);font-weight:500;">Fuego</td>
+                <td>Cenizas</td><td class="num">456,789</td>
+                <td class="num" style="color:var(--brand-1);">$1,120</td>
+                <td style="font-family:monospace;font-size:11px;">USXX12347</td>
+              </tr>
+              <tr>
+                <td style="color:var(--t1);font-weight:500;">Silencio</td>
+                <td>Cenizas</td><td class="num">321,098</td>
+                <td class="num" style="color:var(--brand-1);">$810</td>
+                <td style="font-family:monospace;font-size:11px;">USXX12348</td>
+              </tr>
+              <tr>
+                <td style="color:var(--t1);font-weight:500;">Estrellas</td>
+                <td>Cosmos</td><td class="num">278,654</td>
+                <td class="num" style="color:var(--brand-1);">$690</td>
+                <td style="font-family:monospace;font-size:11px;">USXX12349</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ METRICS ═══════ -->
+    <section class="ds-section" id="metrics">
+      <div class="section-header">
+        <span class="section-title">Metric Cards</span>
+        <span class="section-desc">KPI grid — 1px gap, shared border radius</span>
+      </div>
+
+      <div class="metric-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="metric-card">
+          <div class="metric-val">$124.5K</div>
+          <div class="metric-lbl">Total Revenue</div>
+          <div style="font-size:11px;color:var(--status-green);margin-top:6px;">↑ 12% this month</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">4.2M</div>
+          <div class="metric-lbl">Total Streams</div>
+          <div style="font-size:11px;color:var(--status-green);margin-top:6px;">↑ 8% this month</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">3</div>
+          <div class="metric-lbl">Active Tours</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:6px;">12 upcoming shows</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">24</div>
+          <div class="metric-lbl">Catalog Tracks</div>
+          <div style="font-size:11px;color:var(--status-yellow);margin-top:6px;">2 pending release</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ PROGRESS ═══════ -->
+    <section class="ds-section" id="progress">
+      <div class="section-header">
+        <span class="section-title">Progress Bars</span>
+        <span class="section-desc">6px height · brand-1 fill · smooth transition</span>
+      </div>
+
+      <div class="card card-padded flex-col gap-4">
+        <div>
+          <div class="flex justify-between mb-2">
+            <span style="font-size:12px;color:var(--t2);">Catalog Complete</span>
+            <span style="font-size:12px;color:var(--t1);font-weight:500;">75%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:75%;"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between mb-2">
+            <span style="font-size:12px;color:var(--t2);">Budget Used</span>
+            <span style="font-size:12px;color:var(--status-yellow);font-weight:500;">45%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--status-yellow);"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between mb-2">
+            <span style="font-size:12px;color:var(--t2);">Storage</span>
+            <span style="font-size:12px;color:var(--status-red);font-weight:500;">92%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:92%;background:var(--status-red);"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ LOGO USAGE ═══════ -->
+    <section class="ds-section" id="logo">
+      <div class="section-header">
+        <span class="section-title">Logo Usage</span>
+        <span class="section-desc">Brand guidelines 2025 — Andrés Higueros</span>
+      </div>
+
+      <!-- Hero: Full lockup on black — primary canonical use -->
+      <div style="background:#000000;display:flex;align-items:center;justify-content:center;padding:48px 40px;margin-bottom:2px;">
+        <img src="../public/The Manager_Logo Lockup_PNG_2.png" alt="The Manager full lockup" style="filter:invert(1);max-height:120px;object-fit:contain;" />
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;padding:8px 0 20px;">Primary: icon + wordmark lockup · white on black</div>
+
+      <!-- Three assets -->
+      <div class="subsection">
+        <div class="subsection-label">The Three Brand Assets</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:2px;">
+
+          <!-- Icon -->
+          <div>
+            <div class="logo-swatch" style="background:#000000;flex-direction:column;">
+              <img src="../public/The Manager_Icon_PNG_1.png" alt="TM Icon" style="filter:invert(1);max-height:64px;max-width:64px;object-fit:contain;" />
+              <span class="logo-label">Icon — white on black</span>
+            </div>
+            <div class="logo-swatch" style="background:#ffffff;flex-direction:column;">
+              <img src="../public/The Manager_Icon_PNG_1.png" alt="TM Icon black" style="max-height:64px;max-width:64px;object-fit:contain;" />
+              <span class="logo-label" style="color:#90928f;">Icon — black on white</span>
+            </div>
+          </div>
+
+          <!-- Wordmark -->
+          <div>
+            <div class="logo-swatch" style="background:#000000;flex-direction:column;">
+              <img src="../public/The Manager_Logo_PNG-2.png" alt="Wordmark white" style="filter:invert(1);max-height:32px;object-fit:contain;" />
+              <span class="logo-label">Wordmark — white on black</span>
+            </div>
+            <div class="logo-swatch" style="background:#ffffff;flex-direction:column;">
+              <img src="../public/The Manager_Logo_PNG-2.png" alt="Wordmark black" style="max-height:32px;object-fit:contain;" />
+              <span class="logo-label" style="color:#90928f;">Wordmark — black on white</span>
+            </div>
+          </div>
+
+          <!-- Lockup -->
+          <div>
+            <div class="logo-swatch" style="background:#000000;flex-direction:column;">
+              <img src="../public/The Manager_Logo Lockup_PNG_2.png" alt="Lockup white" style="filter:invert(1);max-height:64px;object-fit:contain;" />
+              <span class="logo-label">Lockup — white on black</span>
+            </div>
+            <div class="logo-swatch" style="background:#ffffff;flex-direction:column;">
+              <img src="../public/The Manager_Logo Lockup_PNG_2.png" alt="Lockup black" style="max-height:64px;object-fit:contain;" />
+              <span class="logo-label" style="color:#90928f;">Lockup — black on white</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved background colors -->
+      <div class="subsection">
+        <div class="subsection-label">Approved Background Colors</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:4px;">
+          <div class="logo-swatch" style="background:#000000;">
+            <img src="../public/The Manager_Icon_PNG_1.png" alt="" style="filter:invert(1);max-height:36px;max-width:36px;" />
+            <span class="logo-label">#000000 — Black</span>
+          </div>
+          <div class="logo-swatch" style="background:#0c0c0c;">
+            <img src="../public/The Manager_Icon_PNG_1.png" alt="" style="filter:invert(1);max-height:36px;max-width:36px;" />
+            <span class="logo-label">#0c0c0c — App BG</span>
+          </div>
+          <div class="logo-swatch" style="background:#ffffff;">
+            <img src="../public/The Manager_Icon_PNG_1.png" alt="" style="max-height:36px;max-width:36px;" />
+            <span class="logo-label" style="color:#90928f;">#ffffff — White</span>
+          </div>
+          <div class="logo-swatch" style="background:#eef2ea;">
+            <img src="../public/The Manager_Icon_PNG_1.png" alt="" style="max-height:36px;max-width:36px;" />
+            <span class="logo-label" style="color:#90928f;">Palette Cream</span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--t3);padding:4px 0;">
+          Do <strong style="color:var(--t2);">not</strong> place on photography, brand green, or any non-approved color. Black and white are always safe.
+        </div>
+      </div>
+
+      <!-- Specs + Rules -->
+      <div class="grid-2" style="gap:12px;">
+        <div class="card card-padded">
+          <div class="subsection-label">Minimum Sizes</div>
+          <div style="font-size:12px;color:var(--t2);line-height:2;">
+            Wordmark: <strong style="color:var(--t1);">78px</strong> digital · <strong style="color:var(--t1);">26mm</strong> print<br/>
+            Icon: <strong style="color:var(--t1);">60px</strong> digital · <strong style="color:var(--t1);">20mm</strong> print<br/>
+            Lockup: <strong style="color:var(--t1);">80px</strong> digital · <strong style="color:var(--t1);">35mm</strong> print
+          </div>
+          <div class="divider"></div>
+          <div class="subsection-label">Clear Space</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+            Minimum clear space = height of <strong style="color:var(--t1);">"M"</strong> in logotype on all sides.<br/>
+            For icon = ½ icon height on all sides.<br/>
+            For lockup = height of icon on all sides.
+          </div>
+          <div class="divider"></div>
+          <div class="subsection-label">App Usage</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+            Nav header: wordmark only · <code>filter:invert(1)</code> on <code>#111111</code><br/>
+            Favicon / app icon: TM monogram only<br/>
+            Loading / splash: lockup centered on black
+          </div>
+        </div>
+        <div class="card card-padded">
+          <div class="subsection-label">Incorrect Uses — Never Do</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Stretch, squish, or distort any element</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Rotate the logotype or icon</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Apply shadows, glows, outlines, or gradients</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Use in brand green or any non-approved color</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Place on busy photography or dark imagery</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Use low-resolution or rasterized at small sizes</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Change the typography or rearrange logotype elements</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Separate icon from wordmark in the lockup</div>
+          <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Use the icon alone where the lockup fits</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ ICON SYSTEM ═══════ -->
+    <section class="ds-section" id="icons">
+      <div class="section-header">
+        <span class="section-title">Icon System</span>
+        <span class="section-desc">Pixel art nav icons (brand) · Lucide action icons (current) · Assets needing replacement</span>
+      </div>
+
+      <!-- Nav icons -->
+      <div class="subsection">
+        <div class="subsection-label">Navigation Icons — Pixel Art (Andrés Higueros)</div>
+        <div class="icon-grid">
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Pin-negro.png" alt="Dashboard" />
+            </div>
+            <div class="icon-name">Dashboard</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Calendario-negro.png" alt="Calendar" />
+            </div>
+            <div class="icon-name">Calendar</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Vinil-negro.png" alt="Catalog" />
+            </div>
+            <div class="icon-name">Catalog</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Monedas-negro.png" alt="Finance" />
+            </div>
+            <div class="icon-name">Finance</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Contrato-negro.png" alt="Legal" />
+            </div>
+            <div class="icon-name">Legal</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Maletin-negro.png" alt="Live" />
+            </div>
+            <div class="icon-name">Live</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Ajedrez Caballo-negro.png" alt="Marketing" />
+            </div>
+            <div class="icon-name">Marketing</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Sello-negro.png" alt="Team" />
+            </div>
+            <div class="icon-name">Team</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Icono-negro.png" alt="Artist" />
+            </div>
+            <div class="icon-name">Artist</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/TM-Pluma-negro.png" alt="Write" />
+            </div>
+            <div class="icon-name">Write/Edit</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+          <div class="icon-card" style="background:var(--surface-2);">
+            <div class="icon-preview" style="background:var(--surface);padding:8px;">
+              <img src="../public/pixel-play.svg" alt="Play" style="filter:invert(1) !important;" />
+            </div>
+            <div class="icon-name">Play</div>
+            <span class="icon-tag icon-tag-pixel">Pixel</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action icons - need pixel art replacement -->
+      <div class="subsection">
+        <div class="subsection-label">Action Icons — Pixel Art + Lucide</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:12px;line-height:1.6;">
+          <span class="icon-tag icon-tag-pixel" style="display:inline;">Pixel</span> = Andrés Higueros / Noun Project asset in use ·
+          <span class="icon-tag icon-tag-lucide" style="display:inline;">Lucide</span> = still Lucide React, no replacement yet ·
+          <span class="icon-tag icon-tag-replace" style="display:inline;">Replace</span> = pending asset
+        </div>
+        <div class="icon-grid">
+          <!-- CRUD -->
+          <div class="icon-card"><div class="icon-preview"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div class="icon-name">Plus<br/>Add / Create</div><span class="icon-tag icon-tag-replace">Replace</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Pluma-negro.png" alt="Edit" /></div><div class="icon-name">Edit / Pencil<br/>Edit record</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Trash-negro.svg" alt="Trash" /></div><div class="icon-name">Trash<br/>Delete record</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Copy-negro.svg" alt="Copy" /></div><div class="icon-name">Copy<br/>Duplicate</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Confirm / Status -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/The Manager_Iconografia-11.svg" alt="Confirm" /></div><div class="icon-name">Check / Confirm<br/>Approve / Save</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Close-negro.svg" alt="Close" /></div><div class="icon-name">X / Close<br/>Cancel / Dismiss</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Alert-negro.svg" alt="Alert" /></div><div class="icon-name">Alert<br/>Warning / Error</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Info-negro.svg" alt="Info" /></div><div class="icon-name">Info<br/>Info state</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Player -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Play-negro.svg" alt="Play" /></div><div class="icon-name">Play<br/>Media play</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Pause-negro.svg" alt="Pause" /></div><div class="icon-name">Pause<br/>Media pause</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Audio -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Mic-negro.svg" alt="Microphone" /></div><div class="icon-name">Mic<br/>Recording / Studio</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-SkipBack-negro.svg" alt="SkipBack" /></div><div class="icon-name">SkipBack<br/>Prev track</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-SkipFwd-negro.svg" alt="SkipFwd" /></div><div class="icon-name">SkipFwd<br/>Next track</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Files -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Download-negro.svg" alt="Download" /></div><div class="icon-name">Download<br/>Export file</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Upload-negro.svg" alt="Upload" /></div><div class="icon-name">Upload<br/>Import file</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-File-negro.svg" alt="FileText" /></div><div class="icon-name">FileText<br/>Document</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Navigation -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Search-negro.svg" alt="Search" /></div><div class="icon-name">Search<br/>Find record</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></div><div class="icon-name">MoreVert<br/>Actions menu</div><span class="icon-tag icon-tag-lucide">Lucide</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-ArrowLeft-negro.svg" alt="ArrowLeft" /></div><div class="icon-name">ArrowLeft<br/>Go back</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-ExternalLink-negro.svg" alt="ExternalLink" /></div><div class="icon-name">ExternalLink<br/>Open external</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Share-negro.svg" alt="Share" /></div><div class="icon-name">Share<br/>Share link</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Refresh-negro.svg" alt="Refresh" /></div><div class="icon-name">RefreshCw<br/>Sync / reload</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Filter-negro.svg" alt="Filter" /></div><div class="icon-name">Filter<br/>Filter list</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <!-- Settings -->
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Settings-negro.svg" alt="Settings" /></div><div class="icon-name">Settings<br/>App settings</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Send-negro.svg" alt="Send" /></div><div class="icon-name">Send<br/>Submit / send</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+          <div class="icon-card"><div class="icon-preview"><img src="../public/TM-Phone-negro.svg" alt="Phone" /></div><div class="icon-name">Phone<br/>Contact</div><span class="icon-tag icon-tag-pixel">Pixel</span></div>
+        </div>
+      </div>
+
+      <!-- What needs pixel art -->
+      <div class="card card-padded" style="margin-top:4px;">
+        <div class="subsection-label">Replacement Status</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.9;">
+          <strong style="color:var(--brand-1);">Done</strong> — Edit/Pencil, Trash, Copy, Check/Confirm, X/Close, Alert, Info, Play, Pause, Mic, SkipBack/Fwd, Download, Upload, FileText, Search, ArrowLeft, ExternalLink, Share, RefreshCw, Filter, Settings, Send/Submit, Phone<br/>
+          <strong style="color:var(--status-yellow);">Still needed</strong> — Plus (add), MoreVert (⋮)
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ POPUP MESSAGES ═══════ -->
+    <section class="ds-section" id="popups">
+      <div class="section-header">
+        <span class="section-title">Popup Messages</span>
+        <span class="section-desc">Toasts · Alert banners · Confirmation dialogs</span>
+      </div>
+
+      <!-- Toasts -->
+      <div class="subsection">
+        <div class="subsection-label">Toast Notifications — bottom-center, auto-dismiss 3s</div>
+        <div class="flex-col gap-3">
+          <div class="ds-toast ds-toast-success">
+            <img src="../public/The Manager_Iconografia-11.svg" class="ds-toast-icon pxi-md icon-green" alt="Success" />
+            <div class="ds-toast-text">
+              <div class="ds-toast-title">Track saved successfully</div>
+              <div class="ds-toast-sub">Amanecer — Luna Nueva · ISRC updated</div>
+            </div>
+            <button class="ds-toast-close"><img src="../public/TM-Close-negro.svg" class="pxi-sm icon-muted" alt="Close" /></button>
+          </div>
+          <div class="ds-toast ds-toast-error">
+            <img src="../public/TM-Close-negro.svg" class="ds-toast-icon pxi-md icon-red" alt="Error" />
+            <div class="ds-toast-text">
+              <div class="ds-toast-title">Upload failed</div>
+              <div class="ds-toast-sub">File exceeds 100MB limit · Try a smaller file</div>
+            </div>
+            <button class="ds-toast-close"><img src="../public/TM-Close-negro.svg" class="pxi-sm icon-muted" alt="Close" /></button>
+          </div>
+          <div class="ds-toast ds-toast-warning">
+            <img src="../public/TM-Alert-negro.svg" class="ds-toast-icon pxi-md icon-yellow" alt="Warning" />
+            <div class="ds-toast-text">
+              <div class="ds-toast-title">Contract expiring soon</div>
+              <div class="ds-toast-sub">Performance agreement expires in 7 days</div>
+            </div>
+            <button class="ds-toast-close"><img src="../public/TM-Close-negro.svg" class="pxi-sm icon-muted" alt="Close" /></button>
+          </div>
+          <div class="ds-toast ds-toast-info">
+            <img src="../public/TM-Info-negro.svg" class="ds-toast-icon pxi-md icon-blue" alt="Info" />
+            <div class="ds-toast-text">
+              <div class="ds-toast-title">Spotify sync complete</div>
+              <div class="ds-toast-sub">24 tracks updated · 3 new releases detected</div>
+            </div>
+            <button class="ds-toast-close"><img src="../public/TM-Close-negro.svg" class="pxi-sm icon-muted" alt="Close" /></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Alert banners -->
+      <div class="subsection">
+        <div class="subsection-label">Inline Alert Banners — contextual, persistent</div>
+        <div class="flex-col gap-2">
+          <div class="ds-alert ds-alert-success">
+            <img src="../public/The Manager_Iconografia-11.svg" class="pxi-md icon-green" alt="Success" style="margin-top:1px;" />
+            <div>
+              <div class="ds-alert-title">Contract signed</div>
+              <div class="ds-alert-body">All parties have signed. The document has been archived and sent to all signatories.</div>
+            </div>
+          </div>
+          <div class="ds-alert ds-alert-error">
+            <img src="../public/TM-Alert-negro.svg" class="pxi-md icon-red" alt="Error" style="margin-top:1px;" />
+            <div>
+              <div class="ds-alert-title">Payment failed</div>
+              <div class="ds-alert-body">The transaction could not be processed. Please check your payment method and try again.</div>
+            </div>
+          </div>
+          <div class="ds-alert ds-alert-warning">
+            <img src="../public/TM-Alert-negro.svg" class="pxi-md icon-yellow" alt="Warning" style="margin-top:1px;" />
+            <div>
+              <div class="ds-alert-title">Incomplete catalog data</div>
+              <div class="ds-alert-body">3 tracks are missing ISRC codes. Complete catalog data is required for distribution.</div>
+            </div>
+          </div>
+          <div class="ds-alert ds-alert-info">
+            <img src="../public/TM-Info-negro.svg" class="pxi-md icon-blue" alt="Info" style="margin-top:1px;" />
+            <div>
+              <div class="ds-alert-title">New features available</div>
+              <div class="ds-alert-body">Marketing analytics dashboard has been updated. Check the new real-time streaming data integration.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Confirmation dialog -->
+      <div class="subsection">
+        <div class="subsection-label">Confirmation Dialog — destructive action</div>
+        <div class="grid-2" style="gap:12px;">
+          <div class="ds-dialog-wrap">
+            <div class="ds-dialog">
+              <div class="ds-dialog-header">
+                <div class="ds-dialog-title">Delete this contract?</div>
+              </div>
+              <div class="ds-dialog-body">
+                This will permanently delete <strong style="color:var(--t1);">Performance Agreement — Venue XYZ</strong> and remove all associated signatures. This action cannot be undone.
+              </div>
+              <div class="ds-dialog-footer">
+                <button class="btn btn-sm btn-secondary">Cancel</button>
+                <button class="btn btn-sm btn-danger">Delete Contract</button>
+              </div>
+            </div>
+          </div>
+          <div class="ds-dialog-wrap">
+            <div class="ds-dialog">
+              <div class="ds-dialog-header">
+                <div class="ds-dialog-title">Send for signature?</div>
+              </div>
+              <div class="ds-dialog-body">
+                An email with a signing link will be sent to <strong style="color:var(--t1);">3 recipients</strong>. They will have 30 days to sign before the link expires.
+              </div>
+              <div class="ds-dialog-footer">
+                <button class="btn btn-sm btn-ghost">Cancel</button>
+                <button class="btn btn-sm btn-primary">Send Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Spec notes -->
+      <div class="card card-padded">
+        <div class="subsection-label">Implementation Notes</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Toast: <code>position:fixed; bottom:24px; left:50%; transform:translateX(-50%)</code> · 3px left accent border · auto-dismiss 3s<br/>
+          Alert banner: <code>border-left: 3px solid [status-color]</code> · inline in content flow, not fixed<br/>
+          Dialog overlay: <code>background:rgba(0,0,0,0.7); backdrop-filter:blur(4px)</code><br/>
+          Dialog: max-width 420px · no animation needed beyond the overlay fade<br/>
+          All components: square corners (<code>border-radius:0</code>) · 1px borders using <code>--border-2</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ CHECKBOXES & RADIOS ═══════ -->
+    <section class="ds-section" id="checkboxes">
+      <div class="section-header">
+        <span class="section-title">Checkboxes &amp; Radios</span>
+        <span class="section-desc">16×16px · square for checkbox, pill for radio · brand-1 fill</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- Checkboxes -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:16px;">Checkboxes</div>
+          <div class="check-group">
+            <label class="check-item">
+              <input type="checkbox" checked />
+              <span class="check-box"></span>
+              <span class="check-label">Sync to Spotify</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" />
+              <span class="check-box"></span>
+              <span class="check-label">Sync to Apple Music</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" checked />
+              <span class="check-box"></span>
+              <span class="check-label">Enable auto-renew</span>
+            </label>
+            <label class="check-item disabled">
+              <input type="checkbox" disabled />
+              <span class="check-box"></span>
+              <span class="check-label">Disabled option</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Radios -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:16px;">Radio Buttons</div>
+          <div class="check-group">
+            <label class="check-item">
+              <input type="radio" name="contract" checked />
+              <span class="check-box round"></span>
+              <span class="check-label">Recording agreement</span>
+            </label>
+            <label class="check-item">
+              <input type="radio" name="contract" />
+              <span class="check-box round"></span>
+              <span class="check-label">Management contract</span>
+            </label>
+            <label class="check-item">
+              <input type="radio" name="contract" />
+              <span class="check-box round"></span>
+              <span class="check-label">Distribution deal</span>
+            </label>
+            <label class="check-item disabled">
+              <input type="radio" name="contract" disabled />
+              <span class="check-box round"></span>
+              <span class="check-label">Disabled option</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Size: <code>16×16px</code> · Border: <code>1px var(--border-2)</code> · Background: <code>var(--surface-2)</code><br/>
+          Checked: <code>background: var(--brand-1)</code> · Checkmark: <code>1.5px white stroke, rotated</code><br/>
+          Radio dot: <code>6×6px white circle</code> · Disabled: <code>opacity: 0.4</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ DROPDOWNS ═══════ -->
+    <section class="ds-section" id="dropdowns">
+      <div class="section-header">
+        <span class="section-title">Dropdown Menu</span>
+        <span class="section-desc">Custom action menus — not `&lt;select&gt;` · 13px items · 8px vertical padding</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+        <!-- Standard dropdown -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:12px;">Standard Menu</div>
+          <div style="display:flex;align-items:flex-start;gap:24px;">
+            <button class="btn btn-sm btn-secondary">Actions ▾</button>
+            <div class="tm-dropdown-menu" style="position:static;display:block;">
+              <div class="tm-dropdown-label">Export</div>
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-Download-negro.svg" class="pxi-sm icon-muted" alt="" />
+                Download CSV
+              </div>
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-File-negro.svg" class="pxi-sm icon-muted" alt="" />
+                Export PDF
+              </div>
+              <div class="tm-dropdown-divider"></div>
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-Pluma-negro.png" class="pxi-sm icon-muted" alt="" />
+                Edit details
+              </div>
+              <div class="tm-dropdown-divider"></div>
+              <div class="tm-dropdown-item danger">
+                <img src="../public/TM-Trash-negro.svg" class="pxi-sm icon-danger" alt="" />
+                Delete
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compact icon-button triggered -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:12px;">Context Menu (⋮ trigger)</div>
+          <div style="display:flex;align-items:flex-start;gap:24px;">
+            <button class="btn btn-sm btn-ghost" style="font-size:16px;padding:0 10px;">⋮</button>
+            <div class="tm-dropdown-menu" style="position:static;display:block;">
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-File-negro.svg" class="pxi-sm icon-muted" alt="" />
+                View
+              </div>
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-Copy-negro.svg" class="pxi-sm icon-muted" alt="" />
+                Duplicate
+              </div>
+              <div class="tm-dropdown-item">
+                <img src="../public/TM-Share-negro.svg" class="pxi-sm icon-muted" alt="" />
+                Share
+              </div>
+              <div class="tm-dropdown-divider"></div>
+              <div class="tm-dropdown-item danger">
+                <img src="../public/TM-Trash-negro.svg" class="pxi-sm icon-danger" alt="" />
+                Archive
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Background: <code>var(--surface-3)</code> · Border: <code>1px var(--border-2)</code> · Shadow: <code>0 8px 32px rgba(0,0,0,0.5)</code><br/>
+          Item height: <code>36px</code> (8px top/bottom + 13px text) · Hover: <code>var(--surface-4)</code><br/>
+          Danger item: <code>var(--status-red)</code> color · Danger hover bg: <code>var(--status-red-bg)</code><br/>
+          Offset from trigger: <code>calc(100% + 4px)</code> · z-index: <code>200</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ TOOLTIPS ═══════ -->
+    <section class="ds-section" id="tooltips">
+      <div class="section-header">
+        <span class="section-title">Tooltips</span>
+        <span class="section-desc">11px · 5px padding · 6px offset · hover-reveal · square corners</span>
+      </div>
+
+      <div class="card card-padded">
+        <div class="subsection-label" style="margin-bottom:24px;">Positions</div>
+        <div class="demo-row" style="gap:48px;padding:32px 16px;align-items:center;flex-wrap:wrap;">
+
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">Top (default)</div>
+            <div class="tooltip-wrap">
+              <button class="btn btn-sm btn-secondary">Hover me</button>
+              <span class="tooltip-tip" style="opacity:1;position:relative;bottom:auto;left:auto;transform:none;margin-bottom:0;">Save changes</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">Live example (hover)</div>
+            <div class="tooltip-wrap">
+              <button class="btn btn-sm btn-ghost">Export CSV</button>
+              <span class="tooltip-tip">Download as spreadsheet</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">Icon button</div>
+            <div class="tooltip-wrap">
+              <button class="btn btn-sm btn-ghost" style="padding:0;width:32px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+              <span class="tooltip-tip">Search catalog</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Background: <code>var(--surface-4)</code> · Border: <code>1px var(--border-2)</code> · Font: <code>11px</code><br/>
+          Padding: <code>5px 9px</code> · Offset from target: <code>6px</code> · Caret: <code>4px transparent border</code><br/>
+          Show/hide: <code>opacity 0→1</code> via CSS <code>:hover</code> · Never block interactive elements below
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SKELETON ═══════ -->
+    <section class="ds-section" id="skeleton">
+      <div class="section-header">
+        <span class="section-title">Skeleton Loaders</span>
+        <span class="section-desc">Shimmer animation · 1.4s loop · matches layout of loading content</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- Metric card skeleton -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:16px;">Metric Card</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+            <div style="background:var(--surface);padding:16px;">
+              <div class="skeleton skel-kpi" style="margin-bottom:8px;"></div>
+              <div class="skeleton skel-kpi-label"></div>
+            </div>
+            <div style="background:var(--surface);padding:16px;">
+              <div class="skeleton skel-kpi" style="margin-bottom:8px;"></div>
+              <div class="skeleton skel-kpi-label"></div>
+            </div>
+            <div style="background:var(--surface);padding:16px;">
+              <div class="skeleton skel-kpi" style="margin-bottom:8px;"></div>
+              <div class="skeleton skel-kpi-label"></div>
+            </div>
+            <div style="background:var(--surface);padding:16px;">
+              <div class="skeleton skel-kpi" style="margin-bottom:8px;"></div>
+              <div class="skeleton skel-kpi-label"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text content skeleton -->
+        <div class="card card-padded">
+          <div class="subsection-label" style="margin-bottom:16px;">Content Block</div>
+          <div class="skeleton skel-title"></div>
+          <div class="skeleton skel-text"></div>
+          <div class="skeleton skel-text" style="width:85%;"></div>
+          <div class="skeleton skel-text" style="width:70%;margin-bottom:20px;"></div>
+          <div class="skeleton skel-text" style="width:95%;"></div>
+          <div class="skeleton skel-text" style="width:60%;"></div>
+        </div>
+      </div>
+
+      <!-- Table skeleton -->
+      <div class="card mt-4" style="overflow:hidden;">
+        <div class="card-header">
+          <div>
+            <div class="skeleton" style="width:100px;height:13px;margin-bottom:6px;"></div>
+            <div class="skeleton" style="width:60px;height:10px;"></div>
+          </div>
+        </div>
+        <div style="padding:0;">
+          <div style="background:var(--surface-2);padding:10px 20px;">
+            <div class="skeleton" style="height:10px;width:40%;"></div>
+          </div>
+          <div style="background:var(--surface);padding:1px 0;">
+            <div class="skel-row" style="padding:0 20px;background:var(--surface);">
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+            </div>
+            <div class="skel-row" style="padding:0 20px;background:var(--surface-2);">
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+            </div>
+            <div class="skel-row" style="padding:0 20px;background:var(--surface);">
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+              <div class="skel-cell skeleton"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Animation: <code>shimmer 1.4s ease infinite</code><br/>
+          Gradient: <code>surface-2 → surface-3 → surface-2</code> at 200% width, sliding left to right<br/>
+          Skeleton elements match the exact size and position of the real content they represent<br/>
+          Never show skeletons for &lt;300ms — use a delay to avoid flicker on fast loads
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ PAGINATION ═══════ -->
+    <section class="ds-section" id="pagination">
+      <div class="section-header">
+        <span class="section-title">Pagination</span>
+        <span class="section-desc">32px buttons · Roboto Mono · brand-1 for active · always show prev/next</span>
+      </div>
+
+      <div class="card card-padded">
+        <div class="subsection-label" style="margin-bottom:20px;">Variants</div>
+
+        <!-- Standard -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Standard</div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div class="tm-pagination">
+              <button class="tm-page-btn" disabled>← Prev</button>
+              <button class="tm-page-btn active">1</button>
+              <button class="tm-page-btn">2</button>
+              <button class="tm-page-btn">3</button>
+              <span class="tm-page-ellipsis">…</span>
+              <button class="tm-page-btn">12</button>
+              <button class="tm-page-btn">Next →</button>
+            </div>
+            <span class="pagination-info">1–25 of 287</span>
+          </div>
+        </div>
+
+        <!-- Mid-page -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Mid-range</div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div class="tm-pagination">
+              <button class="tm-page-btn">← Prev</button>
+              <button class="tm-page-btn">1</button>
+              <span class="tm-page-ellipsis">…</span>
+              <button class="tm-page-btn">4</button>
+              <button class="tm-page-btn active">5</button>
+              <button class="tm-page-btn">6</button>
+              <span class="tm-page-ellipsis">…</span>
+              <button class="tm-page-btn">12</button>
+              <button class="tm-page-btn">Next →</button>
+            </div>
+            <span class="pagination-info">101–125 of 287</span>
+          </div>
+        </div>
+
+        <!-- Compact (numbers only) -->
+        <div>
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Compact (numbers only)</div>
+          <div class="tm-pagination">
+            <button class="tm-page-btn">‹</button>
+            <button class="tm-page-btn">1</button>
+            <button class="tm-page-btn active">2</button>
+            <button class="tm-page-btn">3</button>
+            <button class="tm-page-btn">4</button>
+            <button class="tm-page-btn">5</button>
+            <button class="tm-page-btn">›</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Button size: <code>32×32px min</code> · Font: <code>Roboto Mono 12px</code><br/>
+          Active: <code>background: var(--brand-1)</code> · Hover: <code>var(--surface-2) + var(--border-2)</code><br/>
+          Disabled (Prev on page 1, Next on last): <code>opacity: 0.3</code> · Ellipsis: not interactive<br/>
+          Always show first/last page + 1 page on each side of current · Info text: <code>n–n of total</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ CALENDAR ═══════ -->
+    <section class="ds-section" id="calendar">
+      <div class="section-header">
+        <span class="section-title">Calendar</span>
+        <span class="section-desc">Full-page calendar + compact field variants — all dark-themed, no white popups</span>
+      </div>
+
+      <!-- Big Calendar — Month View -->
+      <div class="subsection-label">Full Calendar — Month View</div>
+      <div class="component-preview" style="padding: 0; overflow: hidden;">
+        <div style="background: var(--surface); border: 1px solid var(--border-2);">
+          <!-- Topbar -->
+          <div class="cal-topbar">
+            <div class="cal-nav">
+              <button class="cal-nav-btn">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:12px;height:12px;" />
+              </button>
+              <span class="cal-period">APRIL 2026</span>
+              <button class="cal-nav-btn" style="transform: scaleX(-1);">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:12px;height:12px;" />
+              </button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="cal-view-toggle">
+                <button class="cal-view-btn">Day</button>
+                <button class="cal-view-btn">Week</button>
+                <button class="cal-view-btn active">Month</button>
+              </div>
+              <button class="btn btn-sm btn-secondary">Today</button>
+            </div>
+          </div>
+          <!-- Day-of-week header -->
+          <div class="cal-dow-row">
+            <div class="cal-dow">SUN</div>
+            <div class="cal-dow">MON</div>
+            <div class="cal-dow">TUE</div>
+            <div class="cal-dow">WED</div>
+            <div class="cal-dow">THU</div>
+            <div class="cal-dow">FRI</div>
+            <div class="cal-dow">SAT</div>
+          </div>
+          <!-- Grid -->
+          <div class="cal-grid-month">
+            <!-- Row 1 -->
+            <div class="cal-cell"><div class="cal-cell-num other-month">30</div></div>
+            <div class="cal-cell"><div class="cal-cell-num other-month">31</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">1</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">2</div>
+              <span class="cal-event-pill pill-show">The Forum, LA</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">3</div>
+              <span class="cal-event-pill pill-travel">Flight NYC→LA</span>
+            </div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">4</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">5</div></div>
+            <!-- Row 2 -->
+            <div class="cal-cell weekend"><div class="cal-cell-num">6</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">7</div>
+              <span class="cal-event-pill pill-task">Contract review</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">8</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">9</div>
+              <span class="cal-event-pill pill-release">Album Release</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">10</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">11</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">12</div>
+              <div class="cal-cell-num today" style="margin-bottom:0;">12</div>
+            </div>
+            <!-- Row 3 -->
+            <div class="cal-cell weekend"><div class="cal-cell-num">13</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">14</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">15</div>
+              <span class="cal-event-pill pill-show">Madison Sq Garden</span>
+              <span class="cal-event-pill pill-show">Soundcheck 4pm</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">16</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">17</div>
+              <span class="cal-event-pill pill-task">Merch approval</span>
+            </div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">18</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">19</div></div>
+            <!-- Row 4 -->
+            <div class="cal-cell weekend"><div class="cal-cell-num">20</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">21</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">22</div>
+              <span class="cal-event-pill pill-travel">Hotel check-in</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">23</div>
+              <span class="cal-event-pill pill-show">Barclays Center</span>
+            </div>
+            <div class="cal-cell"><div class="cal-cell-num">24</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">25</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num">26</div></div>
+            <!-- Row 5 -->
+            <div class="cal-cell weekend"><div class="cal-cell-num">27</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">28</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">29</div></div>
+            <div class="cal-cell"><div class="cal-cell-num">30</div></div>
+            <div class="cal-cell"><div class="cal-cell-num other-month">1</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num other-month">2</div></div>
+            <div class="cal-cell weekend"><div class="cal-cell-num other-month">3</div></div>
+          </div>
+          <!-- Legend -->
+          <div style="display:flex; align-items:center; gap:16px; padding:10px 20px; border-top:1px solid var(--border); flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:10px;height:10px;background:var(--brand-1);"></div>
+              <span style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Show</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:10px;height:10px;background:#5b6af0;"></div>
+              <span style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Release</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:10px;height:10px;background:var(--status-orange);"></div>
+              <span style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Travel</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:10px;height:10px;background:var(--surface-4);"></div>
+              <span style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Task</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Field Components Side-by-Side -->
+      <div class="subsection-label" style="margin-top:32px;">Field Components</div>
+      <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
+
+        <!-- Month Picker / Year View -->
+        <div>
+          <div style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Month Picker — Year View</div>
+          <div class="cal-year-picker">
+            <div class="cal-year-hd">
+              <button class="cal-nav-btn">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:10px;height:10px;" />
+              </button>
+              <span class="cal-year-label">2026</span>
+              <button class="cal-nav-btn" style="transform:scaleX(-1);">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:10px;height:10px;" />
+              </button>
+            </div>
+            <div class="cal-month-grid">
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">JAN</span>
+                <div class="cal-month-dot"></div>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">FEB</span>
+                <div class="cal-month-dot"></div>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">MAR</span>
+              </div>
+              <div class="cal-month-cell active">
+                <span class="cal-month-abbr">APR</span>
+                <div class="cal-month-dot"></div>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">MAY</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">JUN</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">JUL</span>
+                <div class="cal-month-dot"></div>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">AUG</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">SEP</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">OCT</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">NOV</span>
+              </div>
+              <div class="cal-month-cell">
+                <span class="cal-month-abbr">DEC</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.8;">
+            Dots indicate months with events<br/>
+            Active (current month) = brand-1 fill
+          </div>
+        </div>
+
+        <!-- Date Picker / Month View -->
+        <div>
+          <div style="font-size:11px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Date Picker — Month View</div>
+          <div class="cal-datepicker">
+            <div class="cal-dp-hd">
+              <button class="cal-dp-nav">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:9px;height:9px;" />
+              </button>
+              <span class="cal-dp-period">APRIL 2026</span>
+              <button class="cal-dp-nav" style="transform:scaleX(-1);">
+                <img src="../public/TM-ArrowLeft-negro.svg" class="icon-white" style="width:9px;height:9px;" />
+              </button>
+            </div>
+            <div class="cal-dp-dow">
+              <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            <div class="cal-dp-days">
+              <div class="cal-dp-day other">30</div>
+              <div class="cal-dp-day other">31</div>
+              <div class="cal-dp-day">1</div>
+              <div class="cal-dp-day">2</div>
+              <div class="cal-dp-day">3</div>
+              <div class="cal-dp-day">4</div>
+              <div class="cal-dp-day">5</div>
+              <div class="cal-dp-day">6</div>
+              <div class="cal-dp-day">7</div>
+              <div class="cal-dp-day">8</div>
+              <div class="cal-dp-day">9</div>
+              <div class="cal-dp-day">10</div>
+              <div class="cal-dp-day">11</div>
+              <div class="cal-dp-day today">12</div>
+              <div class="cal-dp-day selected">13</div>
+              <div class="cal-dp-day">14</div>
+              <div class="cal-dp-day">15</div>
+              <div class="cal-dp-day">16</div>
+              <div class="cal-dp-day">17</div>
+              <div class="cal-dp-day">18</div>
+              <div class="cal-dp-day">19</div>
+              <div class="cal-dp-day">20</div>
+              <div class="cal-dp-day">21</div>
+              <div class="cal-dp-day">22</div>
+              <div class="cal-dp-day">23</div>
+              <div class="cal-dp-day">24</div>
+              <div class="cal-dp-day">25</div>
+              <div class="cal-dp-day">26</div>
+              <div class="cal-dp-day">27</div>
+              <div class="cal-dp-day">28</div>
+              <div class="cal-dp-day">29</div>
+              <div class="cal-dp-day">30</div>
+              <div class="cal-dp-day other">1</div>
+              <div class="cal-dp-day other">2</div>
+              <div class="cal-dp-day other">3</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.8;">
+            Today = brand-glow ring · Selected = brand-1 fill<br/>
+            Adjacent month days = ghost (non-interactive)
+          </div>
+        </div>
+      </div>
+
+      <!-- Specs -->
+      <div style="margin-top:28px;">
+        <div class="subsection-label">Specs</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Background: <code>var(--surface)</code> — never white · Borders: <code>var(--border)</code> / <code>var(--border-2)</code><br/>
+          Today highlight: <code>var(--brand-1)</code> circle (big cal) · <code>var(--brand-glow)</code> ring (date picker)<br/>
+          Selected date: <code>var(--brand-1)</code> fill · Active month: <code>var(--brand-1)</code> fill<br/>
+          Font: <code>var(--font-mono)</code> — Roboto Mono for all numbers and day headers<br/>
+          Event pill height: <code>18px</code> · Cell min-height: <code>72px</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ FOLDER CONTAINERS ═══════ -->
+    <section class="ds-section" id="folder-containers">
+      <div class="section-header">
+        <span class="section-title">Folder Containers</span>
+        <span class="section-desc">Top-left radius only — analog filing system reference, used selectively</span>
+      </div>
+
+      <!-- Pattern explanation -->
+      <div style="background:var(--surface);border:1px solid var(--border-2);padding:16px 20px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;">
+        <img src="../public/TM-Info-negro.svg" class="pxi-md icon-blue" style="margin-top:1px;flex-shrink:0;" />
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;">
+          The folder container pattern applies a <strong style="color:var(--t1);">4px top-left radius only</strong> — all other corners stay square.
+          Optionally, the right and/or bottom border is removed so the tab flows into its content.
+          This references manila folders, file tabs, and archival labeling systems from The Manager's editorial DNA.
+          <strong style="color:var(--status-red);"> Use sparingly.</strong> This is a deliberate accent, not a default card style.
+        </div>
+      </div>
+
+      <!-- Demo 1: Tab navigation -->
+      <div class="subsection-label">Use Case 1 — Tab Navigation (Active State)</div>
+      <div style="margin-bottom:24px;">
+        <div class="folder-tab-row">
+          <div class="folder-tab-item active">Overview</div>
+          <div class="folder-tab-item">Tracks</div>
+          <div class="folder-tab-item">Releases</div>
+          <div class="folder-tab-item">Analytics</div>
+        </div>
+        <div class="folder-tab-content">
+          <div style="font-size:10px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Catalog — Overview</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div style="background:var(--surface-2);padding:14px;border:1px solid var(--border);">
+              <div style="font-size:9px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Tracks</div>
+              <div style="font-size:22px;font-weight:300;color:var(--t1);margin-top:4px;">48</div>
+            </div>
+            <div style="background:var(--surface-2);padding:14px;border:1px solid var(--border);">
+              <div style="font-size:9px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">Albums</div>
+              <div style="font-size:22px;font-weight:300;color:var(--t1);margin-top:4px;">3</div>
+            </div>
+            <div style="background:var(--surface-2);padding:14px;border:1px solid var(--border);">
+              <div style="font-size:9px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;">EPs</div>
+              <div style="font-size:22px;font-weight:300;color:var(--t1);margin-top:4px;">7</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--t3);">Active tab: <code>border-top-left-radius: 4px</code> + <code>border-bottom-color</code> matches content background to fuse tab and panel.</div>
+      </div>
+
+      <!-- Demo 2: Section header label -->
+      <div class="subsection-label">Use Case 2 — Section Header Label</div>
+      <div style="margin-bottom:24px;">
+        <div class="folder-section-label">
+          <img src="../public/TM-File-negro.svg" class="pxi-sm icon-muted" />
+          Contract Documents
+        </div>
+        <div class="folder-body" style="padding:16px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);">
+              <span style="font-size:13px;color:var(--t1);">Performance Agreement — The Forum LA</span>
+              <span class="badge badge-green">Signed</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);">
+              <span style="font-size:13px;color:var(--t1);">Merchandise License — 2026</span>
+              <span class="badge badge-yellow">Pending</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);">
+              <span style="font-size:13px;color:var(--t2);">Sync Deal — TV Series B</span>
+              <span class="badge badge-neutral">Archived</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--t3);">Label has no bottom border — content panel's top border creates the visual join.</div>
+      </div>
+
+      <!-- Demo 3: Card with folder tag -->
+      <div class="subsection-label">Use Case 3 — Card Category Tag</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:24px;">
+        <div style="background:var(--bg);padding:16px;">
+          <div style="margin-bottom:-1px;">
+            <div class="folder-section-label" style="font-size:8px;">Live</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border-2);padding:14px;">
+            <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px;">The Forum</div>
+            <div style="font-size:11px;color:var(--t3);">Los Angeles, CA · Apr 2</div>
+            <div style="margin-top:10px;"><span class="badge badge-green">Confirmed</span></div>
+          </div>
+        </div>
+        <div style="background:var(--bg);padding:16px;">
+          <div style="margin-bottom:-1px;">
+            <div class="folder-section-label" style="font-size:8px;">Release</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border-2);padding:14px;">
+            <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px;">Afterglow (Album)</div>
+            <div style="font-size:11px;color:var(--t3);">Drop date: Apr 9 · 14 tracks</div>
+            <div style="margin-top:10px;"><span class="badge badge-blue">Scheduled</span></div>
+          </div>
+        </div>
+        <div style="background:var(--bg);padding:16px;">
+          <div style="margin-bottom:-1px;">
+            <div class="folder-section-label" style="font-size:8px;">Finance</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border-2);padding:14px;">
+            <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px;">Q1 Royalties</div>
+            <div style="font-size:11px;color:var(--t3);">Period: Jan–Mar 2026</div>
+            <div style="margin-top:10px;"><span class="badge badge-yellow">Review</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anatomy -->
+      <div class="subsection-label">Anatomy</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface);border:1px solid var(--border-2);padding:16px 20px;">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Closed Folder (full border)</div>
+          <div style="background:var(--surface-2);border:1px solid var(--border-2);border-top-left-radius:4px;padding:12px 14px;font-size:12px;color:var(--t2);">
+            Content area
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.8;">
+            All 4 borders present · top-left radius 4px only
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border-2);padding:16px 20px;">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Open Folder (tab + content fused)</div>
+          <div>
+            <div style="display:inline-block;border:1px solid var(--border-2);border-bottom:none;border-top-left-radius:4px;padding:5px 12px;background:var(--surface-2);font-size:10px;color:var(--t3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.07em;">Tab Label</div>
+          </div>
+          <div style="border:1px solid var(--border-2);padding:12px 14px;background:var(--surface-2);font-size:12px;color:var(--t2);">Content area</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--t3);line-height:1.8;">
+            Tab: no bottom border · Content: no special radius · They fuse via <code>margin-top: -1px</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <div class="subsection-label">When to Use</div>
+      <div style="font-size:12px;color:var(--t2);line-height:2.2;">
+        <span style="color:var(--status-green);">✓</span> Page-level or section tabs where "this tab opens this content" is the mental model<br/>
+        <span style="color:var(--status-green);">✓</span> Section headers that label a list or card below them<br/>
+        <span style="color:var(--status-green);">✓</span> Category tags on cards (Live / Release / Finance)<br/>
+        <span style="color:var(--status-red);">✕</span> Regular cards or panels without a tab/label relationship<br/>
+        <span style="color:var(--status-red);">✕</span> Buttons, badges, inputs, modals<br/>
+        <span style="color:var(--status-red);">✕</span> More than one folder level on the same screen — one layer of depth max
+      </div>
+    </section>
+
+    <!-- ═══════ PATTERN: DASHBOARD ═══════ -->
+    <section class="ds-section" id="pat-dashboard">
+      <div class="section-header">
+        <span class="section-title">Pattern — Dashboard Layout</span>
+        <span class="section-desc">Header → KPI strip → chart row → data table · optimized for &lt;1s scan</span>
+      </div>
+
+      <div class="pattern-preview">
+        <!-- Header -->
+        <div class="p-header">
+          <div class="p-logo"></div>
+          <div style="display:flex;gap:4px;margin-left:16px;">
+            <div class="p-nav-dot active"></div>
+            <div class="p-nav-dot"></div>
+            <div class="p-nav-dot"></div>
+            <div class="p-nav-dot"></div>
+          </div>
+        </div>
+
+        <div style="padding:20px;">
+          <!-- KPI row -->
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Key Metrics</div>
+          <div class="p-kpi-row" style="background:var(--border);">
+            <div class="p-kpi"><div class="p-kpi-val">$84.2K</div><div class="p-kpi-lbl">Total Revenue</div><div class="p-kpi-sub">↑ 12%</div></div>
+            <div class="p-kpi"><div class="p-kpi-val">1.4M</div><div class="p-kpi-lbl">Streams</div><div class="p-kpi-sub">↑ 8%</div></div>
+            <div class="p-kpi"><div class="p-kpi-val">24</div><div class="p-kpi-lbl">Shows</div><div class="p-kpi-sub" style="color:var(--t3);">— same</div></div>
+            <div class="p-kpi"><div class="p-kpi-val">3</div><div class="p-kpi-lbl">Open Deals</div><div class="p-kpi-sub" style="color:var(--status-yellow);">⚠ review</div></div>
+          </div>
+
+          <!-- Chart row -->
+          <div class="p-chart-row" style="margin-top:16px;">
+            <div class="p-card">
+              <div class="p-card-hd">Revenue Over Time</div>
+              <div class="p-card-bd">
+                <div class="p-chart-ph">[ Line Chart ]</div>
+              </div>
+            </div>
+            <div class="p-card">
+              <div class="p-card-hd">By Platform</div>
+              <div class="p-card-bd">
+                <div class="p-chart-ph" style="height:60px;">[ Donut ]</div>
+                <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);">
+                    <span>Spotify</span><span style="color:var(--brand-1);">62%</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);">
+                    <span>Apple Music</span><span>24%</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);">
+                    <span>Other</span><span>14%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="p-card" style="margin-top:16px;">
+            <div class="p-card-hd" style="display:flex;justify-content:space-between;">
+              <span>Top Tracks</span>
+              <span style="font-size:11px;color:var(--t3);font-weight:400;">5 tracks</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;">
+              <thead>
+                <tr style="background:var(--surface-2);">
+                  <th style="padding:8px 16px;text-align:left;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Track</th>
+                  <th style="padding:8px 16px;text-align:right;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Streams</th>
+                  <th style="padding:8px 16px;text-align:right;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-top:1px solid var(--border);">
+                  <td style="padding:10px 16px;color:var(--t1);font-weight:500;">Amanecer</td>
+                  <td style="padding:10px 16px;text-align:right;color:var(--t2);">1,234,567</td>
+                  <td style="padding:10px 16px;text-align:right;color:var(--brand-1);">$3,210</td>
+                </tr>
+                <tr style="border-top:1px solid var(--border);background:var(--surface-2);">
+                  <td style="padding:10px 16px;color:var(--t1);font-weight:500;">Noche Eterna</td>
+                  <td style="padding:10px 16px;text-align:right;color:var(--t2);">890,432</td>
+                  <td style="padding:10px 16px;text-align:right;color:var(--brand-1);">$2,140</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Layout Rules</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Order: <code>Header → KPIs → Charts → Table</code> — user scans top to bottom, big to small<br/>
+          KPI strip: full-width grid, <code>1px gap</code> separators, no card borders — feels like a single unit<br/>
+          Chart row: <code>2fr 1fr</code> split — primary chart left, breakdown/summary right<br/>
+          Table: always last — most detailed, least skimmable — give it a header with count + action button<br/>
+          Spacing between sections: <code>16px</code> inside dashboard · Page padding: <code>20px</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ PATTERN: FORM LAYOUT ═══════ -->
+    <section class="ds-section" id="pat-form">
+      <div class="section-header">
+        <span class="section-title">Pattern — Form Layout</span>
+        <span class="section-desc">2-column grid · section headers · sticky footer with Save / Cancel</span>
+      </div>
+
+      <div class="pattern-preview">
+        <div class="p-form-layout">
+          <!-- Main form -->
+          <div class="p-form-main">
+            <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600;">Artist Details</div>
+            <div class="p-form-grid" style="margin-bottom:20px;">
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+            </div>
+
+            <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600;padding-top:16px;border-top:1px solid var(--border);">Streaming &amp; Distribution</div>
+            <div class="p-form-grid">
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+              <div class="p-form-field">
+                <div class="p-form-lbl"></div>
+                <div class="p-form-input"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div class="p-form-sidebar">
+            <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600;">Status</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="height:28px;background:var(--surface-3);border:1px solid var(--border-2);"></div>
+              <div style="height:28px;background:var(--surface-3);border:1px solid var(--border-2);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky footer -->
+        <div class="p-form-footer">
+          <button class="btn btn-sm btn-ghost">Cancel</button>
+          <button class="btn btn-sm btn-secondary">Save Draft</button>
+          <button class="btn btn-sm btn-primary">Save &amp; Publish</button>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Layout Rules</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Form grid: <code>1fr 1fr</code> (2-col) for most fields · full-width for textarea/bio<br/>
+          Section headers: <code>9px uppercase, font-weight 600, var(--t3)</code> · separated by <code>border-top</code><br/>
+          Sidebar (optional): <code>280px fixed</code> — for metadata, status, or related info<br/>
+          Footer: sticky at bottom · <code>Ghost → Secondary → Primary</code> from left to right<br/>
+          One <code>btn-primary</code> only — the main save action · Cancel = Ghost, Save Draft = Secondary
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ PATTERN: FILTER + TABLE ═══════ -->
+    <section class="ds-section" id="pat-filter">
+      <div class="section-header">
+        <span class="section-title">Pattern — Filter + Table</span>
+        <span class="section-desc">Search + selects above table · reset + apply · results count in header</span>
+      </div>
+
+      <div class="pattern-preview" style="padding:20px;">
+        <!-- Page header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--t1);margin-bottom:2px;">Catalog</div>
+            <div style="font-size:11px;color:var(--t3);">47 tracks</div>
+          </div>
+          <button class="btn btn-sm btn-primary">Add Track</button>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+          <input type="text" placeholder="Search tracks..." style="flex:1;max-width:280px;" />
+          <select style="width:130px;height:36px;background:var(--surface-2);border:1px solid var(--border-2);color:var(--t2);padding:0 10px;font-size:12px;">
+            <option>All genres</option>
+            <option>Pop</option>
+            <option>Latin</option>
+          </select>
+          <select style="width:130px;height:36px;background:var(--surface-2);border:1px solid var(--border-2);color:var(--t2);padding:0 10px;font-size:12px;">
+            <option>All status</option>
+            <option>Released</option>
+            <option>Draft</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-sm btn-ghost">Reset</button>
+            <button class="btn btn-sm btn-secondary">Apply</button>
+          </div>
+        </div>
+
+        <!-- Results count -->
+        <div style="font-size:11px;color:var(--t3);margin-bottom:8px;font-family:var(--font-mono);">Showing 12 of 47 tracks</div>
+
+        <!-- Table -->
+        <div class="card" style="overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr style="background:var(--surface-2);">
+                <th style="padding:10px 16px;text-align:left;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Track ↕</th>
+                <th style="padding:10px 16px;text-align:left;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Genre</th>
+                <th style="padding:10px 16px;text-align:right;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Streams ↕</th>
+                <th style="padding:10px 16px;text-align:center;font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-top:1px solid var(--border);">
+                <td style="padding:10px 16px;color:var(--t1);font-weight:500;">Amanecer</td>
+                <td style="padding:10px 16px;color:var(--t2);">Latin Pop</td>
+                <td style="padding:10px 16px;text-align:right;color:var(--t2);font-family:var(--font-mono);font-size:11px;">1,234,567</td>
+                <td style="padding:10px 16px;text-align:center;"><span class="badge badge-green">Released</span></td>
+              </tr>
+              <tr style="border-top:1px solid var(--border);background:var(--surface-2);">
+                <td style="padding:10px 16px;color:var(--t1);font-weight:500;">Sin Palabras</td>
+                <td style="padding:10px 16px;color:var(--t2);">Pop</td>
+                <td style="padding:10px 16px;text-align:right;color:var(--t2);font-family:var(--font-mono);font-size:11px;">—</td>
+                <td style="padding:10px 16px;text-align:center;"><span class="badge badge-yellow">Draft</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
+          <span class="pagination-info">1–12 of 47</span>
+          <div class="tm-pagination">
+            <button class="tm-page-btn" disabled>← Prev</button>
+            <button class="tm-page-btn active">1</button>
+            <button class="tm-page-btn">2</button>
+            <button class="tm-page-btn">3</button>
+            <span class="tm-page-ellipsis">…</span>
+            <button class="tm-page-btn">4</button>
+            <button class="tm-page-btn">Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded mt-4">
+        <div class="subsection-label">Layout Rules</div>
+        <div style="font-size:12px;color:var(--t2);line-height:2;">
+          Filter bar: search first (flex:1, max-width ~280px) → selects → Reset + Apply pushed to right<br/>
+          Show results count below filter bar: <code>Showing X of Y [items]</code> in Roboto Mono 11px<br/>
+          Sortable columns indicated by <code>↕</code> — active sort shows <code>↑</code> or <code>↓</code><br/>
+          Alternate row shading: even rows <code>var(--surface-2)</code> · helps readability in dense tables<br/>
+          Pagination always at bottom-right · count text at bottom-left — mirror of header count
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ EXPORT ═══════ -->
+    <section class="ds-section" id="export">
+      <div class="section-header">
+        <span class="section-title">Export CSS</span>
+        <span class="section-desc">Copy the updated :root {} block to apply your changes to src/index.css</span>
+      </div>
+
+      <div class="export-panel">
+        <div class="export-header">
+          <span style="font-size:12px;color:var(--t2);font-weight:500;">Generated :root {} — <span id="changed-count">0</span> token(s) changed</span>
+          <button class="btn btn-sm btn-primary" onclick="exportCSS()">Copy CSS</button>
+        </div>
+        <pre class="export-code" id="css-output"></pre>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   TOKEN DEFINITIONS
+══════════════════════════════════════════ */
+const DEFAULTS = {
+  '--bg':        '#0c0c0c',
+  '--surface':   '#141414',
+  '--surface-2': '#1a1a1a',
+  '--surface-3': '#222222',
+  '--surface-4': '#2a2a2a',
+  '--t1': '#ffffff',
+  '--t2': '#cccccc',
+  '--t3': '#999999',
+  '--brand-1': '#009C55',
+  '--brand-2': '#007A43',
+  '--brand-3': '#005C32',
+  '--status-green':   '#009C55',
+  '--status-blue':    '#ccdbe2',
+  '--status-yellow':  '#DDAA44',
+  '--status-orange':  '#E08A3C',
+  '--status-red':     '#DD5555',
+  '--status-neutral': '#90928f',
+  '--palette-black':     '#000000',
+  '--palette-blue-gray': '#ccdbe2',
+  '--palette-cream':     '#eef2ea',
+  '--palette-gray':      '#90928f',
+  '--palette-green':     '#009c55',
+};
+
+const CURRENT = { ...DEFAULTS };
+
+const TOKEN_GROUPS = {
+  surface: [
+    { var: '--bg',        label: 'bg',        desc: 'Page background' },
+    { var: '--surface',   label: 'surface',   desc: 'Cards, panels' },
+    { var: '--surface-2', label: 'surface-2', desc: 'Inputs, secondary' },
+    { var: '--surface-3', label: 'surface-3', desc: 'Hover, dropdowns' },
+    { var: '--surface-4', label: 'surface-4', desc: 'Active, tooltips' },
+  ],
+  text: [
+    { var: '--t1', label: 't1', desc: 'Primary text, headings' },
+    { var: '--t2', label: 't2', desc: 'Body text, secondary labels' },
+    { var: '--t3', label: 't3', desc: 'Placeholder, muted, inactive' },
+  ],
+  brand: [
+    { var: '--brand-1', label: 'brand-1', desc: 'Primary actions, active states — #009C55 Pantone 7479 U' },
+    { var: '--brand-2', label: 'brand-2', desc: 'Hover on primary' },
+    { var: '--brand-3', label: 'brand-3', desc: 'Active/pressed' },
+  ],
+  status: [
+    { var: '--status-green',   label: 'status-green',   desc: 'Success, active, live' },
+    { var: '--status-blue',    label: 'status-blue',    desc: 'Info, imported/external data, secondary links — #ccdbe2 Pantone 643 U' },
+    { var: '--status-yellow',  label: 'status-yellow',  desc: 'Warning, pending review' },
+    { var: '--status-orange',  label: 'status-orange',  desc: 'Caution, at risk' },
+    { var: '--status-red',     label: 'status-red',     desc: 'Error, danger, destructive' },
+    { var: '--status-neutral', label: 'status-neutral', desc: 'Archived, draft, cancelled, inactive — #90928f Pantone 7539 U' },
+  ],
+  palette: [
+    { var: '--palette-black',     label: 'palette-black',     desc: '#000000 — Pantone Black U · primary on light backgrounds' },
+    { var: '--palette-blue-gray', label: 'palette-blue-gray', desc: '#ccdbe2 — Pantone 643 U · in-app: --status-blue (info / imported)' },
+    { var: '--palette-cream',     label: 'palette-cream',     desc: '#eef2ea — Pantone 9043 U · print/editorial only — not used in app UI' },
+    { var: '--palette-gray',      label: 'palette-gray',      desc: '#90928f — Pantone 7539 U · in-app: --status-neutral (archived / draft)' },
+    { var: '--palette-green',     label: 'palette-green',     desc: '#009c55 — Pantone 7479 U · same as brand-1' },
+  ],
+};
+
+/* ══════════════════════════════════════════
+   RENDER TOKEN ROWS
+══════════════════════════════════════════ */
+function renderTokenGroup(groupKey, containerId) {
+  const tokens = TOKEN_GROUPS[groupKey];
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = tokens.map(t => `
+    <div class="token-row" id="row-${t.var.replace(/--/g,'').replace(/-/g,'_')}">
+      <div class="token-swatch" style="background:${CURRENT[t.var]};" title="Click to edit color">
+        <input type="color" value="${CURRENT[t.var]}" data-var="${t.var}"
+          oninput="updateToken('${t.var}', this.value)"
+          onchange="updateToken('${t.var}', this.value)" />
+      </div>
+      <span class="token-name">--${t.label}</span>
+      <span class="token-value" id="val-${t.var.replace(/--/g,'').replace(/-/g,'_')}">${CURRENT[t.var]}</span>
+      <span style="font-size:11px;color:var(--t3);flex:1;padding-right:8px;">${t.desc}</span>
+      <button class="token-copy" onclick="copyToken('${t.var}', this)">
+        Copy
+      </button>
+    </div>
+  `).join('');
+}
+
+function renderAllTokenGroups() {
+  renderTokenGroup('surface', 'tokens-surface');
+  renderTokenGroup('text',    'tokens-text');
+  renderTokenGroup('brand',   'tokens-brand');
+  renderTokenGroup('status',  'tokens-status');
+  renderTokenGroup('palette', 'tokens-palette');
+}
+
+/* ══════════════════════════════════════════
+   TOKEN EDITING
+══════════════════════════════════════════ */
+function updateToken(varName, value) {
+  CURRENT[varName] = value;
+  document.documentElement.style.setProperty(varName, value);
+
+  // Sync swatch bg
+  const key = varName.replace(/--/g,'').replace(/-/g,'_');
+  const swatch = document.querySelector(`#row-${key} .token-swatch`);
+  if (swatch) swatch.style.background = value;
+  const valEl = document.getElementById(`val-${key}`);
+  if (valEl) valEl.textContent = value;
+
+  // Update color input value
+  const input = document.querySelector(`input[data-var="${varName}"]`);
+  if (input && input.type === 'color') input.value = value;
+
+  // Auto-sync derived colors
+  if (varName === '--brand-1') {
+    document.documentElement.style.setProperty('--brand-glow', hexToRgba(value, 0.15));
+    document.documentElement.style.setProperty('--status-green', value);
+    document.documentElement.style.setProperty('--status-green-bg', hexToRgba(value, 0.08));
+  }
+
+  updateChangedCount();
+  updateExportPreview();
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function resetTokens() {
+  Object.entries(DEFAULTS).forEach(([k, v]) => updateToken(k, v));
+  renderAllTokenGroups();
+  showToast('Tokens reset to defaults');
+}
+
+function updateChangedCount() {
+  const count = Object.entries(CURRENT).filter(([k,v]) => DEFAULTS[k] !== v).length;
+  const el = document.getElementById('changed-count');
+  if (el) el.textContent = count;
+}
+
+/* ══════════════════════════════════════════
+   COPY TO CLIPBOARD
+══════════════════════════════════════════ */
+function copyToken(varName, btn) {
+  const val = CURRENT[varName] || getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  navigator.clipboard.writeText(val).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+    showToast(`Copied ${val}`);
+  });
+}
+
+/* ══════════════════════════════════════════
+   EXPORT CSS
+══════════════════════════════════════════ */
+function generateCSS() {
+  const lines = [':root {'];
+
+  const allTokens = {
+    '/* Surfaces */': null,
+    '--bg':        CURRENT['--bg'],
+    '--surface':   CURRENT['--surface'],
+    '--surface-2': CURRENT['--surface-2'],
+    '--surface-3': CURRENT['--surface-3'],
+    '--surface-4': CURRENT['--surface-4'],
+    '/* Borders */': null,
+    '--border':   'rgba(255,255,255,0.06)',
+    '--border-2': 'rgba(255,255,255,0.10)',
+    '--border-3': 'rgba(255,255,255,0.15)',
+    '/* Text */': null,
+    '--t1': CURRENT['--t1'],
+    '--t2': CURRENT['--t2'],
+    '--t3': CURRENT['--t3'],
+    '--t4': 'rgba(255,255,255,0.08)',
+    '/* Brand */': null,
+    '--brand-1': CURRENT['--brand-1'],
+    '--brand-2': CURRENT['--brand-2'],
+    '--brand-3': CURRENT['--brand-3'],
+    '--brand-glow': hexToRgba(CURRENT['--brand-1'], 0.15),
+    '/* Status */': null,
+    '--status-green':     CURRENT['--status-green'],
+    '--status-green-bg':  hexToRgba(CURRENT['--status-green'], 0.08),
+    '--status-yellow':    CURRENT['--status-yellow'],
+    '--status-yellow-bg': hexToRgba(CURRENT['--status-yellow'], 0.08),
+    '--status-orange':    CURRENT['--status-orange'],
+    '--status-orange-bg': hexToRgba(CURRENT['--status-orange'], 0.08),
+    '--status-red':       CURRENT['--status-red'],
+    '--status-red-bg':    hexToRgba(CURRENT['--status-red'], 0.08),
+    '/* Spacing */': null,
+    '--space-xs': '4px',
+    '--space-sm': '8px',
+    '--space-md': '12px',
+    '--space-lg': '16px',
+    '--space-xl': '24px',
+    '--space-2xl': '32px',
+    '--space-3xl': '48px',
+    '--section-gap': '28px',
+    '/* Radius */': null,
+    '--radius-sm':   '6px',
+    '--radius-md':   '8px',
+    '--radius-lg':   '12px',
+    '--radius-full': '9999px',
+    '/* Motion */': null,
+    '--ease-out':       'cubic-bezier(0.16, 1, 0.3, 1)',
+    '--duration-fast':   '0.12s',
+    '--duration-normal': '0.2s',
+    '--duration-slow':   '0.35s',
+  };
+
+  for (const [key, val] of Object.entries(allTokens)) {
+    if (val === null) {
+      lines.push(`  ${key}`);
+    } else {
+      const changed = DEFAULTS[key] && DEFAULTS[key] !== val ? ' /* ← changed */' : '';
+      lines.push(`  ${key}: ${val};${changed}`);
+    }
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
+
+function updateExportPreview() {
+  const el = document.getElementById('css-output');
+  if (el) el.textContent = generateCSS();
+}
+
+function exportCSS() {
+  const css = generateCSS();
+  navigator.clipboard.writeText(css).then(() => {
+    showToast('CSS copied to clipboard! Paste into src/index.css');
+  });
+}
+
+/* ══════════════════════════════════════════
+   SPACING VISUALIZATION
+══════════════════════════════════════════ */
+function renderSpacing() {
+  const spaces = [
+    { name: 'xs', val: 4 },
+    { name: 'sm', val: 8 },
+    { name: 'md', val: 12 },
+    { name: 'lg', val: 16 },
+    { name: 'xl', val: 24 },
+    { name: '2xl', val: 32 },
+    { name: '3xl', val: 48 },
+    { name: 'section-gap', val: 28 },
+  ];
+
+  const container = document.getElementById('spacing-viz');
+  if (!container) return;
+
+  container.innerHTML = spaces.map(s => `
+    <div class="space-row">
+      <span class="space-label">--space-${s.name}</span>
+      <div class="space-bar" style="width:${s.val}px;"></div>
+      <span class="space-val">${s.val}px</span>
+    </div>
+  `).join('');
+}
+
+/* ══════════════════════════════════════════
+   MOTION PREVIEW
+══════════════════════════════════════════ */
+function renderMotion() {
+  const motions = [
+    { name: '--duration-fast',   val: '0.12s',  easing: 'cubic-bezier(0.16,1,0.3,1)', label: 'Fast — 0.12s',   use: 'Hover, border change, micro-interactions' },
+    { name: '--duration-normal', val: '0.2s',   easing: 'cubic-bezier(0.16,1,0.3,1)', label: 'Normal — 0.2s',  use: 'Dropdowns, state changes' },
+    { name: '--duration-slow',   val: '0.35s',  easing: 'cubic-bezier(0.16,1,0.3,1)', label: 'Slow — 0.35s',   use: 'Modal open/close, page transitions' },
+  ];
+
+  const container = document.getElementById('motion-preview');
+  if (!container) return;
+
+  container.innerHTML = motions.map((m, i) => `
+    <div class="motion-preview" id="motion-row-${i}"
+      onmouseenter="animateMotion(${i}, '${m.val}', '${m.easing}')"
+    >
+      <div class="motion-meta">
+        <div style="font-size:12px;font-weight:500;color:var(--t1);">${m.label}</div>
+        <div class="motion-code">${m.name}</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:3px;">${m.use}</div>
+      </div>
+      <div class="motion-bar-track">
+        <div class="motion-handle" id="handle-${i}" style="transition-duration:${m.val};transition-timing-function:${m.easing};"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function animateMotion(i, duration, easing) {
+  const handle = document.getElementById(`handle-${i}`);
+  if (!handle) return;
+  const track = handle.parentElement;
+  const trackW = track.offsetWidth;
+  const current = parseFloat(handle.style.left) || 0;
+  const target = current < trackW / 2 ? trackW - 12 : 0;
+  handle.style.transitionDuration = duration;
+  handle.style.transitionTimingFunction = easing;
+  handle.style.left = target + 'px';
+}
+
+/* ══════════════════════════════════════════
+   TABS DEMO
+══════════════════════════════════════════ */
+const TAB_CONTENT = {
+  overview: 'Primary tabs (42px) for page-level navigation. 12px uppercase with brand-1 underline on active. No layout shift — only color and border change.',
+  catalog:  'Catalog content. Tabs maintain fixed height regardless of active state. This prevents the layout from jumping when switching.',
+  finance:  'Finance content. Active tab: color → brand-1, border-bottom → 2px brand-1. Inactive: color → t3, border → transparent.',
+  legal:    'Legal content. Never change padding, font-weight, or size on active state — this is what causes layout shifts in most tab implementations.',
+};
+
+function switchTab(btn, id) {
+  document.querySelectorAll('#demo-tabs .tm-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const content = document.getElementById('demo-tab-content');
+  if (content) content.innerHTML = `<p style="font-size:13px;color:var(--t2);">${TAB_CONTENT[id]}</p>`;
+}
+
+/* ══════════════════════════════════════════
+   SIDEBAR SCROLL SPY
+══════════════════════════════════════════ */
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+window.addEventListener = (function(orig) {
+  return function(type, listener, options) {
+    if (type === 'scroll') return orig.call(this, type, listener, options);
+    return orig.call(this, type, listener, options);
+  };
+})(window.addEventListener);
+
+function setupScrollSpy() {
+  const sections = document.querySelectorAll('.ds-section');
+  const links = document.querySelectorAll('.sidebar-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        links.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('data-target') === id);
+        });
+      }
+    });
+  }, { rootMargin: '-52px 0px -60% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderAllTokenGroups();
+  renderSpacing();
+  renderMotion();
+  setupScrollSpy();
+  updateExportPreview();
+});
+</script>
+</body>
+</html>

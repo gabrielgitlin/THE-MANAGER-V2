@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building, Calendar, Clock, MapPin, Users, DollarSign, FileText, Edit2, Trash2, ExternalLink, Check } from 'lucide-react';
+import { Building, Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
 import { AccommodationBooking } from '../../types/logistics';
 import { CREW_MEMBERS, ACCOMMODATION_PROVIDERS } from '../../data/logistics';
 import { formatDate } from '../../lib/utils';
@@ -26,28 +26,28 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
   const nights = calculateNights();
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="p-4 border-b border-gray-200">
+    <div className="rounded-lg border shadow-sm hover:shadow-md transition-shadow" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <Building className="w-5 h-5 text-primary" />
             <div>
-              <h3 className="text-sm font-medium text-charcoal">
+              <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 {provider?.name || 'Accommodation'}
                 {booking.roomType && ` - ${booking.roomType}`}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs" style={{ color: 'var(--t3)' }}>
                 {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
                 {nights > 0 && ` (${nights} night${nights !== 1 ? 's' : ''})`}
               </p>
             </div>
           </div>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            booking.status === 'confirmed' 
-              ? 'bg-green-100 text-green-800' 
+          <span className={`status-badge ${
+            booking.status === 'confirmed'
+              ? 'badge-green'
               : booking.status === 'cancelled'
-              ? 'bg-red-100 text-red-800'
-              : 'bg-beige text-black'
+              ? 'badge-neutral'
+              : 'badge-yellow'
           }`}>
             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
           </span>
@@ -86,7 +86,7 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
           </div>
           <div>
             <h4 className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
+              <img src="/TM-File-negro.svg" className="pxi-sm icon-muted" alt="" />
               Confirmation
             </h4>
             <p className="text-sm text-gray-900">{booking.confirmationNumber || 'Not available'}</p>
@@ -127,7 +127,7 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
         {booking.amenities && booking.amenities.length > 0 && (
           <div>
             <h4 className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <Check className="w-3 h-3" />
+              <img src="/The Manager_Iconografia-11.svg" className="pxi-sm icon-muted" alt="" />
               Amenities
             </h4>
             <div className="flex flex-wrap gap-2 mt-1">
@@ -146,7 +146,7 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
         {booking.notes && (
           <div>
             <h4 className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
+              <img src="/TM-File-negro.svg" className="pxi-sm icon-muted" alt="" />
               Notes
             </h4>
             <p className="text-sm text-gray-600">{booking.notes}</p>
@@ -163,7 +163,7 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
             className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-beige"
             title="Visit provider website"
           >
-            <ExternalLink className="w-4 h-4" />
+            <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
           </a>
         )}
         <button
@@ -171,14 +171,14 @@ export default function AccommodationCard({ booking, onEdit, onDelete }: Accommo
           className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-beige"
           title="Edit accommodation"
         >
-          <Edit2 className="w-4 h-4" />
+          <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
         </button>
         <button
           onClick={() => onDelete(booking.id)}
           className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50"
           title="Delete accommodation"
         >
-          <Trash2 className="w-4 h-4" />
+          <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
         </button>
       </div>
     </div>

@@ -96,8 +96,8 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
                 <UserPlus className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">User Invited Successfully!</h3>
-                <p className="text-sm text-gray-500">The account has been created</p>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>User Invited Successfully!</h3>
+                <p className="text-sm" style={{ color: 'var(--t2)' }}>The account has been created</p>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
               <div className="flex">
                 <div className="ml-3">
                   <h4 className="text-sm font-medium text-blue-800">Next Steps</h4>
-                  <div className="mt-2 text-sm text-blue-700">
+                  <div className="mt-2 text-sm" style={{ color: 'var(--t2)' }}>
                     <p className="mb-2">The user <strong>{email}</strong> has been added to your team with the role of <strong>{role.replace('_', ' ')}</strong>.</p>
                     <p className="mb-2">They can now:</p>
                     <ol className="list-decimal ml-4 space-y-1">
@@ -144,25 +144,25 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
                 <UserPlus className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Invite Team Member</h3>
-                <p className="text-sm text-gray-500">Send an invitation to join your team</p>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>Invite Team Member</h3>
+                <p className="text-sm" style={{ color: 'var(--t2)' }}>Send an invitation to join your team</p>
               </div>
             </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--t1)' }}>
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5" style={{ color: 'var(--t3)' }} />
               </div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 placeholder="colleague@example.com"
                 required
                 disabled={isLoading}
@@ -171,7 +171,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium mb-3" style={{ color: 'var(--t1)' }}>
               Role & Permissions
             </label>
             <div className="space-y-2">
@@ -180,9 +180,9 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
                   key={option.value}
                   className={`flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all ${
                     role === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      ? 'border-primary'
+                      : 'hover:opacity-80'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ background: role === option.value ? 'var(--surface-2)' : 'var(--surface)', borderColor: role === option.value ? 'var(--primary)' : 'var(--border)' }}
                 >
                   <input
                     type="radio"
@@ -194,8 +194,8 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
                     disabled={isLoading}
                   />
                   <div className="ml-3">
-                    <div className="text-sm font-medium text-gray-900">{option.label}</div>
-                    <div className="text-sm text-gray-500">{option.description}</div>
+                    <div className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{option.label}</div>
+                    <div className="text-sm" style={{ color: 'var(--t2)' }}>{option.description}</div>
                   </div>
                 </label>
               ))}
@@ -216,7 +216,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 text-sm font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
               disabled={isLoading}
             >
               Cancel

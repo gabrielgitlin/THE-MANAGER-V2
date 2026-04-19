@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { TMDatePicker } from '../components/ui/TMDatePicker';
 import AnalyticsDashboard from '../components/marketing/AnalyticsDashboard';
-import { CreditCard as Edit2, Globe, Image, Instagram, Loader2, Plus, Search, Trash2, Twitter, Youtube, Facebook, AlignJustify as TikTok, X, FileText, Download, ExternalLink, Upload, File } from 'lucide-react';
+import { Globe, Image, Instagram, Loader2, Plus, Twitter, Youtube, Facebook, AlignJustify as TikTok } from 'lucide-react';
 import { formatDate } from '../lib/utils';
 import * as postService from '../lib/marketingPostService';
 import * as fileService from '../lib/marketingFileService';
+import AssetInput from '../components/assets/AssetInput';
+import type { AssetSubmission } from '../lib/assetSources';
 
 type Platform = 'instagram' | 'twitter' | 'facebook' | 'youtube' | 'tiktok';
 type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
@@ -63,6 +66,7 @@ export default function Marketing() {
     sharedWith: []
   });
   const [pendingFileUpload, setPendingFileUpload] = useState<File | null>(null);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [newSharedPerson, setNewSharedPerson] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -296,6 +300,59 @@ export default function Marketing() {
     }
   };
 
+  const handleLinkSubmit = async (submission: AssetSubmission) => {
+    setIsSaving(true);
+    try {
+      const category = (newFile.category as fileService.FileCategory) || 'other';
+      let uploaded;
+      if (submission.sourceType === 'upload' && submission.file) {
+        uploaded = await fileService.uploadFile(submission.file, {
+          name: submission.name || submission.file.name,
+          category,
+          description: '',
+          shared: false,
+          shared_with: [],
+        });
+      } else if (submission.url) {
+        uploaded = await fileService.createExternalLinkFile(
+          {
+            sourceType: submission.sourceType,
+            url: submission.url,
+            name: submission.name,
+          },
+          {
+            name: submission.name,
+            category,
+            description: '',
+            shared: false,
+            shared_with: [],
+          }
+        );
+      } else {
+        return;
+      }
+      const mappedFile: MarketingFile = {
+        id: uploaded.id,
+        name: uploaded.name,
+        type: uploaded.type,
+        size: uploaded.size,
+        category: uploaded.category,
+        uploadDate: uploaded.created_at,
+        uploadedBy: uploaded.uploaded_by || 'Unknown',
+        description: uploaded.description,
+        url: uploaded.file_url,
+        shared: uploaded.shared,
+        sharedWith: uploaded.shared_with,
+      };
+      setFiles([mappedFile, ...files]);
+      setIsLinkModalOpen(false);
+    } catch (error) {
+      console.error('Error adding marketing asset:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleFileUpload = async () => {
     if (!pendingFileUpload || !newFile.category) return;
 
@@ -420,22 +477,22 @@ export default function Marketing() {
       case 'tiktok':
         return <TikTok className="w-5 h-5" />;
       default:
-        return <Globe className="w-5 h-5 text-gray-500" />;
+        return <Globe className="w-5 h-5 var(--t2)" />;
     }
   };
 
   const getStatusColor = (status: PostStatus) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'badge-neutral';
       case 'scheduled':
-        return 'bg-blue-100 text-blue-800';
+        return 'badge-yellow';
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'badge-green';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'badge-red';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'badge-neutral';
     }
   };
 
@@ -443,15 +500,15 @@ export default function Marketing() {
     if (file.type.includes('image')) {
       return <Image className="w-5 h-5 text-blue-500" />;
     } else if (file.type.includes('pdf')) {
-      return <FileText className="w-5 h-5 text-red-500" />;
+      return <img src="/TM-File-negro.svg" className="pxi-lg icon-danger" alt="" />;
     } else if (file.type.includes('word') || file.type.includes('document')) {
-      return <FileText className="w-5 h-5 text-blue-600" />;
+      return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
     } else if (file.type.includes('sheet') || file.type.includes('excel')) {
-      return <FileText className="w-5 h-5 text-green-600" />;
+      return <img src="/TM-File-negro.svg" className="pxi-lg icon-green" alt="" />;
     } else if (file.type.includes('zip') || file.type.includes('compressed')) {
-      return <File className="w-5 h-5 text-yellow-600" />;
+      return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
     } else {
-      return <File className="w-5 h-5 text-gray-500" />;
+      return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
     }
   };
 
@@ -483,47 +540,40 @@ export default function Marketing() {
   const getCategoryColor = (category: MarketingFile['category']) => {
     switch (category) {
       case 'press_kit':
-        return 'bg-light-blue text-black';
+        return 'bg-light-blue var(--t1)';
       case 'brand_assets':
         return 'bg-blue-100 text-blue-800';
       case 'campaign':
         return 'bg-green-100 text-green-800';
       case 'analytics':
-        return 'bg-beige text-black';
+        return 'bg-beige var(--t1)';
       case 'other':
-        return 'bg-gray-100 text-gray-800';
+        return 'var(--surface-2) var(--t1)';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'var(--surface-2) var(--t1)';
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64" style={{ backgroundColor: 'var(--bg)' }}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-3 text-gray-500">Loading marketing data...</span>
+        <span className="ml-3" style={{ color: 'var(--t3)' }}>Loading marketing data...</span>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-charcoal font-title">MARKETING</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage your social media content and analyze performance
-        </p>
-      </div>
-
+    <div style={{ backgroundColor: 'var(--bg)' }}>
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="content-calendar" className="uppercase">
+          <TabsTrigger value="content-calendar" >
             Content Calendar
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="uppercase">
+          <TabsTrigger value="analytics" >
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="files" className="uppercase">
+          <TabsTrigger value="files" >
             Files
           </TabsTrigger>
         </TabsList>
@@ -533,13 +583,18 @@ export default function Marketing() {
             <div className="flex flex-col md:flex-row justify-between gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                   <input
                     type="text"
                     placeholder="Search posts..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)'
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
@@ -547,7 +602,12 @@ export default function Marketing() {
                 <select
                   value={platformFilter}
                   onChange={(e) => setPlatformFilter(e.target.value as Platform | 'all')}
-                  className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--t1)'
+                  }}
+                  className="border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 >
                   <option value="all">All Platforms</option>
                   <option value="instagram">Instagram</option>
@@ -559,7 +619,12 @@ export default function Marketing() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as PostStatus | 'all')}
-                  className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--t1)'
+                  }}
+                  className="border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 >
                   <option value="all">All Statuses</option>
                   <option value="draft">Draft</option>
@@ -572,7 +637,11 @@ export default function Marketing() {
                     setIsAddingPost(true);
                     setEditingPost(null);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                  style={{
+                    backgroundColor: 'var(--brand-1)',
+                    color: 'var(--t1)'
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:opacity-90"
                 >
                   <Plus className="w-4 h-4" />
                   New Post
@@ -580,46 +649,49 @@ export default function Marketing() {
               </div>
             </div>
 
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <div style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }} className="border shadow-md overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y" style={{ borderColor: 'var(--border)' }}>
+                  <thead style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)' }}>
                     <tr>
-                      <th scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Done
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Title
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Platform
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Date & Time
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Status
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Tags
                       </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t3)' }}>
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody style={{ borderColor: 'var(--border)' }} className="divide-y">
                     {sortedPosts.length > 0 ? (
                       sortedPosts.map((post) => (
-                        <tr key={post.id} className={`hover:bg-gray-50 ${post.done ? 'bg-green-50' : ''}`}>
+                        <tr key={post.id} style={{ backgroundColor: post.done ? 'var(--surface-2)' : 'var(--surface)', borderColor: 'var(--border)' }} className="hover:opacity-75">
                           <td className="px-3 py-4 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleToggleDone(post.id)}
                               className={`transition-colors ${
                                 post.done
                                   ? ''
-                                  : 'w-5 h-5 rounded border border-gray-300 hover:border-primary'
+                                  : 'w-5 h-5 rounded border'
                               }`}
+                              style={{
+                                borderColor: post.done ? 'transparent' : 'var(--border)'
+                              }}
                             >
                               {post.done ? (
                                 <img
@@ -634,10 +706,10 @@ export default function Marketing() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-start">
                               <div>
-                                <div className={`text-sm font-medium ${post.done ? 'text-green-600 line-through' : 'text-gray-900'}`}>
+                                <div style={{ color: post.done ? 'var(--brand-1)' : 'var(--t1)' }} className={`text-sm font-medium ${post.done ? 'line-through' : ''}`}>
                                   {post.title}
                                 </div>
-                                <div className={`text-sm ${post.done ? 'text-green-600 line-through' : 'text-gray-500'} line-clamp-1`}>
+                                <div style={{ color: post.done ? 'var(--brand-1)' : 'var(--t3)' }} className={`text-sm ${post.done ? 'line-through' : ''} line-clamp-1`}>
                                   {post.content}
                                 </div>
                               </div>
@@ -646,30 +718,32 @@ export default function Marketing() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               {getPlatformIcon(post.platform)}
-                              <span className={`ml-2 text-sm capitalize ${post.done ? 'text-green-600' : 'text-gray-900'}`}>
+                              <span style={{ color: post.done ? 'var(--brand-1)' : 'var(--t1)' }} className={`ml-2 text-sm capitalize`}>
                                 {post.platform}
                               </span>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`text-sm ${post.done ? 'text-green-600' : 'text-gray-900'}`}>
+                            <div style={{ color: post.done ? 'var(--brand-1)' : 'var(--t1)' }} className="text-sm">
                               {formatDate(post.scheduledDate)}
                             </div>
-                            <div className={`text-sm ${post.done ? 'text-green-600' : 'text-gray-500'}`}>
+                            <div style={{ color: post.done ? 'var(--brand-1)' : 'var(--t3)' }} className="text-sm">
                               {post.scheduledTime}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${post.done ? 'bg-green-100 text-green-800' : getStatusColor(post.status)}`}>
+                            <span className={`status-badge ${getStatusColor(post.status)}`}>
                               {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-wrap gap-1">
                               {post.tags && post.tags.map((tag) => (
-                                <span key={tag} className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  post.done ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
+                                <span key={tag} style={{
+                                  backgroundColor: post.done ? 'var(--surface-3)' : 'var(--surface-2)',
+                                  color: 'var(--t2)',
+                                  borderColor: 'var(--border)'
+                                }} className="inline-flex items-center px-2 py-0.5 text-xs font-medium border">
                                   #{tag}
                                 </span>
                               ))}
@@ -679,15 +753,17 @@ export default function Marketing() {
                             <div className="flex justify-end gap-2">
                               <button
                                 onClick={() => setEditingPost(post)}
-                                className="text-primary hover:text-primary/80"
+                                style={{ color: 'var(--brand-1)' }}
+                                className="hover:opacity-75"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                <img src="/TM-Pluma-negro.png" className="pxi-md icon-white" alt="" />
                               </button>
                               <button
                                 onClick={() => handleDeletePost(post.id)}
-                                className="text-gray-400 hover:text-red-500"
+                                style={{ color: 'var(--t3)' }}
+                                className="hover:text-red-500"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                               </button>
                             </div>
                           </td>
@@ -695,7 +771,7 @@ export default function Marketing() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colSpan={7} className="px-6 py-4 text-center text-sm" style={{ color: 'var(--t3)' }}>
                           No posts found. Create a new post or adjust your filters.
                         </td>
                       </tr>
@@ -713,9 +789,9 @@ export default function Marketing() {
                     setEditingPost(null);
                   }} />
 
-                  <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full">
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <h3 className="text-lg font-medium text-gray-900">
+                  <div style={{ backgroundColor: 'var(--surface)' }} className="relative shadow-xl max-w-3xl w-full">
+                    <div style={{ borderColor: 'var(--border)' }} className="flex items-center justify-between p-4 border-b">
+                      <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>
                         {editingPost ? 'Edit Post' : 'Create New Post'}
                       </h3>
                       <button
@@ -723,16 +799,17 @@ export default function Marketing() {
                           setIsAddingPost(false);
                           setEditingPost(null);
                         }}
-                        className="text-gray-400 hover:text-gray-500"
+                        style={{ color: 'var(--t3)' }}
+                        className="hover:opacity-75"
                       >
-                        <X className="h-5 w-5" />
+                        <img src="/TM-Close-negro.svg" className="pxi-lg icon-white" alt="" />
                       </button>
                     </div>
 
                     <div className="p-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Title
                           </label>
                           <input
@@ -745,13 +822,18 @@ export default function Marketing() {
                                 setNewPost({ ...newPost, title: e.target.value });
                               }
                             }}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             placeholder="Enter post title"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Content
                           </label>
                           <textarea
@@ -764,14 +846,19 @@ export default function Marketing() {
                               }
                             }}
                             rows={4}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             placeholder="Enter post content"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                               Platform
                             </label>
                             <select
@@ -783,7 +870,12 @@ export default function Marketing() {
                                   setNewPost({ ...newPost, platform: e.target.value as Platform });
                                 }
                               }}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              style={{
+                                backgroundColor: 'var(--surface-2)',
+                                borderColor: 'var(--border)',
+                                color: 'var(--t1)'
+                              }}
+                              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             >
                               <option value="instagram">Instagram</option>
                               <option value="twitter">Twitter</option>
@@ -794,7 +886,7 @@ export default function Marketing() {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                               Status
                             </label>
                             <select
@@ -806,7 +898,12 @@ export default function Marketing() {
                                   setNewPost({ ...newPost, status: e.target.value as PostStatus });
                                 }
                               }}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              style={{
+                                backgroundColor: 'var(--surface-2)',
+                                borderColor: 'var(--border)',
+                                color: 'var(--t1)'
+                              }}
+                              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             >
                               <option value="draft">Draft</option>
                               <option value="scheduled">Scheduled</option>
@@ -817,25 +914,23 @@ export default function Marketing() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                               Date
                             </label>
-                            <input
-                              type="date"
+                            <TMDatePicker
                               value={editingPost ? editingPost.scheduledDate : newPost.scheduledDate}
-                              onChange={(e) => {
+                              onChange={(date) => {
                                 if (editingPost) {
-                                  setEditingPost({ ...editingPost, scheduledDate: e.target.value });
+                                  setEditingPost({ ...editingPost, scheduledDate: date });
                                 } else {
-                                  setNewPost({ ...newPost, scheduledDate: e.target.value });
+                                  setNewPost({ ...newPost, scheduledDate: date });
                                 }
                               }}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                               Time
                             </label>
                             <input
@@ -848,13 +943,18 @@ export default function Marketing() {
                                   setNewPost({ ...newPost, scheduledTime: e.target.value });
                                 }
                               }}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              style={{
+                                backgroundColor: 'var(--surface-2)',
+                                borderColor: 'var(--border)',
+                                color: 'var(--t1)'
+                              }}
+                              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Media URL
                           </label>
                           <input
@@ -867,17 +967,26 @@ export default function Marketing() {
                                 setNewPost({ ...newPost, mediaUrl: e.target.value });
                               }
                             }}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             placeholder="https://example.com/image.jpg"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Tags
                           </label>
-                          <div className="mt-1 flex rounded-md shadow-sm">
-                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                          <div className="mt-1 flex shadow-sm">
+                            <span style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t3)'
+                            }} className="inline-flex items-center px-3 border border-r-0 sm:text-sm">
                               #
                             </span>
                             <input
@@ -890,13 +999,22 @@ export default function Marketing() {
                                   handleAddTag();
                                 }
                               }}
-                              className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                              style={{
+                                backgroundColor: 'var(--surface-2)',
+                                borderColor: 'var(--border)',
+                                color: 'var(--t1)'
+                              }}
+                              className="flex-1 min-w-0 block w-full px-3 py-2 border border-l-0 focus:border-primary focus:ring-primary sm:text-sm"
                               placeholder="Add tag"
                             />
                             <button
                               type="button"
                               onClick={handleAddTag}
-                              className="ml-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                              style={{
+                                backgroundColor: 'var(--brand-1)',
+                                color: 'var(--t1)'
+                              }}
+                              className="ml-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium hover:opacity-90"
                             >
                               Add
                             </button>
@@ -906,15 +1024,21 @@ export default function Marketing() {
                               {(editingPost ? editingPost.tags : newPost.tags)?.map(tag => (
                                 <span
                                   key={tag}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                  style={{
+                                    backgroundColor: 'var(--surface-2)',
+                                    color: 'var(--t2)',
+                                    borderColor: 'var(--border)'
+                                  }}
+                                  className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium border"
                                 >
                                   #{tag}
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveTag(tag)}
-                                    className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none"
+                                    style={{ color: 'var(--t3)' }}
+                                    className="ml-1.5 inline-flex items-center justify-center h-4 w-4 hover:opacity-75"
                                   >
-                                    <X className="h-3 w-3" />
+                                    <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                                   </button>
                                 </span>
                               ))}
@@ -934,9 +1058,10 @@ export default function Marketing() {
                                 setNewPost({ ...newPost, done: e.target.checked });
                               }
                             }}
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                            style={{ borderColor: 'var(--border)', accentColor: 'var(--brand-1)' }}
+                            className="h-4 w-4 border"
                           />
-                          <label htmlFor="markAsDone" className="ml-2 block text-sm text-gray-900">
+                          <label htmlFor="markAsDone" style={{ color: 'var(--t2)' }} className="ml-2 block text-sm">
                             Mark as done
                           </label>
                         </div>
@@ -949,7 +1074,12 @@ export default function Marketing() {
                             setIsAddingPost(false);
                             setEditingPost(null);
                           }}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                          style={{
+                            backgroundColor: 'var(--surface-2)',
+                            color: 'var(--t2)',
+                            borderColor: 'var(--border)'
+                          }}
+                          className="px-4 py-2 text-sm font-medium border hover:opacity-75"
                         >
                           Cancel
                         </button>
@@ -957,7 +1087,11 @@ export default function Marketing() {
                           type="button"
                           onClick={editingPost ? handleUpdatePost : handleAddPost}
                           disabled={isSaving}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50"
+                          style={{
+                            backgroundColor: 'var(--brand-1)',
+                            color: 'var(--t1)'
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
                         >
                           {isSaving ? (
                             <>
@@ -988,13 +1122,18 @@ export default function Marketing() {
             <div className="flex flex-col md:flex-row justify-between gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                   <input
                     type="text"
                     placeholder="Search files..."
                     value={fileSearchTerm}
                     onChange={(e) => setFileSearchTerm(e.target.value)}
-                    className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--t1)'
+                    }}
+                    className="pl-10 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                 </div>
               </div>
@@ -1002,7 +1141,12 @@ export default function Marketing() {
                 <select
                   value={fileCategoryFilter}
                   onChange={(e) => setFileCategoryFilter(e.target.value as fileService.FileCategory | 'all')}
-                  className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--t1)'
+                  }}
+                  className="border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 >
                   <option value="all">All Categories</option>
                   <option value="press_kit">Press Kit</option>
@@ -1013,9 +1157,13 @@ export default function Marketing() {
                 </select>
                 <label
                   htmlFor="file-upload"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--brand-1)',
+                    color: 'var(--t1)'
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:opacity-90 cursor-pointer"
                 >
-                  <Upload className="w-4 h-4" />
+                  <img src="/TM-Upload-negro.svg" className="pxi-md icon-white" alt="" />
                   Upload File
                   <input
                     id="file-upload"
@@ -1034,6 +1182,18 @@ export default function Marketing() {
                     }}
                   />
                 </label>
+                <button
+                  type="button"
+                  onClick={() => setIsLinkModalOpen(true)}
+                  style={{
+                    backgroundColor: 'var(--surface-2)',
+                    color: 'var(--t1)',
+                    borderColor: 'var(--border)',
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border hover:opacity-90"
+                >
+                  Add Link
+                </button>
               </div>
             </div>
 
@@ -1042,22 +1202,30 @@ export default function Marketing() {
                 sortedFiles.map((file) => (
                   <div
                     key={file.id}
-                    className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)'
+                    }}
+                    className="border shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="p-4 border-b border-gray-200">
+                    <div style={{ borderColor: 'var(--border)' }} className="p-4 border-b">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-gray-100 rounded-lg">
+                          <div style={{ backgroundColor: 'var(--surface-2)' }} className="p-2">
                             {getFileIcon(file)}
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-gray-900 truncate max-w-[200px]">{file.name}</h3>
-                            <p className="text-xs text-gray-500">
+                            <h3 style={{ color: 'var(--t1)' }} className="text-sm font-medium truncate max-w-[200px]">{file.name}</h3>
+                            <p style={{ color: 'var(--t3)' }} className="text-xs">
                               {formatFileSize(file.size)} - {formatDate(file.uploadDate)}
                             </p>
                           </div>
                         </div>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getCategoryColor(file.category)}`}>
+                        <span style={{
+                          backgroundColor: 'var(--surface-2)',
+                          color: 'var(--t2)',
+                          borderColor: 'var(--border)'
+                        }} className="px-2 py-0.5 text-xs font-medium border">
                           {getCategoryLabel(file.category)}
                         </span>
                       </div>
@@ -1065,15 +1233,19 @@ export default function Marketing() {
 
                     <div className="p-4">
                       {file.description && (
-                        <p className="text-sm text-gray-600 mb-3">{file.description}</p>
+                        <p style={{ color: 'var(--t2)' }} className="text-sm mb-3">{file.description}</p>
                       )}
 
                       {file.shared && file.sharedWith && file.sharedWith.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs font-medium text-gray-500 mb-1">Shared with:</p>
+                          <p style={{ color: 'var(--t3)' }} className="text-xs font-medium mb-1">Shared with:</p>
                           <div className="flex flex-wrap gap-1">
                             {file.sharedWith.map((person, index) => (
-                              <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <span key={index} style={{
+                                backgroundColor: 'var(--surface-2)',
+                                color: 'var(--brand-1)',
+                                borderColor: 'var(--border)'
+                              }} className="inline-flex items-center px-2 py-0.5 text-xs font-medium border">
                                 {person}
                               </span>
                             ))}
@@ -1082,7 +1254,7 @@ export default function Marketing() {
                       )}
 
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">
+                        <span style={{ color: 'var(--t3)' }} className="text-xs">
                           Uploaded by {file.uploadedBy}
                         </span>
                         <div className="flex items-center gap-2">
@@ -1090,40 +1262,52 @@ export default function Marketing() {
                             href={file.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 text-gray-400 hover:text-gray-600"
+                            style={{ color: 'var(--t3)' }}
+                            className="p-1 hover:opacity-75"
                             title="Open file"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
                           </a>
                           <a
                             href={file.url}
                             download={file.name}
-                            className="p-1 text-gray-400 hover:text-gray-600"
+                            style={{ color: 'var(--t3)' }}
+                            className="p-1 hover:opacity-75"
                             title="Download file"
                           >
-                            <Download className="w-4 h-4" />
+                            <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
                           </a>
                           <button
                             onClick={() => {
                               setEditingFile(file);
                               setIsFileModalOpen(true);
                             }}
-                            className="p-1 text-gray-400 hover:text-gray-600"
+                            style={{ color: 'var(--t3)' }}
+                            className="p-1 hover:opacity-75"
                             title="Edit file details"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                           </button>
                           {showDeleteConfirm === file.id ? (
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleDeleteFile(file.id)}
-                                className="px-2 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                                style={{
+                                  backgroundColor: '#dc2626',
+                                  color: 'var(--t1)'
+                                }}
+                                className="px-2 py-1 text-xs hover:opacity-90"
                               >
                                 Delete
                               </button>
                               <button
                                 onClick={() => setShowDeleteConfirm(null)}
-                                className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                                style={{
+                                  backgroundColor: 'var(--surface-2)',
+                                  color: 'var(--t2)',
+                                  borderColor: 'var(--border)'
+                                }}
+                                className="px-2 py-1 text-xs border hover:opacity-75"
                               >
                                 Cancel
                               </button>
@@ -1131,10 +1315,11 @@ export default function Marketing() {
                           ) : (
                             <button
                               onClick={() => setShowDeleteConfirm(file.id)}
-                              className="p-1 text-gray-400 hover:text-red-500"
+                              style={{ color: 'var(--t3)' }}
+                              className="p-1 hover:text-red-500"
                               title="Delete file"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                             </button>
                           )}
                         </div>
@@ -1144,17 +1329,21 @@ export default function Marketing() {
                 ))
               ) : (
                 <div className="col-span-3 py-12 text-center">
-                  <File className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No files found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <img src="/TM-File-negro.svg" style={{ color: 'var(--t3)' }} className="pxi-xl icon-muted mx-auto" alt="" />
+                  <h3 style={{ color: 'var(--t1)' }} className="mt-2 text-sm font-medium">No files found</h3>
+                  <p style={{ color: 'var(--t3)' }} className="mt-1 text-sm">
                     Upload a file to get started or adjust your search filters.
                   </p>
                   <div className="mt-6">
                     <label
                       htmlFor="empty-file-upload"
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                      style={{
+                        backgroundColor: 'var(--brand-1)',
+                        color: 'var(--t1)'
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium shadow-sm hover:opacity-90 cursor-pointer"
                     >
-                      <Upload className="mr-2 h-5 w-5" />
+                      <img src="/TM-Upload-negro.svg" className="pxi-lg icon-white mr-2" alt="" />
                       Upload a file
                       <input
                         id="empty-file-upload"
@@ -1194,9 +1383,9 @@ export default function Marketing() {
                     });
                   }} />
 
-                  <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full">
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <h3 className="text-lg font-medium text-gray-900">
+                  <div style={{ backgroundColor: 'var(--surface)' }} className="relative shadow-xl max-w-2xl w-full">
+                    <div style={{ borderColor: 'var(--border)' }} className="flex items-center justify-between p-4 border-b">
+                      <h3 style={{ color: 'var(--t1)' }} className="text-lg font-medium">
                         {editingFile ? 'Edit File Details' : 'File Details'}
                       </h3>
                       <button
@@ -1212,16 +1401,17 @@ export default function Marketing() {
                             sharedWith: []
                           });
                         }}
-                        className="text-gray-400 hover:text-gray-500"
+                        style={{ color: 'var(--t3)' }}
+                        className="hover:opacity-75"
                       >
-                        <X className="h-5 w-5" />
+                        <img src="/TM-Close-negro.svg" className="pxi-lg icon-white" alt="" />
                       </button>
                     </div>
 
                     <div className="p-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             File Name
                           </label>
                           <input
@@ -1234,13 +1424,18 @@ export default function Marketing() {
                                 setNewFile({ ...newFile, name: e.target.value });
                               }
                             }}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             placeholder="Enter file name"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Category
                           </label>
                           <select
@@ -1252,7 +1447,12 @@ export default function Marketing() {
                                 setNewFile({ ...newFile, category: e.target.value as MarketingFile['category'] });
                               }
                             }}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           >
                             <option value="press_kit">Press Kit</option>
                             <option value="brand_assets">Brand Assets</option>
@@ -1263,7 +1463,7 @@ export default function Marketing() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                             Description
                           </label>
                           <textarea
@@ -1276,14 +1476,19 @@ export default function Marketing() {
                               }
                             }}
                             rows={3}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                            style={{
+                              backgroundColor: 'var(--surface-2)',
+                              borderColor: 'var(--border)',
+                              color: 'var(--t1)'
+                            }}
+                            className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                             placeholder="Enter file description"
                           />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium">
                               Share with
                             </label>
                             <div className="flex items-center">
@@ -1298,9 +1503,10 @@ export default function Marketing() {
                                     setNewFile({ ...newFile, shared: e.target.checked });
                                   }
                                 }}
-                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                style={{ borderColor: 'var(--border)', accentColor: 'var(--brand-1)' }}
+                                className="h-4 w-4 border"
                               />
-                              <label htmlFor="shareFile" className="ml-2 block text-sm text-gray-900">
+                              <label htmlFor="shareFile" style={{ color: 'var(--t2)' }} className="ml-2 block text-sm">
                                 Share this file
                               </label>
                             </div>
@@ -1313,13 +1519,22 @@ export default function Marketing() {
                                   type="text"
                                   value={newSharedPerson}
                                   onChange={(e) => setNewSharedPerson(e.target.value)}
-                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                  style={{
+                                    backgroundColor: 'var(--surface-2)',
+                                    borderColor: 'var(--border)',
+                                    color: 'var(--t1)'
+                                  }}
+                                  className="block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                                   placeholder="Enter name or email"
                                 />
                                 <button
                                   type="button"
                                   onClick={handleAddSharedPerson}
-                                  className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                                  style={{
+                                    backgroundColor: 'var(--brand-1)',
+                                    color: 'var(--t1)'
+                                  }}
+                                  className="px-3 py-2 text-sm font-medium hover:opacity-90"
                                 >
                                   Add
                                 </button>
@@ -1331,15 +1546,21 @@ export default function Marketing() {
                                   {(editingFile ? editingFile.sharedWith : newFile.sharedWith)?.map((person, index) => (
                                     <span
                                       key={index}
-                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                      style={{
+                                        backgroundColor: 'var(--surface-2)',
+                                        color: 'var(--brand-1)',
+                                        borderColor: 'var(--border)'
+                                      }}
+                                      className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium border"
                                     >
                                       {person}
                                       <button
                                         type="button"
                                         onClick={() => handleRemoveSharedPerson(person)}
-                                        className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:text-blue-500 focus:outline-none"
+                                        style={{ color: 'var(--brand-1)' }}
+                                        className="ml-1.5 inline-flex items-center justify-center h-4 w-4 hover:opacity-75"
                                       >
-                                        <X className="h-3 w-3" />
+                                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                                       </button>
                                     </span>
                                   ))}
@@ -1365,7 +1586,12 @@ export default function Marketing() {
                               sharedWith: []
                             });
                           }}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                          style={{
+                            backgroundColor: 'var(--surface-2)',
+                            color: 'var(--t2)',
+                            borderColor: 'var(--border)'
+                          }}
+                          className="px-4 py-2 text-sm font-medium border hover:opacity-75"
                         >
                           Cancel
                         </button>
@@ -1373,7 +1599,11 @@ export default function Marketing() {
                           type="button"
                           onClick={editingFile ? handleUpdateFile : handleFileUpload}
                           disabled={isSaving}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50"
+                          style={{
+                            backgroundColor: 'var(--brand-1)',
+                            color: 'var(--t1)'
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
                         >
                           {isSaving ? (
                             <>
@@ -1387,6 +1617,67 @@ export default function Marketing() {
                           )}
                         </button>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isLinkModalOpen && (
+              <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div className="flex min-h-screen items-center justify-center p-4">
+                  <div
+                    className="fixed inset-0 bg-black bg-opacity-25"
+                    onClick={() => setIsLinkModalOpen(false)}
+                  />
+                  <div
+                    style={{ backgroundColor: 'var(--surface)' }}
+                    className="relative shadow-xl max-w-xl w-full"
+                  >
+                    <div
+                      style={{ borderColor: 'var(--border)' }}
+                      className="flex items-center justify-between p-4 border-b"
+                    >
+                      <h3 style={{ color: 'var(--t1)' }} className="text-lg font-medium">
+                        Add Cloud Link
+                      </h3>
+                      <button
+                        onClick={() => setIsLinkModalOpen(false)}
+                        style={{ color: 'var(--t3)' }}
+                        className="hover:opacity-75"
+                      >
+                        <img src="/TM-Close-negro.svg" className="pxi-lg icon-white" alt="" />
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div>
+                        <label style={{ color: 'var(--t2)' }} className="block text-sm font-medium mb-1">
+                          Category
+                        </label>
+                        <select
+                          value={(newFile.category as string) || 'other'}
+                          onChange={(e) =>
+                            setNewFile({ ...newFile, category: e.target.value as MarketingFile['category'] })
+                          }
+                          style={{
+                            backgroundColor: 'var(--surface-2)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--t1)',
+                          }}
+                          className="block w-full border shadow-sm sm:text-sm"
+                        >
+                          <option value="press_kit">Press Kit</option>
+                          <option value="brand_assets">Brand Assets</option>
+                          <option value="campaign">Campaign</option>
+                          <option value="analytics">Analytics</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <AssetInput
+                        onSubmit={handleLinkSubmit}
+                        submitLabel="Add Link"
+                        resetOnSubmit={false}
+                      />
                     </div>
                   </div>
                 </div>

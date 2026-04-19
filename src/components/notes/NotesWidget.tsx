@@ -312,7 +312,7 @@ export default function NotesWidget() {
   return (
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium text-charcoal uppercase">Notes</h2>
+        <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>Notes</h2>
         <div className="flex items-center gap-4">
           {canEdit && (
             <button

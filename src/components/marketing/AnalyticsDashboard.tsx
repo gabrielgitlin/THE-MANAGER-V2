@@ -20,7 +20,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { ArrowDown, ArrowUp, Calendar, Download, Filter, Globe, Instagram, Music, RefreshCw, Share2, AlignJustify as Spotify, TrendingUp, Twitter, Youtube } from 'lucide-react';
+import { ArrowDown, ArrowUp, Calendar, Filter, Globe, Instagram, Music, AlignJustify as Spotify, TrendingUp, Twitter, Youtube } from 'lucide-react';
 
 // Mock data for streaming platforms
 const STREAMING_DATA = {
@@ -327,43 +327,43 @@ export default function AnalyticsDashboard() {
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Artist Analytics Dashboard</h2>
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--t1)' }}>Artist Analytics Dashboard</h2>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-white border rounded-md p-1">
+          <div className="flex items-center gap-2 border rounded-md p-1" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
             <button 
-              className={`px-3 py-1 text-sm rounded-md ${timeRange === '1m' ? 'bg-primary text-white' : 'text-gray-600'}`}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === '1m' ? 'bg-primary text-white' : 'text-gray-300'}`}
               onClick={() => setTimeRange('1m')}
             >
               1M
             </button>
             <button 
-              className={`px-3 py-1 text-sm rounded-md ${timeRange === '3m' ? 'bg-primary text-white' : 'text-gray-600'}`}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === '3m' ? 'bg-primary text-white' : 'text-gray-300'}`}
               onClick={() => setTimeRange('3m')}
             >
               3M
             </button>
             <button 
-              className={`px-3 py-1 text-sm rounded-md ${timeRange === '6m' ? 'bg-primary text-white' : 'text-gray-600'}`}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === '6m' ? 'bg-primary text-white' : 'text-gray-300'}`}
               onClick={() => setTimeRange('6m')}
             >
               6M
             </button>
             <button 
-              className={`px-3 py-1 text-sm rounded-md ${timeRange === '1y' ? 'bg-primary text-white' : 'text-gray-600'}`}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === '1y' ? 'bg-primary text-white' : 'text-gray-300'}`}
               onClick={() => setTimeRange('1y')}
             >
               1Y
             </button>
           </div>
-          <button 
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          <button
+            className="flex items-center gap-2 border rounded-md p-1 hover:opacity-80" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
             onClick={handleRefresh}
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <img src="/TM-Refresh-negro.svg" className={`pxi-md icon-muted ${isLoading ? 'animate-spin' : ''}`} alt="" />
             Refresh
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-            <Download className="w-4 h-4" />
+          <button className="flex items-center gap-2 border rounded-md p-1 hover:opacity-80" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
             Export
           </button>
         </div>
@@ -389,12 +389,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Total Streams</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Total Streams</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(STREAMING_DATA.overview.totalStreams)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>{STREAMING_DATA.overview.growthRate}%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-green-100 rounded-lg">
@@ -408,12 +408,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Monthly Listeners</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Monthly Listeners</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(STREAMING_DATA.overview.monthlyListeners)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>8.3%</span>
-                      <span className="text-gray-500 ml-1">vs last month</span>
+                      <span className="text-gray-400 ml-1">vs last month</span>
                     </div>
                   </div>
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -427,12 +427,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Playlist Inclusions</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Playlist Inclusions</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(STREAMING_DATA.overview.playlists)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>12.1%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-light-blue rounded-lg">
@@ -446,12 +446,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Followers</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Followers</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(STREAMING_DATA.overview.followers)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>4.7%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-light-blue rounded-lg">
@@ -550,8 +550,8 @@ export default function AnalyticsDashboard() {
                   </thead>
                   <tbody>
                     {STREAMING_DATA.topTracks.map((track, index) => (
-                      <tr key={index} className="bg-white border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-900">{track.name}</td>
+                      <tr key={index} className="flex items-center gap-2 border rounded-md p-1-b hover:opacity-80" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+                        <td className="px-6 py-4 font-medium text-white">{track.name}</td>
                         <td className="px-6 py-4">{formatNumber(track.streams)}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
@@ -661,16 +661,16 @@ export default function AnalyticsDashboard() {
               <CardContent>
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-500">Editorial</p>
-                    <p className="text-xl font-bold text-gray-900">{STREAMING_DATA.playlists.editorial}</p>
+                    <p className="text-sm text-gray-400">Editorial</p>
+                    <p className="text-xl font-bold text-white">{STREAMING_DATA.playlists.editorial}</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-500">Algorithmic</p>
-                    <p className="text-xl font-bold text-gray-900">{STREAMING_DATA.playlists.algorithmic}</p>
+                    <p className="text-sm text-gray-400">Algorithmic</p>
+                    <p className="text-xl font-bold text-white">{STREAMING_DATA.playlists.algorithmic}</p>
                   </div>
                   <div className="bg-light-blue p-4 rounded-lg">
-                    <p className="text-sm text-gray-500">User</p>
-                    <p className="text-xl font-bold text-gray-900">{STREAMING_DATA.playlists.user}</p>
+                    <p className="text-sm text-gray-400">User</p>
+                    <p className="text-xl font-bold text-white">{STREAMING_DATA.playlists.user}</p>
                   </div>
                 </div>
 
@@ -679,8 +679,8 @@ export default function AnalyticsDashboard() {
                   {STREAMING_DATA.playlists.topPlaylists.map((playlist, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{playlist.name}</p>
-                        <p className="text-xs text-gray-500">{playlist.platform}</p>
+                        <p className="text-sm font-medium text-white">{playlist.name}</p>
+                        <p className="text-xs text-gray-400">{playlist.platform}</p>
                       </div>
                       <p className="text-sm text-gray-700">{formatNumber(playlist.followers)} followers</p>
                     </div>
@@ -699,12 +699,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Total Followers</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Total Followers</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(SOCIAL_MEDIA_DATA.overview.totalFollowers)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>{SOCIAL_MEDIA_DATA.overview.growth}%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -718,12 +718,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Engagement Rate</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Engagement Rate</p>
                     <h3 className="text-2xl font-bold mt-1">{SOCIAL_MEDIA_DATA.overview.engagement}%</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>0.3%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-light-blue rounded-lg">
@@ -737,12 +737,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Total Posts</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Total Posts</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(SOCIAL_MEDIA_DATA.overview.posts)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>12.3%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-light-blue rounded-lg">
@@ -756,12 +756,12 @@ export default function AnalyticsDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Mentions</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--t3)' }}>Mentions</p>
                     <h3 className="text-2xl font-bold mt-1">{formatNumber(SOCIAL_MEDIA_DATA.overview.mentions)}</h3>
                     <div className="flex items-center mt-1 text-green-600 text-sm">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>8.7%</span>
-                      <span className="text-gray-500 ml-1">vs last period</span>
+                      <span className="text-gray-400 ml-1">vs last period</span>
                     </div>
                   </div>
                   <div className="p-2 bg-beige rounded-lg">
@@ -883,10 +883,10 @@ export default function AnalyticsDashboard() {
                       {post.platform === 'YouTube' && <Youtube className="w-5 h-5 text-red-600" />}
                       {post.platform === 'TikTok' && <TikTok className="w-5 h-5" />}
                       <span className="font-medium">{post.platform}</span>
-                      <span className="text-xs text-gray-500">{post.date}</span>
+                      <span className="text-xs text-gray-400">{post.date}</span>
                     </div>
                     <p className="text-sm mb-3">{post.content}</p>
-                    <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-400">
                       <div className="flex items-center gap-1">
                         <Heart className="w-3 h-3" />
                         <span>{formatNumber(post.likes)} likes</span>
@@ -896,7 +896,7 @@ export default function AnalyticsDashboard() {
                         <span>{formatNumber(post.comments)} comments</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Share2 className="w-3 h-3" />
+                        <img src="/TM-Share-negro.svg" className="pxi-sm icon-muted" alt="" />
                         <span>{formatNumber(post.shares)} shares</span>
                       </div>
                       {post.views && (
@@ -1012,11 +1012,11 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 line-clamp-2">{video.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <h4 className="font-medium text-white line-clamp-2">{video.title}</h4>
+                    <p className="text-xs text-gray-400 mt-1">
                       Published {new Date(video.published_at).toLocaleDateString()}
                     </p>
-                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
+                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-300">
                       <div className="flex items-center gap-1">
                         <Eye className="w-4 h-4" />
                         <span>{formatNumber(video.views)} views</span>
@@ -1032,7 +1032,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">#{index + 1}</div>
+                    <div className="text-2xl font-bold text-white">#{index + 1}</div>
                   </div>
                 </div>
               ))}

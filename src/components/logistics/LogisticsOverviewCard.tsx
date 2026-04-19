@@ -31,14 +31,15 @@ export default function LogisticsOverviewCard({ overview, onClick }: LogisticsOv
   const totalCost = overview.totalTransportationCost + overview.totalAccommodationCost;
 
   return (
-    <div 
-      className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+    <div
+      className="rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
       onClick={() => onClick(overview.showId)}
     >
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-medium text-charcoal uppercase">{overview.showTitle}</h3>
+            <h3 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>{overview.showTitle}</h3>
             <div className="flex items-center gap-2 mt-1">
               <Calendar className="w-4 h-4 text-gray-400" />
               <span className="text-sm text-gray-600">{formatDate(overview.showDate)}</span>
@@ -86,7 +87,7 @@ export default function LogisticsOverviewCard({ overview, onClick }: LogisticsOv
         </div>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-gray-400" />

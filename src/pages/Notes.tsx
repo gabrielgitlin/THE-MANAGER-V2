@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Save, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import type { Note as NoteType, NoteCategory } from '../types';
 import { formatDate, formatDateTime } from '../lib/utils';
 import * as noteService from '../lib/noteService';
@@ -135,18 +135,18 @@ export default function Notes() {
 
   if (isLoading) {
     return (
-      <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
+      <div className="h-[calc(100vh-8rem)] flex items-center justify-center" style={{backgroundColor: "var(--bg)"}}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-3 text-gray-500">Loading notes...</span>
+        <span className="ml-3" style={{color: "var(--t3)"}}>Loading notes...</span>
       </div>
     );
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex gap-8">
-      <div className="w-2/3 flex flex-col bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-charcoal uppercase">Notes</h2>
+    <div className="h-[calc(100vh-8rem)] flex gap-8" style={{backgroundColor: "var(--bg)"}}>
+      <div className="w-2/3 flex flex-col shadow-md overflow-hidden" style={{backgroundColor: "var(--surface)"}}>
+        <div style={{padding: "24px", borderBottom: "1px solid var(--border)"}} className="flex items-center justify-between">
+          <h2 className="text-lg font-medium uppercase" style={{color: "var(--t1)"}}>Notes</h2>
           <button
             onClick={() => setIsCreatingNote(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
@@ -157,32 +157,34 @@ export default function Notes() {
         </div>
 
         {isCreatingNote && (
-          <div className="p-6 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-base font-medium text-gray-900 mb-4">Create New Note</h3>
+          <div style={{padding: "24px", borderBottom: "1px solid var(--border)", backgroundColor: "var(--surface-2)"}}>
+            <h3 className="text-base font-medium mb-4" style={{color: "var(--t1)"}}>Create New Note</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{color: "var(--t2)"}}>
                   Title
                 </label>
                 <input
                   type="text"
                   value={newNoteTitle}
-                  onChange={(e) => setNewNoteTitle(e.target.value)}
                   placeholder="Enter note title..."
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  onChange={(e) => setNewNoteTitle(e.target.value)}
+                  style={{backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--t1)"}}
+                  className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{color: "var(--t2)"}}>
                   Content
                 </label>
                 <textarea
                   value={newNoteContent}
                   onChange={(e) => setNewNoteContent(e.target.value)}
                   rows={6}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   placeholder="Enter note content..."
+                  style={{backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--t1)"}}
+                  className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
               <div className="flex justify-end gap-3">
@@ -192,7 +194,8 @@ export default function Notes() {
                     setNewNoteTitle('');
                     setNewNoteContent('');
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  style={{color: "var(--t2)", backgroundColor: "var(--surface-3)", borderColor: "var(--border)"}}
+                  className="px-4 py-2 text-sm font-medium border hover:brightness-125"
                 >
                   Cancel
                 </button>
@@ -209,13 +212,12 @@ export default function Notes() {
           </div>
         )}
 
-        <div className="flex-1 overflow-auto divide-y divide-gray-200">
+        <div style={{flex: 1, overflowY: "auto", borderCollapse: "collapse"}}>
           {notes.map((note) => (
             <div
               key={note.id}
-              className={`p-6 hover:bg-gray-50 cursor-pointer ${
-                selectedNote?.id === note.id ? 'bg-gray-50' : ''
-              }`}
+              style={{padding: "24px", borderBottom: "1px solid var(--border)", backgroundColor: selectedNote?.id === note.id ? "var(--surface-2)" : "var(--surface)", cursor: "pointer"}}
+              className="hover:brightness-125"
             >
               <div className="flex items-center justify-between">
                 <button
@@ -227,10 +229,10 @@ export default function Notes() {
                   }}
                   className="flex-1 text-left"
                 >
-                  <h3 className="text-base font-medium text-charcoal">
+                  <h3 className="text-base font-medium" style={{color: "var(--t1)"}}>
                     {note.title || 'Untitled Note'}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm mt-1" style={{color: "var(--t3)"}}>
                     {formatDate(note.createdAt)}
                   </p>
                 </button>
@@ -241,28 +243,29 @@ export default function Notes() {
                       handleDeleteNote(note.id);
                     }
                   }}
-                  className="p-2 text-gray-400 hover:text-red-500"
+                  style={{color: "var(--t3)"}}
+                  className="p-2 hover:text-red-500"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             </div>
           ))}
 
           {notes.length === 0 && (
-            <div className="p-8 text-center">
-              <p className="text-sm text-gray-500">No notes yet. Create your first note to get started.</p>
+            <div style={{padding: "32px", textAlign: "center"}}>
+              <p className="text-sm" style={{color: "var(--t3)"}}>No notes yet. Create your first note to get started.</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="w-1/3 bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="w-1/3 shadow-md overflow-hidden" style={{backgroundColor: "var(--surface)"}}>
         {selectedNote ? (
-          <div className="h-full flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+          <div style={{height: "100%", display: "flex", flexDirection: "column"}}>
+            <div style={{padding: "24px", borderBottom: "1px solid var(--border)"}}>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm" style={{color: "var(--t3)"}}>
                   {formatDateTime(selectedNote.createdAt)}
                 </span>
                 <button
@@ -274,56 +277,59 @@ export default function Notes() {
                     }
                   }}
                   disabled={isSaving}
-                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  style={{color: "var(--t3)"}}
+                  className="p-2 hover:text-primary disabled:opacity-50"
                 >
                   {isSaving ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : isEditing ? (
-                    <Save className="w-5 h-5" />
+                    <img src="/The Manager_Iconografia-11.svg" className="pxi-lg icon-white" alt="" />
                   ) : (
-                    <Edit2 className="w-5 h-5" />
+                    <img src="/TM-Pluma-negro.png" className="pxi-lg icon-white" alt="" />
                   )}
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 p-6 overflow-auto">
+            <div style={{flex: 1, padding: "24px", overflowY: "auto"}}>
               {isEditing ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1" style={{color: "var(--t2)"}}>
                       Title
                     </label>
                     <input
                       type="text"
                       value={editedTitle}
                       onChange={(e) => setEditedTitle(e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      style={{backgroundColor: "var(--surface-2)", borderColor: "var(--border)", color: "var(--t1)"}}
+                      className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1" style={{color: "var(--t2)"}}>
                       Content
                     </label>
                     <textarea
                       value={editedContent}
                       onChange={(e) => setEditedContent(e.target.value)}
-                      className="w-full h-[calc(100vh-28rem)] resize-none border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      style={{width: "100%", height: "calc(100vh-28rem)", resize: "none", backgroundColor: "var(--surface-2)", borderColor: "var(--border)", color: "var(--t1)"}}
+                      className="shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
-                  <h2 className="text-xl font-semibold text-charcoal mb-4">{selectedNote.title || 'Untitled Note'}</h2>
+                  <h2 className="text-xl font-semibold mb-4" style={{color: "var(--t1)"}}>{selectedNote.title || 'Untitled Note'}</h2>
                   <div className="prose prose-sm max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-700">{selectedNote.content}</div>
+                    <div className="whitespace-pre-wrap" style={{color: "var(--t2)"}}>{selectedNote.content}</div>
                   </div>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-500">
+          <div style={{height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t3)"}}>
             Select a note to view details
           </div>
         )}

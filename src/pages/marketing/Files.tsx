@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Plus, FileText, Image, Video, File, Download, Trash2, Share2, ExternalLink, Upload, X, Folder, FolderOpen } from 'lucide-react';
+import { ChevronLeft, Filter, Plus, Image, Video, Folder, FolderOpen } from 'lucide-react';
 import Modal from '../../components/Modal';
 
 interface MarketingFile {
@@ -96,13 +96,13 @@ export default function Files() {
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'document':
-        return <FileText className="w-5 h-5 text-blue-500" />;
+        return <img src="/TM-File-negro.svg" className="pxi-lg icon-white" alt="" />;
       case 'image':
         return <Image className="w-5 h-5 text-green-500" />;
       case 'video':
         return <Video className="w-5 h-5 text-purple-500" />;
       default:
-        return <File className="w-5 h-5 text-gray-500" />;
+        return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
     }
   };
 
@@ -119,29 +119,27 @@ export default function Files() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/marketing')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm hover:text-gray-700 mb-4"
+          style={{ color: 'var(--t2)' }}
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Marketing
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Marketing Files</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage and share marketing assets and documents
-        </p>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg">
-        <div className="p-6 border-b border-gray-200">
+      <div className="shadow-md" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="p-6 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                 <input
                   type="text"
                   placeholder="Search files..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
               </div>
             </div>
@@ -149,7 +147,8 @@ export default function Files() {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="block shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Types</option>
                 <option value="document">Documents</option>
@@ -161,7 +160,7 @@ export default function Files() {
                 onClick={() => setIsUploadModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
               >
-                <Upload className="w-4 h-4" />
+                <img src="/TM-Upload-negro.svg" className="pxi-md icon-white" alt="" />
                 Upload
               </button>
             </div>
@@ -172,22 +171,24 @@ export default function Files() {
           {/* Folders Sidebar */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-medium text-gray-700">Folders</h2>
+              <h2 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Folders</h2>
               <button
                 onClick={() => setIsCreatingFolder(true)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                className="p-1  hover:opacity-80"
+                style={{ color: 'var(--t2)' }}
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
 
             {isCreatingFolder ? (
-              <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 p-2 " style={{ backgroundColor: 'var(--surface-2)' }}>
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   placeholder="Folder name"
                   autoFocus
                 />
@@ -195,24 +196,24 @@ export default function Files() {
                   onClick={handleCreateFolder}
                   className="p-1 text-primary hover:text-primary/80"
                 >
-                  <Check className="w-4 h-4" />
+                  <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                 </button>
                 <button
                   onClick={() => {
                     setIsCreatingFolder(false);
                     setNewFolderName('');
                   }}
-                  className="p-1 text-gray-400 hover:text-gray-600"
+                  className="p-1 text-gray-400" style={{ color: 'var(--t3)' }} hover:text-gray-600"
                 >
-                  <X className="w-4 h-4" />
+                  <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                 </button>
               </div>
             ) : null}
 
             <button
               onClick={() => setSelectedFolder('all')}
-              className={`flex items-center gap-2 w-full p-2 text-left rounded-lg ${
-                selectedFolder === 'all' ? 'bg-primary/10 text-primary' : 'hover:bg-gray-100'
+              className={`flex items-center gap-2 w-full p-2 text-left  ${
+                selectedFolder === 'all' ? 'bg-primary/10 text-primary' : 'hover:opacity-80'
               }`}
             >
               <Folder className="w-4 h-4" />
@@ -223,9 +224,13 @@ export default function Files() {
               <button
                 key={folder}
                 onClick={() => setSelectedFolder(folder)}
-                className={`flex items-center gap-2 w-full p-2 text-left rounded-lg ${
-                  selectedFolder === folder ? 'bg-primary/10 text-primary' : 'hover:bg-gray-100'
+                className={`flex items-center gap-2 w-full p-2 text-left  ${
+                  selectedFolder === folder ? 'hover:opacity-80' : 'hover:opacity-80'
                 }`}
+                style={{
+                  backgroundColor: selectedFolder === folder ? 'var(--surface-2)' : 'transparent',
+                  color: selectedFolder === folder ? 'var(--brand-1)' : 'var(--t1)',
+                }}
               >
                 {selectedFolder === folder ? (
                   <FolderOpen className="w-4 h-4" />
@@ -244,37 +249,39 @@ export default function Files() {
                 {filteredFiles.map(file => (
                   <div
                     key={file.id}
-                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                    className=" overflow-hidden hover:shadow-md transition-shadow"
+                    style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)' }}
                   >
-                    <div className="p-4 border-b">
+                    <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 bg-gray-100 rounded-lg">
+                          <div className="p-2 " style={{ backgroundColor: 'var(--surface-3)' }}>
                             {getFileIcon(file.type)}
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-gray-900 break-all">{file.name}</h3>
-                            <p className="text-xs text-gray-500">
+                            <h3 className="text-sm font-medium break-all" style={{ color: 'var(--t1)' }}>{file.name}</h3>
+                            <p className="text-xs" style={{ color: 'var(--t2)' }}>
                               {formatFileSize(file.size)} • {file.uploadDate.toLocaleDateString()}
                             </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     {file.description && (
-                      <div className="px-4 py-2 border-b">
-                        <p className="text-xs text-gray-600">{file.description}</p>
+                      <div className="px-4 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                        <p className="text-xs" style={{ color: 'var(--t2)' }}>{file.description}</p>
                       </div>
                     )}
                     
                     {file.tags.length > 0 && (
-                      <div className="px-4 py-2 border-b">
+                      <div className="px-4 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
                         <div className="flex flex-wrap gap-1">
                           {file.tags.map(tag => (
                             <span
                               key={tag}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              className="inline-flex items-center px-2 py-0.5  text-xs font-medium"
+                              style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t1)' }}
                             >
                               {tag}
                             </span>
@@ -282,50 +289,53 @@ export default function Files() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="p-2 flex justify-end gap-1">
                       <a
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                        className="p-1  hover:opacity-80"
+                        style={{ color: 'var(--t2)' }}
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
                       </a>
                       <a
                         href={file.url}
                         download={file.name}
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                        className="p-1  hover:opacity-80"
+                        style={{ color: 'var(--t2)' }}
                       >
-                        <Download className="w-4 h-4" />
+                        <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
                       </a>
                       <button
                         onClick={() => handleShareFile(file)}
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                        className="p-1  hover:opacity-80"
+                        style={{ color: 'var(--t2)' }}
                       >
-                        <Share2 className="w-4 h-4" />
+                        <img src="/TM-Share-negro.svg" className="pxi-md icon-muted" alt="" />
                       </button>
                       {showDeleteConfirm === file.id ? (
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleDeleteFile(file.id)}
-                            className="p-1 text-white bg-red-500 rounded-full hover:bg-red-600"
+                            className="p-1 text-white bg-red-500  hover:bg-red-600"
                           >
-                            <Check className="w-4 h-4" />
+                            <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(null)}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                            className="p-1 text-gray-400" style={{ color: 'var(--t3)' }} hover:text-gray-600  hover:opacity-80"
                           >
-                            <X className="w-4 h-4" />
+                            <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                           </button>
                         </div>
                       ) : (
                         <button
                           onClick={() => setShowDeleteConfirm(file.id)}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100"
+                          className="p-1 text-gray-400" style={{ color: 'var(--t3)' }} hover:text-red-500  hover:opacity-80"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                         </button>
                       )}
                     </div>
@@ -334,9 +344,9 @@ export default function Files() {
               </div>
             ) : (
               <div className="py-12 text-center">
-                <File className="mx-auto h-12 w-12 text-gray-400" />
+                <img src="/TM-File-negro.svg" className="pxi-xl icon-muted mx-auto" alt="" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No files found</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500" style={{ color: 'var(--t3)' }}">
                   {files.length > 0 
                     ? 'Try adjusting your search or filters'
                     : 'Get started by uploading your first file'}
@@ -347,7 +357,7 @@ export default function Files() {
                       onClick={() => setIsUploadModalOpen(true)}
                       className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                     >
-                      <Upload className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                      <img src="/TM-Upload-negro.svg" className="pxi-lg icon-white -ml-1 mr-2" alt="" />
                       Upload File
                     </button>
                   </div>
@@ -365,11 +375,11 @@ export default function Files() {
         title="Upload Files"
       >
         <div className="space-y-6">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <div className="border-2 border-dashed  p-6" style={{ borderColor: 'var(--border)' }}>
             <div className="flex flex-col items-center justify-center">
-              <Upload className="w-8 h-8 text-gray-400 mb-4" />
+              <img src="/TM-Upload-negro.svg" className="pxi-xl icon-muted mb-4" alt="" />
               <div className="text-center">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm" style={{ color: 'var(--t2)' }}>
                   Drag and drop your files here, or{' '}
                   <label className="text-primary hover:text-primary/80 cursor-pointer">
                     browse
@@ -381,7 +391,7 @@ export default function Files() {
                     />
                   </label>
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs" style={{ color: 'var(--t2)' }}>
                   PDF, Word, Excel, JPG, PNG, MP4 up to 50MB
                 </p>
               </div>
@@ -389,13 +399,14 @@ export default function Files() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Folder
             </label>
             <select
               value={selectedFolder === 'all' ? '' : selectedFolder}
               onChange={(e) => setSelectedFolder(e.target.value || 'all')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             >
               <option value="">Select a folder</option>
               {folders.map(folder => (
@@ -417,18 +428,18 @@ export default function Files() {
       >
         {selectedFile && (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3 p-4 " style={{ backgroundColor: 'var(--surface-2)' }}>
               {getFileIcon(selectedFile.type)}
               <div>
-                <h3 className="text-sm font-medium text-gray-900">{selectedFile.name}</h3>
-                <p className="text-xs text-gray-500">
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{selectedFile.name}</h3>
+                <p className="text-xs" style={{ color: 'var(--t2)' }}>
                   {formatFileSize(selectedFile.size)} • Uploaded by {selectedFile.uploadedBy}
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Share Link
               </label>
               <div className="mt-1 flex rounded-md shadow-sm">
@@ -436,14 +447,16 @@ export default function Files() {
                   type="text"
                   value={selectedFile.url}
                   readOnly
-                  className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(selectedFile.url);
                     alert('Link copied to clipboard!');
                   }}
-                  className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 rounded-r-md hover:bg-gray-100"
+                  className="inline-flex items-center px-3 py-2 border border-l-0 rounded-r-md hover:opacity-80"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t2)', borderColor: 'var(--border)' }}
                 >
                   Copy
                 </button>
@@ -451,12 +464,13 @@ export default function Files() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Share with Team Members
               </label>
               <div className="mt-1">
                 <select
-                  className="block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block w-full rounded-none shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 >
                   <option value="">Select team member</option>
                   <option value="1">Sarah Johnson</option>
@@ -472,7 +486,8 @@ export default function Files() {
                   setIsShareModalOpen(false);
                   setSelectedFile(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-50"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', border: `1px solid var(--border)` }}
               >
                 Cancel
               </button>

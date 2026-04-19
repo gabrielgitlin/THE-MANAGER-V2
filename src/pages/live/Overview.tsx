@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Clock, Plus, Pencil, Trash2, ChevronRight, Search, Filter, DollarSign, Users } from 'lucide-react';
+import { Calendar, Plus, ChevronRight } from 'lucide-react';
 import ShowModal from '../../components/shows/ShowModal';
 import type { Show } from '../../types';
 import { LOGISTICS_OVERVIEW } from '../../data/logistics';
@@ -368,11 +368,11 @@ export default function Overview() {
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Left Column - Shows (2/3 width) */}
       <div className="lg:w-2/3">
-        <div className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
-          <div className="p-4 border-b border-gray-200">
+        <div className="shadow-md overflow-hidden flex flex-col h-[calc(100vh-12rem)]" style={{ backgroundColor: 'var(--surface)' }}>
+          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-medium text-charcoal uppercase">Shows</h2>
+                <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>Shows</h2>
                 <button
                   onClick={() => navigate('/live/shows')}
                   className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
@@ -383,20 +383,22 @@ export default function Overview() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <img src="/TM-Search-negro.svg" className="pxi-md icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                   <input
                     type="text"
                     placeholder="Search shows..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="pl-9 block rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                    style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', focusBorderColor: 'var(--brand-1)' }}
                   />
                 </div>
 
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as any)}
-                  className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 >
                   <option value="all">All Dates</option>
                   <option value="upcoming">Upcoming</option>
@@ -409,7 +411,8 @@ export default function Overview() {
                     setEditingShow(undefined);
                     setIsModalOpen(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                  style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add Show
@@ -426,8 +429,8 @@ export default function Overview() {
                   return (
                   <div
                     key={show.id}
-                    className="relative !rounded-none shadow-sm overflow-hidden border border-gray-800 transition-transform duration-200 hover:scale-105 cursor-pointer text-left w-full group"
-                    style={{ backgroundColor: '#eef2ea' }}
+                    className="relative shadow-sm overflow-hidden transition-transform duration-200 hover:scale-105 cursor-pointer text-left w-full group"
+                    style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', border: '1px solid', color: 'var(--t1)' }}
                     onClick={() => navigate(`/live/show/${show.id}`)}
                   >
                     <div className="px-4 py-2 !rounded-none font-mono">
@@ -514,9 +517,9 @@ export default function Overview() {
                 );})
               ) : (
                 <div className="col-span-2 py-8 text-center">
-                  <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No shows found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <Calendar className="mx-auto h-12 w-12" style={{ color: 'var(--t3)' }} />
+                  <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No shows found</h3>
+                  <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                     Try adjusting your filters or add a new show
                   </p>
                   <button
@@ -524,7 +527,8 @@ export default function Overview() {
                       setEditingShow(undefined);
                       setIsModalOpen(true);
                     }}
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                    style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
                   >
                     <Plus className="w-4 h-4" />
                     Add Show
@@ -538,12 +542,12 @@ export default function Overview() {
 
       {/* Right Column - Timeline Overview (1/3 width) */}
       <div className="lg:w-1/3">
-        <div className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
-          <div className="p-4 border-b border-gray-200">
+        <div className="shadow-md overflow-hidden flex flex-col h-[calc(100vh-12rem)]" style={{ backgroundColor: 'var(--surface)' }}>
+          <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-medium text-charcoal uppercase">EVENTS</h2>
-                <span className="text-sm text-gray-500">
+                <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>EVENTS</h2>
+                <span className="text-sm" style={{ color: 'var(--t3)' }}>
                   ({groupedEvents.reduce((acc, g) => acc + g.events.length, 0)} events)
                 </span>
               </div>
@@ -559,12 +563,13 @@ export default function Overview() {
             </div>
           </div>
 
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}>
             <div className="flex gap-2">
               <select
                 value={selectedEventType}
                 onChange={(e) => setSelectedEventType(e.target.value as any)}
-                className="text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary flex-1"
+                className="text-sm rounded-md shadow-sm focus:ring-primary flex-1"
+                style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Events</option>
                 <option value="show">Shows</option>
@@ -579,23 +584,24 @@ export default function Overview() {
               <div className="space-y-8">
                 {groupedEvents.map(({ monthYear, events }) => (
                   <div key={monthYear}>
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--t3)' }}>
                       {monthYear}
                     </h3>
 
-                    <div className="divide-y divide-gray-200 border-t border-b border-gray-200">
+                    <div style={{ borderTopColor: 'var(--border)', borderBottomColor: 'var(--border)', divideColor: 'var(--border)' }} className="divide-y">
                       {events.map(event => (
                         <div
                           key={event.id}
-                          className="py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                          className="py-3 cursor-pointer transition-colors"
+                          style={{ ':hover': { backgroundColor: 'var(--surface-2)' } }}
                           onClick={() => event.showId && navigate(`/live/show/${event.showId}`)}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-base font-semibold text-gray-900">
+                              <h4 className="text-base font-semibold" style={{ color: 'var(--t1)' }}>
                                 {event.title}
                               </h4>
-                              <p className="text-sm text-gray-500 mt-0.5">
+                              <p className="text-sm mt-0.5" style={{ color: 'var(--t3)' }}>
                                 {formatDate(event.date)} - {formatTime(event.time)}
                               </p>
                             </div>
@@ -619,9 +625,9 @@ export default function Overview() {
               </div>
             ) : (
               <div className="py-8 text-center">
-                <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No events found</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <Calendar className="mx-auto h-12 w-12" style={{ color: 'var(--t3)' }} />
+                <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No events found</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                   Try adjusting your filters or adding new events
                 </p>
               </div>

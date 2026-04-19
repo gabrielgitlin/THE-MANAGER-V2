@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Modal from '../Modal';
 import AvatarWithFallback from './AvatarWithFallback';
+import PlacesAutocomplete from '../ui/PlacesAutocomplete';
 import { createContact, updateContact, uploadContactPhoto } from '../../lib/contacts';
 import type {
   Contact, ContactCategory, ContactFormData, SeatingPreference, SocialLinks,
@@ -31,6 +32,7 @@ const EMPTY: ContactFormData = {
   socialLinks: {},
   proAffiliations: [],
   publisherAffiliations: [],
+  dateOfBirth: undefined,
   bio: '',
   notes: '',
   tags: [],
@@ -58,6 +60,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
           socialLinks: contact.socialLinks ?? {},
           proAffiliations: contact.proAffiliations ?? [],
           publisherAffiliations: contact.publisherAffiliations ?? [],
+          dateOfBirth: contact.dateOfBirth,
           bio: contact.bio ?? '',
           notes: contact.notes ?? '',
           tags: contact.tags ?? [],
@@ -140,6 +143,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
                     lastName: form.lastName || '?',
                     profilePhotoUrl: undefined,
                     socialLinks: form.socialLinks,
+                    category: form.category,
                   }}
                   size="xl"
                 />
@@ -202,9 +206,20 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
           </div>
         </div>
 
-        <div className="form-field">
-          <label>Website</label>
-          <input type="url" value={form.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://" />
+        <div className="form-row-2">
+          <div className="form-field">
+            <label>Website</label>
+            <input type="url" value={form.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://" />
+          </div>
+          <div className="form-field">
+            <label>Date of Birth</label>
+            <input
+              type="date"
+              value={form.dateOfBirth ?? ''}
+              onChange={(e) => set('dateOfBirth', e.target.value || undefined)}
+              style={{ colorScheme: 'dark' }}
+            />
+          </div>
         </div>
 
         {/* Address */}
@@ -213,7 +228,18 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
           <div className="space-y-3">
             <div className="form-field">
               <label>Street Address</label>
-              <input type="text" value={form.address ?? ''} onChange={(e) => set('address', e.target.value)} />
+              <PlacesAutocomplete
+                value={form.address ?? ''}
+                onChange={(val) => set('address', val)}
+                onPlaceSelect={(place) => {
+                  set('address', place.address);
+                  if (place.city) set('city', place.city);
+                  if (place.state) set('state', place.state);
+                  if (place.country) set('country', place.country);
+                  if (place.postalCode) set('postalCode', place.postalCode);
+                }}
+                placeholder="Search address…"
+              />
             </div>
             <div className="form-row-3">
               <div className="form-field">

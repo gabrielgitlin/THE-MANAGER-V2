@@ -59,7 +59,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Production Manager */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Production Manager</h3>
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--t1)' }}>Production Manager</h3>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -117,7 +117,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
 
         {/* Venue Contact */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Venue Contact</h3>
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--t1)' }}>Venue Contact</h3>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -175,7 +175,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
 
         {/* Schedule */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Day Schedule</h3>
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--t1)' }}>Day Schedule</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -267,7 +267,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
 
         {/* Catering */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Catering</h3>
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--t1)' }}>Catering</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -333,7 +333,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
 
         {/* Parking */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Parking</h3>
+          <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--t1)' }}>Parking</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -410,7 +410,7 @@ export default function ShowAdvancesModal({ isOpen, onClose, onSave, advances }:
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             Cancel
           </button>

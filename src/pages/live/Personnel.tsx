@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Search, Upload, Phone, Mail, User, Calendar, Flag, Import as Passport, Plane, MapPin, CreditCard, AlertCircle, FileText, X, DollarSign, Pencil } from 'lucide-react';
+import { Plus, Calendar, DollarSign } from 'lucide-react';
+import { TMDatePicker } from '../../components/ui/TMDatePicker';
 import Modal from '../../components/Modal';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -289,23 +290,18 @@ export default function Personnel() {
   return (
     <div>
       <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-charcoal font-title">Personnel Management</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage crew members, their schedules, and fees
-          </p>
-        </div>
         <button
           onClick={exportFeesReport}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+          className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+          style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
         >
           Export Fees Report
         </button>
       </div>
-      
+
       <div className="flex gap-4">
         {/* Personnel List */}
-        <div className="w-1/3 bg-white rounded-lg shadow-md">
+        <div className="w-1/3 rounded-lg shadow-md" style={{ backgroundColor: 'var(--surface)' }}>
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium">Personnel</h2>
@@ -320,7 +316,7 @@ export default function Personnel() {
               </button>
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <img src="/TM-Search-negro.svg" className="pxi-md icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
               <input
                 type="text"
                 placeholder="Search..."
@@ -345,10 +341,10 @@ export default function Personnel() {
 
         {/* Personnel Details */}
         {selectedMember && (
-          <div className="flex-1 bg-white rounded-lg shadow-md p-6">
+          <div className="flex-1 rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-charcoal">{selectedMember.name}</h2>
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--t1)' }}>{selectedMember.name}</h2>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-beige text-black">
                     {selectedMember.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
@@ -357,16 +353,17 @@ export default function Personnel() {
                     onClick={handleRemoveRole}
                     className="text-xs text-gray-500 hover:text-gray-700"
                   >
-                    <X className="w-3 h-3" />
+                    <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                   </button>
                   <button className="text-xs text-primary hover:text-black">
                     <Plus className="w-3 h-3" />
                   </button>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={handleExportContactPDF}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+                className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
               >
                 Share Contact
               </button>
@@ -375,12 +372,7 @@ export default function Personnel() {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Born</label>
-                <input
-                  type="date"
-                  value={selectedMember.birthDate || ''}
-                  onChange={(e) => handleUpdateSelectedMember({ birthDate: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                />
+                <TMDatePicker value={selectedMember.birthDate || ''} onChange={(date) => handleUpdateSelectedMember({ birthDate: date })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Phone</label>
@@ -412,7 +404,7 @@ export default function Personnel() {
                         onClick={handleRemoveGender}
                         className="text-xs text-gray-500 hover:text-gray-700"
                       >
-                        <X className="w-3 h-3" />
+                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                       </button>
                     </>
                   ) : (
@@ -434,7 +426,7 @@ export default function Personnel() {
                         onClick={handleRemoveNationality}
                         className="text-xs text-gray-500 hover:text-gray-700"
                       >
-                        <X className="w-3 h-3" />
+                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                       </button>
                     </>
                   ) : (
@@ -534,7 +526,7 @@ export default function Personnel() {
                         }}
                         className="p-1 text-gray-400 hover:text-primary"
                       >
-                        <Pencil className="w-4 h-4" />
+                        <img src="/TM-Pluma-negro.png" className="pxi-md icon-white" alt="" />
                       </button>
                     </div>
                   )}
@@ -666,7 +658,7 @@ export default function Personnel() {
                               onClick={() => setIsEditingFee(true)}
                               className="p-1 text-gray-400 hover:text-primary"
                             >
-                              <Pencil className="w-4 h-4" />
+                              <img src="/TM-Pluma-negro.png" className="pxi-md icon-white" alt="" />
                             </button>
                           </div>
                         )
@@ -675,7 +667,7 @@ export default function Personnel() {
                         onClick={() => handleRemoveShow(show.name)}
                         className="p-1 text-gray-400 hover:text-red-500"
                       >
-                        <X className="w-4 h-4" />
+                        <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                       </button>
                     </div>
                   </div>

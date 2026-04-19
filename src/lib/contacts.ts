@@ -50,6 +50,7 @@ function rowToContact(row: Record<string, unknown>): Contact {
     socialLinks: (row.social_links as Contact['socialLinks']) ?? {},
     proAffiliations: (row.pro_affiliations as Contact['proAffiliations']) ?? [],
     publisherAffiliations: (row.publisher_affiliations as Contact['publisherAffiliations']) ?? [],
+    dateOfBirth: (row.date_of_birth as string) ?? undefined,
     bio: (row.bio as string) ?? undefined,
     notes: (row.notes as string) ?? undefined,
     tags: (row.tags as string[]) ?? [],
@@ -101,6 +102,7 @@ export async function createContact(formData: ContactFormData): Promise<Contact>
       social_links: formData.socialLinks ?? {},
       pro_affiliations: formData.proAffiliations ?? [],
       publisher_affiliations: formData.publisherAffiliations ?? [],
+      date_of_birth: formData.dateOfBirth || null,
       bio: formData.bio || null,
       notes: formData.notes || null,
       tags: formData.tags ?? [],
@@ -131,6 +133,7 @@ export async function updateContact(id: string, formData: Partial<ContactFormDat
   if (formData.socialLinks !== undefined)           updates.social_links = formData.socialLinks;
   if (formData.proAffiliations !== undefined)       updates.pro_affiliations = formData.proAffiliations;
   if (formData.publisherAffiliations !== undefined) updates.publisher_affiliations = formData.publisherAffiliations;
+  if (formData.dateOfBirth !== undefined)           updates.date_of_birth = formData.dateOfBirth || null;
   if (formData.bio !== undefined)                   updates.bio = formData.bio || null;
   if (formData.notes !== undefined)                 updates.notes = formData.notes || null;
   if (formData.tags !== undefined)                  updates.tags = formData.tags;
@@ -356,4 +359,135 @@ export async function uploadContactPhoto(contactId: string, file: File): Promise
   if (error) throw error;
   const { data } = supabase.storage.from('contact-photos').getPublicUrl(filePath);
   return data.publicUrl;
+}
+
+// ─── Catalog → Team bulk sync ──────────────────────────────────────────────────
+
+/**
+ * One-shot sync: pulls every artist name from the `artists` table and from
+ * `albums.artist` / `albums.artist_contacts`, then calls syncArtistsToTeam so
+ * they all appear in the Team database with role "Artist".
+ * Returns the number of unique artist names found.
+ */
+export async function syncAllCatalogArtistsToTeam(): Promise<number> {
+  const collected: { name: string; role: string }[] = [];
+
+  try {
+    // 1. Pull from the dedicated artists table
+    const { data: artistRows } = await supabase
+      .from('artists')
+      .select('name');
+    for (const row of artistRows ?? []) {
+      if (row.name?.trim() && row.name.trim().toLowerCase() !== 'unknown artist') {
+        collected.push({ name: row.name.trim(), role: 'Artist' });
+      }
+    }
+
+    // 2. Pull from albums (artist string + artist_contacts jsonb)
+    const { data: albumRows } = await supabase
+      .from('albums')
+      .select('artist, artist_contacts');
+    for (const row of albumRows ?? []) {
+      // Prefer structured contacts (they may have IDs already resolved)
+      let parsed: { name: string }[] = [];
+      try {
+        const raw = row.artist_contacts;
+        if (raw && raw.length > 0) parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch { /* silent */ }
+
+      if (parsed.length > 0) {
+        parsed.forEach(c => {
+          if (c.name?.trim() && c.name.trim().toLowerCase() !== 'unknown artist') {
+            collected.push({ name: c.name.trim(), role: 'Artist' });
+          }
+        });
+      } else if (row.artist?.trim() && row.artist.trim().toLowerCase() !== 'unknown artist') {
+        collected.push({ name: row.artist.trim(), role: 'Artist' });
+      }
+    }
+  } catch (err) {
+    console.warn('syncAllCatalogArtistsToTeam: fetch failed:', err);
+    return 0;
+  }
+
+  if (!collected.length) return 0;
+  await syncArtistsToTeam(collected);
+  return collected.length;
+}
+
+// ─── Catalog → Team sync ────────────────────────────────────────────────────────
+
+/**
+ * Silently adds artists/collaborators from catalog saves to the Team database.
+ * - Skips blank names and "Unknown Artist".
+ * - If the contact already exists but has no role, updates it to the provided role.
+ * - Passes user_id on insert so RLS policies are satisfied.
+ * Never throws — failures are logged but don't break the catalog save flow.
+ */
+export async function syncArtistsToTeam(
+  artists: { name: string; role?: string }[]
+): Promise<void> {
+  const unique = artists.filter(
+    a => a.name?.trim() && a.name.trim().toLowerCase() !== 'unknown artist'
+  );
+  if (!unique.length) return;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Load existing contacts (id + names + role) for dedup
+    const { data: existing } = await supabase
+      .from('contacts')
+      .select('id, first_name, last_name, role');
+
+    // Map of lowercased full-name → contact row
+    const byName = new Map<string, { id: string; role: string | null }>(
+      (existing ?? []).map((c: any) => [
+        `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim().toLowerCase(),
+        { id: c.id, role: c.role ?? null },
+      ])
+    );
+
+    for (const { name, role } of unique) {
+      const trimmed = name.trim();
+      if (!trimmed) continue;
+
+      const key = trimmed.toLowerCase();
+      const existing = byName.get(key);
+
+      if (existing) {
+        // Contact already in Team — upgrade role to Artist if it was blank
+        if (role && !existing.role) {
+          await supabase.from('contacts').update({ role }).eq('id', existing.id);
+        }
+        continue;
+      }
+
+      // Split "First Last" → firstName = everything but last word, lastName = last word
+      const parts = trimmed.split(/\s+/);
+      const lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+      const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : trimmed;
+
+      const { error } = await supabase.from('contacts').insert({
+        user_id: user.id,
+        category: 'collaborator',
+        role: role || null,
+        first_name: firstName,
+        last_name: lastName,
+        social_links: {},
+        pro_affiliations: [],
+        publisher_affiliations: [],
+        tags: [],
+      });
+
+      if (error) {
+        console.warn(`syncArtistsToTeam: could not add "${trimmed}":`, error.message);
+      } else {
+        byName.set(key, { id: '', role: role ?? null });
+      }
+    }
+  } catch (err) {
+    console.warn('syncArtistsToTeam failed silently:', err);
+  }
 }

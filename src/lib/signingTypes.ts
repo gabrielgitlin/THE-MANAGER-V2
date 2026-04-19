@@ -70,6 +70,11 @@ export interface SigningAuditLog {
   created_at: string;
 }
 
+export interface CcRecipient {
+  name: string;
+  email: string;
+}
+
 export interface CreateSigningRequestInput {
   document_id: string;
   signing_order: SigningOrder;
@@ -78,6 +83,7 @@ export interface CreateSigningRequestInput {
   expires_at?: string;
   recipients: CreateRecipientInput[];
   fields: CreateFieldInput[];
+  cc?: CcRecipient[];
 }
 
 export interface CreateRecipientInput {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, X, Calendar, MapPin, Users, Music, Truck, Building, Coffee, Lightbulb, Mic, Speaker, Camera, Wifi, FileText } from 'lucide-react';
+import { DollarSign, Plus, Calendar, MapPin, Users, Music, Truck, Building, Coffee, Lightbulb, Speaker, Camera, Wifi } from 'lucide-react';
 import type { Budget, BudgetCategory, BudgetType } from '../../types';
 import { CREW_MEMBERS } from '../../data/logistics';
 
@@ -205,7 +205,7 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
       case 'Personnel':
         return <Users className="w-5 h-5" />;
       case 'Production':
-        return <Mic className="w-5 h-5" />;
+        return <img src="/TM-Mic-negro.svg" className="pxi-lg icon-muted" alt="" />;
       case 'Venue':
         return <Building className="w-5 h-5" />;
       case 'Travel':
@@ -217,70 +217,74 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
       case 'Catering':
         return <Coffee className="w-5 h-5" />;
       case 'Insurance':
-        return <FileText className="w-5 h-5" />;
+        return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
       default:
-        return <FileText className="w-5 h-5" />;
+        return <img src="/TM-File-negro.svg" className="pxi-lg icon-muted" alt="" />;
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-charcoal mb-4">Live Show Budget Template</h2>
-        <p className="text-sm text-gray-500">
-          This template includes common budget categories and items for live shows. 
+        <h2 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Live Show Budget Template</h2>
+        <p className="text-sm" style={{ color: 'var(--t2)' }}>
+          This template includes common budget categories and items for live shows.
           Customize it to fit your specific needs.
         </p>
       </div>
       
       {/* Show Details */}
-      <div className="bg-beige p-4 rounded-lg">
-        <h3 className="text-sm font-medium text-charcoal mb-3">Show Details</h3>
+      <div className="p-4" style={{ background: 'var(--surface-2)' }}>
+        <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t1)' }}>Show Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Show Name
             </label>
             <input
               type="text"
               value={showName}
               onChange={(e) => setShowName(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               placeholder="e.g., Summer Tour 2025"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Date
             </label>
             <input
               type="date"
               value={showDate}
               onChange={(e) => setShowDate(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Venue
             </label>
             <input
               type="text"
               value={showVenue}
               onChange={(e) => setShowVenue(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               placeholder="e.g., Madison Square Garden"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               City
             </label>
             <input
               type="text"
               value={showCity}
               onChange={(e) => setShowCity(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
               placeholder="e.g., New York"
             />
           </div>
@@ -289,16 +293,20 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
       
       {/* Budget Categories */}
       <div>
-        <h3 className="text-sm font-medium text-charcoal mb-3">Budget Categories</h3>
+        <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t1)' }}>Budget Categories</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {DEFAULT_CATEGORIES.map(category => (
             <div
               key={category.id}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+              className={`p-4 border-2 cursor-pointer transition-opacity hover:opacity-80 ${
                 selectedCategories.includes(category.id)
-                  ? 'border-primary bg-beige'
-                  : 'border-gray-200 hover:border-gray'
+                  ? 'border-primary'
+                  : ''
               }`}
+              style={{
+                background: selectedCategories.includes(category.id) ? 'var(--surface-2)' : 'var(--surface)',
+                borderColor: selectedCategories.includes(category.id) ? 'var(--primary)' : 'var(--border)'
+              }}
               onClick={() => handleToggleCategory(category.id)}
             >
               <div className="flex items-center justify-between">
@@ -307,11 +315,11 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
                     {getCategoryIcon(category.name)}
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-charcoal">{category.name}</h4>
-                    <p className="text-xs text-gray-500">{category.description}</p>
+                    <h4 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{category.name}</h4>
+                    <p className="text-xs" style={{ color: 'var(--t2)' }}>{category.description}</p>
                   </div>
                 </div>
-                <div className="text-sm font-medium text-black">
+                <div className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   ${categoryTotals[category.name] || 0}
                 </div>
               </div>
@@ -322,29 +330,29 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
       
       {/* Budget Items */}
       <div>
-        <h3 className="text-sm font-medium text-charcoal mb-3">Budget Items</h3>
-        
+        <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t1)' }}>Budget Items</h3>
+
         {DEFAULT_CATEGORIES.filter(cat => selectedCategories.includes(cat.id)).map(category => (
           <div key={category.id} className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-gray-700">{category.name}</h4>
+              <h4 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{category.name}</h4>
               <button
                 type="button"
                 onClick={() => handleAddItem(category.name)}
-                className="text-xs text-primary hover:text-black flex items-center gap-1"
+                className="text-xs text-primary hover:opacity-80 flex items-center gap-1"
               >
                 <Plus className="w-3 h-3" />
                 Add Item
               </button>
             </div>
-            
+
             <div className="space-y-2">
               {budgetItems
                 .filter(item => item.category === category.name)
                 .map((item, index) => {
                   const itemIndex = budgetItems.indexOf(item);
                   return (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center gap-3 p-3" style={{ background: 'var(--surface-2)' }}>
                       <div className="flex-1">
                         <input
                           type="text"
@@ -354,19 +362,21 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
                             updatedItems[itemIndex] = { ...item, description: e.target.value };
                             setBudgetItems(updatedItems);
                           }}
-                          className="block w-full bg-transparent border-none focus:ring-0 text-sm"
+                          className="block w-full border-none focus:ring-0 text-sm"
+                          style={{ background: 'transparent', color: 'var(--t1)' }}
                           placeholder="Description"
                         />
                       </div>
                       <div className="w-32 relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <DollarSign className="h-4 w-4 text-gray-400" />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--t2)' }}>
+                          <DollarSign className="h-4 w-4" />
                         </div>
                         <input
                           type="number"
                           value={item.amount}
                           onChange={(e) => handleUpdateItemAmount(itemIndex, Number(e.target.value))}
-                          className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="pl-7 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                           min="0"
                           step="10"
                         />
@@ -374,9 +384,10 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(itemIndex)}
-                        className="p-1 text-gray-400 hover:text-red-500"
+                        className="p-1 hover:text-red-500"
+                        style={{ color: 'var(--t2)' }}
                       >
-                        <X className="w-4 h-4" />
+                        <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
                       </button>
                     </div>
                   );
@@ -387,26 +398,27 @@ export default function ShowBudgetTemplate({ onApply, onCancel, showId }: ShowBu
       </div>
       
       {/* Total Budget */}
-      <div className="bg-beige p-4 rounded-lg">
+      <div className="p-4" style={{ background: 'var(--surface-2)' }}>
         <div className="flex justify-between items-center">
-          <h3 className="text-sm font-medium text-charcoal">Total Budget</h3>
-          <span className="text-xl font-bold text-black">${totalBudget}</span>
+          <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Total Budget</h3>
+          <span className="text-xl font-bold" style={{ color: 'var(--t1)' }}>${totalBudget}</span>
         </div>
       </div>
-      
+
       {/* Actions */}
       <div className="flex justify-end gap-3 pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium border hover:opacity-80"
+          style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={handleApplyTemplate}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
         >
           Apply Template
         </button>

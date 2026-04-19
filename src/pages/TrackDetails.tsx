@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Disc, Calendar, Tag, Globe, Share2, Download, Play, Pause, ExternalLink, Pencil, File } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Track, CreditShare, DigitalAsset, Album } from '../types';
+import type { Track, CreditShare, Album } from '../types';
 import { CATALOG } from '../data/catalog';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
-import DigitalAssetUploader, { AssetCategory } from '../components/catalog/DigitalAssetUploader';
+import DigitalAssetUploader from '../components/catalog/DigitalAssetUploader';
+import { listAssets as listDigitalAssets } from '../lib/digitalAssetService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 
@@ -19,12 +20,15 @@ export default function TrackDetails() {
   const [track, setTrack] = useState<Track | null>(null);
   const [album, setAlbum] = useState<Album | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
+  const [showSpotifyEmbed, setShowSpotifyEmbed] = useState(false);
 
   useEffect(() => {
     const fetchTrack = async () => {
       if (!user) {
-        const catalogTrack = CATALOG.flatMap(album => album.tracks).find(t => t.id === Number(id));
+        const numericId = Number(id);
+        const catalogTrack = !Number.isNaN(numericId)
+          ? CATALOG.flatMap(album => album.tracks).find(t => t.id === numericId)
+          : null;
         const catalogAlbum = catalogTrack ? CATALOG.find(a => a.id === catalogTrack.albumId) : null;
         setTrack(catalogTrack || null);
         setAlbum(catalogAlbum || null);
@@ -68,12 +72,15 @@ export default function TrackDetails() {
               id,
               title,
               release_date,
-              cover_url,
+              artwork_url,
               format,
               status,
               genres_array,
               spotify_url,
+              label,
+              upc,
               artist_id,
+              artist,
               artists (
                 name
               )
@@ -82,21 +89,22 @@ export default function TrackDetails() {
           .eq('track_id', id)
           .maybeSingle();
 
-        const albumData = albumTrackData?.albums;
+        const albumData: any = (albumTrackData as any)?.albums;
 
         if (albumData) {
+          const artistName = albumData.artists?.name || albumData.artist || 'Unknown Artist';
           const formattedAlbum: Album = {
             id: albumData.id as any,
             title: albumData.title,
-            artist: albumData.artists?.name || 'Unknown Artist',
+            artist: artistName,
             releaseDate: albumData.release_date,
-            artworkUrl: albumData.cover_url,
+            artworkUrl: albumData.artwork_url,
             format: albumData.format as 'Album' | 'EP' | 'Single',
             status: albumData.status,
             genres: albumData.genres_array || [],
-            label: '',
+            label: albumData.label || '',
             distributor: '',
-            upc: '',
+            upc: albumData.upc || '',
             spotifyUrl: albumData.spotify_url,
             tracks: [],
             artistCredits: [],
@@ -108,7 +116,7 @@ export default function TrackDetails() {
           const formattedTrack: Track = {
             id: trackData.id as any,
             title: trackData.title,
-            duration: formatDuration(trackData.duration || 0),
+            duration: formatDuration(Number(trackData.duration) || 0),
             trackNumber: albumTrackData?.track_number || 1,
             isrc: trackData.isrc || '',
             spotifyUri: trackData.spotify_url ? `spotify:track:${trackData.spotify_id}` : undefined,
@@ -120,12 +128,15 @@ export default function TrackDetails() {
           setAlbum(formattedAlbum);
           setTrack(formattedTrack);
         }
-      } catch (err) {
-        console.error('Error fetching track:', err);
-        const catalogTrack = CATALOG.flatMap(album => album.tracks).find(t => t.id === Number(id));
-        const catalogAlbum = catalogTrack ? CATALOG.find(a => a.id === catalogTrack.albumId) : null;
-        setTrack(catalogTrack || null);
-        setAlbum(catalogAlbum || null);
+      } catch (err: any) {
+        console.error('Error fetching track:', err?.message || err, err);
+        const numericId = Number(id);
+        if (!Number.isNaN(numericId)) {
+          const catalogTrack = CATALOG.flatMap(album => album.tracks).find(t => t.id === numericId);
+          const catalogAlbum = catalogTrack ? CATALOG.find(a => a.id === catalogTrack.albumId) : null;
+          setTrack(catalogTrack || null);
+          setAlbum(catalogAlbum || null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -148,63 +159,72 @@ export default function TrackDetails() {
     currentTrackIndex 
   } = useMusicPlayerStore();
 
+  const getTrackPlayMode = (t: { audioUrl?: string; spotifyUri?: string }) => {
+    if (t.audioUrl) return 'native' as const;
+    if (t.spotifyUri) return 'spotify' as const;
+    return 'none' as const;
+  };
+
+  const spotifyUriToUrl = (uri: string) => {
+    const id = uri.replace('spotify:track:', '');
+    return `https://open.spotify.com/track/${id}`;
+  };
+
   const handlePlayPause = () => {
     if (!track || !album) return;
 
-    const currentTrack = tracks[currentTrackIndex];
-    if (currentTrack?.id === track.id) {
-      togglePlayPause();
-    } else {
-      playTrack({
-        id: track.id,
-        title: track.title,
-        artist: album.artist,
-        duration: track.duration || '0:00',
-        audioUrl: track.audioUrl,
-        coverArt: album.artworkUrl
-      });
+    const mode = getTrackPlayMode(track);
+
+    if (mode === 'spotify' && track.spotifyUri) {
+      setShowSpotifyEmbed(prev => !prev);
+      return;
+    }
+    setShowSpotifyEmbed(false);
+
+    if (mode === 'native') {
+      const currentTrack = tracks[currentTrackIndex];
+      if (currentTrack?.id === track.id) {
+        togglePlayPause();
+      } else {
+        playTrack({
+          id: track.id,
+          title: track.title,
+          artist: album.artist,
+          duration: track.duration || '0:00',
+          audioUrl: track.audioUrl,
+          coverArt: album.artworkUrl
+        });
+      }
     }
   };
 
   const isCurrentTrackPlaying = tracks[currentTrackIndex]?.id === track?.id && isPlaying;
+  const playMode = track ? getTrackPlayMode(track) : 'none';
 
-  const handleAddAsset = (asset: DigitalAsset) => {
-    setDigitalAssets([...digitalAssets, asset]);
-  };
-
-  const handleDeleteAsset = (assetId: string) => {
-    setDigitalAssets(digitalAssets.filter(asset => asset.id !== assetId));
-  };
-
-  const handleUpdateAsset = (updatedAsset: DigitalAsset) => {
-    setDigitalAssets(digitalAssets.map(asset => 
-      asset.id === updatedAsset.id ? updatedAsset : asset
-    ));
-  };
 
   const renderCreditList = (credits: CreditShare[]) => (
     <div className="space-y-2">
       {credits.map((credit, index) => (
-        <div key={index} className="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg">
+        <div key={index} className="flex flex-col gap-2 p-3 rounded-lg" style={{ backgroundColor: 'var(--surface-2)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-900">{credit.name}</span>
+            <span className="text-sm" style={{ color: 'var(--t1)' }}>{credit.name}</span>
             {typeof credit.masterPercentage !== 'undefined' && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm" style={{ color: 'var(--t2)' }}>
                 Master: {credit.masterPercentage}%
               </span>
             )}
             {typeof credit.publishingPercentage !== 'undefined' && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm" style={{ color: 'var(--t2)' }}>
                 Publishing: {credit.publishingPercentage}%
               </span>
             )}
           </div>
           {credit.pros && credit.pros.length > 0 && (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500">PRO:</span>
+              <span style={{ color: 'var(--t2)' }}>PRO:</span>
               <div className="flex gap-1">
                 {credit.pros.map((pro, idx) => (
-                  <span key={idx} className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                  <span key={idx} className="px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--brand-1)', color: 'white' }}>
                     {pro.name} ({pro.ipiNumber})
                   </span>
                 ))}
@@ -213,10 +233,10 @@ export default function TrackDetails() {
           )}
           {credit.publishers && credit.publishers.length > 0 && (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500">Publisher:</span>
+              <span style={{ color: 'var(--t2)' }}>Publisher:</span>
               <div className="flex gap-1">
                 {credit.publishers.map((pub, idx) => (
-                  <span key={idx} className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+                  <span key={idx} className="status-badge badge-green">
                     {pub.name} ({pub.ipiNumber})
                   </span>
                 ))}
@@ -228,6 +248,10 @@ export default function TrackDetails() {
     </div>
   );
 
+  const isDemo = album?.status === 'demo';
+  const backUrl = isDemo ? '/catalog?tab=demos' : '/catalog';
+  const backLabel = isDemo ? 'Back to Demos' : 'Back to Catalog';
+
   if (isLoading) {
     return <LoadingSpinner fullScreen={false} />;
   }
@@ -235,13 +259,13 @@ export default function TrackDetails() {
   if (!track || !album) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Track Not Found</h2>
-        <p className="text-gray-600 mb-8">The track you're looking for doesn't exist or has been removed.</p>
+        <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--t1)' }}>Track Not Found</h2>
+        <p className="mb-8" style={{ color: 'var(--t2)' }}>The track you're looking for doesn't exist or has been removed.</p>
         <button
-          onClick={() => navigate('/catalog')}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          onClick={() => navigate(backUrl)}
+          className="px-4 py-2 bg-primary text-white hover:bg-primary/90"
         >
-          Return to Catalog
+          {backLabel}
         </button>
       </div>
     );
@@ -251,27 +275,39 @@ export default function TrackDetails() {
     <div>
       <div className="mb-8">
         <button
-          onClick={() => navigate('/catalog')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          onClick={() => navigate(backUrl)}
+          className="flex items-center gap-2 text-sm mb-4 hover:opacity-80"
+          style={{ color: 'var(--t2)' }}
         >
           <ChevronLeft className="w-4 h-4" />
-          Back to Catalog
+          {backLabel}
         </button>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
-            <button
-              onClick={handlePlayPause}
-              className="p-3 bg-primary text-white rounded-full hover:bg-primary/90"
-            >
-              {isCurrentTrackPlaying ? (
-                <Pause className="w-6 h-6" />
-              ) : (
-                <Play className="w-6 h-6" />
-              )}
-            </button>
+            {playMode === 'none' ? (
+              <img src="/pixel-play.svg" alt="Play" className="w-14 h-14" style={{ opacity: 0.3 }} />
+            ) : (
+              <button
+                onClick={handlePlayPause}
+                className="hover:opacity-80 transition-opacity"
+                style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
+                title={playMode === 'spotify' ? 'Play on Spotify' : isCurrentTrackPlaying ? 'Pause' : 'Play'}
+              >
+                {playMode === 'native' && isCurrentTrackPlaying ? (
+                  <img src="/TM-Pause-negro.svg" className="pxi-xl icon-white" alt="" />
+                ) : (
+                  <img
+                    src="/pixel-play.svg"
+                    alt="Play"
+                    className="w-14 h-14"
+                    style={playMode === 'spotify' ? { filter: 'invert(56%) sepia(95%) saturate(335%) hue-rotate(95deg) brightness(95%)' } : undefined}
+                  />
+                )}
+              </button>
+            )}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 font-title">{track.title}</h1>
-              <p className="mt-1 text-sm text-gray-500">{album.artist}</p>
+              <h1 className="text-2xl font-bold font-title" style={{ color: 'var(--t1)' }}>{track.title}</h1>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t2)' }}>{album.artist}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -290,13 +326,14 @@ export default function TrackDetails() {
                   alert('Link copied to clipboard!');
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:opacity-80"
+              style={{ color: 'var(--t1)', backgroundColor: 'var(--surface)', border: `1px solid var(--border)` }}
             >
-              <Share2 className="w-4 h-4" />
+              <img src="/TM-Share-negro.svg" className="pxi-md icon-muted" alt="" />
               Share
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 const doc = new jsPDF();
 
                 // Add title and artist
@@ -385,13 +422,19 @@ export default function TrackDetails() {
                 doc.text('Digital Assets', 14, yPos);
                 yPos += 10;
 
-                const assets = digitalAssets.map(asset => [
-                  asset.name,
-                  asset.category.charAt(0).toUpperCase() + asset.category.slice(1),
-                  formatFileSize(asset.size),
-                  new Date(asset.uploadDate).toLocaleDateString(),
-                  asset.description || 'N/A',
-                ]);
+                let assets: Array<[string, string, string, string, string]> = [];
+                try {
+                  const rows = await listDigitalAssets('track', String(track.id));
+                  assets = rows.map((a) => [
+                    a.name,
+                    a.category.charAt(0).toUpperCase() + a.category.slice(1),
+                    a.source_type === 'upload' ? formatFileSize(a.file_size || 0) : a.source_type,
+                    new Date(a.created_at).toLocaleDateString(),
+                    a.description || 'N/A',
+                  ]);
+                } catch (err) {
+                  console.warn('Could not fetch assets for PDF export:', err);
+                }
 
                 if (assets.length > 0) {
                   autoTable(doc, {
@@ -429,36 +472,51 @@ export default function TrackDetails() {
 
                 doc.save(`${album.artist} - ${track.title}.pdf`);
               }}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90"
             >
-              <Download className="w-4 h-4" />
+              <img src="/TM-Download-negro.svg" className="pxi-md icon-white" alt="" />
               Export PDF
             </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {showSpotifyEmbed && track.spotifyUri && (
+        <div style={{ marginBottom: 16 }}>
+          <iframe
+            src={`https://open.spotify.com/embed/track/${track.spotifyUri.replace('spotify:track:', '')}?utm_source=generator&theme=0`}
+            width="100%"
+            height="80"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            style={{ border: 'none', display: 'block' }}
+            title="Spotify player"
+          />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ color: 'var(--t1)' }}>
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-8">
           {/* Quick Stats */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <div className="text-sm font-medium text-gray-500">Album</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-900">{album.title}</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Album</div>
+                <div className="mt-1 text-2xl font-semibold" style={{ color: 'var(--t1)' }}>{album.title}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500">Track Number</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-900">{track.trackNumber}</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Track Number</div>
+                <div className="mt-1 text-2xl font-semibold" style={{ color: 'var(--t1)' }}>{track.trackNumber}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500">Duration</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-900">{track.duration}</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Duration</div>
+                <div className="mt-1 text-2xl font-semibold" style={{ color: 'var(--t1)' }}>{track.duration}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500">Release Date</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-900">
+                <div className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Release Date</div>
+                <div className="mt-1 text-2xl font-semibold" style={{ color: 'var(--t1)' }}>
                   {new Date(album.releaseDate).toLocaleDateString()}
                 </div>
               </div>
@@ -466,44 +524,40 @@ export default function TrackDetails() {
           </div>
 
           {/* Credits */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-6">Credits</h2>
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
+            <h2 className="text-lg font-medium mb-6" style={{ color: 'var(--t1)' }}>Credits</h2>
             <div className="grid grid-cols-1 gap-8">
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Artist</h3>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>Artist</h3>
                 {renderCreditList(album.artistCredits)}
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Songwriters & Publishing</h3>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>Songwriters & Publishing</h3>
                 {renderCreditList(track.songwriters)}
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Producers</h3>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>Producers</h3>
                 {renderCreditList(album.producers)}
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Mix Engineers</h3>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>Mix Engineers</h3>
                 {renderCreditList(album.mixEngineers)}
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Mastering Engineers</h3>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--t2)' }}>Mastering Engineers</h3>
                 {renderCreditList(album.masteringEngineers)}
               </div>
             </div>
           </div>
 
           {/* Digital Assets */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <DigitalAssetUploader
-              assets={digitalAssets}
-              onAssetAdd={handleAddAsset}
-              onAssetDelete={handleDeleteAsset}
-              onAssetUpdate={handleUpdateAsset}
-              entityId={track.id}
+              entityId={String(track.id)}
               entityType="track"
             />
           </div>
@@ -512,11 +566,11 @@ export default function TrackDetails() {
         {/* Sidebar */}
         <div className="space-y-8">
           {/* Metadata */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-6">Metadata</h2>
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
+            <h2 className="text-lg font-medium mb-6" style={{ color: 'var(--t1)' }}>Metadata</h2>
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Genres</h3>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Genres</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {album.genres.map((genre) => (
                     <span
@@ -529,34 +583,35 @@ export default function TrackDetails() {
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Label</h3>
-                <p className="mt-1 text-sm text-gray-900">{album.label}</p>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Label</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>{album.label}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Distributor</h3>
-                <p className="mt-1 text-sm text-gray-900">{album.distributor}</p>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Distributor</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>{album.distributor}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">ISRC</h3>
-                <p className="mt-1 text-sm text-gray-900">{track.isrc}</p>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>ISRC</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>{track.isrc}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">UPC</h3>
-                <p className="mt-1 text-sm text-gray-900">{album.upc}</p>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>UPC</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>{album.upc}</p>
               </div>
             </div>
           </div>
 
           {/* Streaming Links */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-6">Streaming Links</h2>
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
+            <h2 className="text-lg font-medium mb-6" style={{ color: 'var(--t1)' }}>Streaming Links</h2>
             <div className="space-y-4">
               {track.spotifyUri && (
                 <a
                   href={`https://open.spotify.com/track/${track.spotifyUri.split(':')[2]}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-3 px-4 py-2 text-sm hover:opacity-80"
+                  style={{ color: 'var(--t1)', backgroundColor: 'var(--surface-2)' }}
                 >
                   <img src="/tm-vinil-negro_(2).png" alt="Spotify" className="w-4 h-4 object-contain" />
                   Open in Spotify
@@ -567,7 +622,8 @@ export default function TrackDetails() {
                   href={`https://music.apple.com/us/album/${track.appleId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-3 px-4 py-2 text-sm hover:opacity-80"
+                  style={{ color: 'var(--t1)', backgroundColor: 'var(--surface-2)' }}
                 >
                   <img src="/tm-vinil-negro_(2).png" alt="Apple Music" className="w-4 h-4 object-contain" />
                   Open in Apple Music

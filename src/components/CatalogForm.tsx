@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, X, Image, FileText, Calendar, Globe, Tag } from 'lucide-react';
+import { Plus, Image, Globe, Tag } from 'lucide-react';
 import type { Track, CreditShare } from '../types';
+import { TMDatePicker } from './ui/TMDatePicker';
+import { ContactTagInput, type ContactTag } from './ui/ContactTagInput';
 
 const VinylIcon = ({ className }: { className?: string }) => (
   <img src="/tm-vinil-negro_(2).png" alt="Music" className={className} style={{ objectFit: 'contain' }} />
@@ -12,10 +14,12 @@ interface CreditFormProps {
   type: 'producers' | 'songwriters' | 'mixEngineers' | 'masteringEngineers';
   showMaster?: boolean;
   showPublishing?: boolean;
+  preferRole?: string;
 }
 
-function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing = true }: CreditFormProps) {
+function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing = true, preferRole }: CreditFormProps) {
   const [newCredit, setNewCredit] = useState<CreditShare>({ name: '' });
+  const [newCreditTag, setNewCreditTag] = useState<ContactTag[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +51,7 @@ function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing
     if (validatePercentages(updatedCredits)) {
       onUpdate(updatedCredits);
       setNewCredit({ name: '' });
+      setNewCreditTag([]);
       setIsAdding(false);
     }
   };
@@ -111,7 +116,7 @@ function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing
               onClick={() => onUpdate(credits.filter((_, i) => i !== index))}
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
             </button>
           </div>
         </div>
@@ -124,13 +129,18 @@ function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing
       {isAdding ? (
         <div className="flex items-center gap-6 p-3 bg-gray-50 rounded-lg">
           <div className="flex-1 min-w-0">
-            <input
-              type="text"
-              value={newCredit.name}
-              onChange={(e) => setNewCredit({ ...newCredit, name: e.target.value })}
-              className="block w-full text-sm border-gray-300 rounded-md focus:border-primary focus:ring-primary"
-              placeholder="Name"
-              autoFocus
+            <ContactTagInput
+              value={newCreditTag}
+              onChange={(tags) => {
+                // Single-select: keep only the last added tag
+                const next = tags.length > 1 ? [tags[tags.length - 1]] : tags;
+                setNewCreditTag(next);
+                setNewCredit({ ...newCredit, name: next[0]?.name || '' });
+              }}
+              placeholder="Search contact…"
+              preferRole={preferRole}
+              size="sm"
+              autoSync={false}
             />
           </div>
           {showMaster && (
@@ -178,6 +188,7 @@ function CreditForm({ credits, onUpdate, type, showMaster = true, showPublishing
               onClick={() => {
                 setIsAdding(false);
                 setNewCredit({ name: '' });
+                setNewCreditTag([]);
               }}
               className="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
@@ -204,6 +215,7 @@ interface CatalogFormProps {
   formData: {
     title: string;
     artist: string;
+    artistTags: ContactTag[];
     genres: string[];
     format: string;
     releaseDate?: string;
@@ -224,7 +236,7 @@ interface CatalogFormProps {
     lyrics?: string;
     newGenre: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<typeof formData>>;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: 'artwork' | 'audio' | 'lyrics') => void;
   handleSubmit: (e: React.FormEvent) => void;
   editingTrackId: number | null;
@@ -242,33 +254,23 @@ export default function CatalogForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {[
-            { id: 'basic', label: 'Basic Info', icon: VinylIcon },
-            { id: 'media', label: 'Media & Assets', icon: Image },
-            { id: 'metadata', label: 'Metadata', icon: Tag },
-            { id: 'credits', label: 'Credits & Rights', icon: Globe },
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setCurrentTab(id as typeof currentTab)}
-              className={`group pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
-                currentTab === id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Icon className={`w-4 h-4 ${
-                currentTab === id
-                  ? 'text-primary'
-                  : 'text-gray-400 group-hover:text-gray-500'
-              }`} />
-              {label}
-            </button>
-          ))}
-        </nav>
+      <div className="sub-tabs">
+        {[
+          { id: 'basic', label: 'Basic Info', icon: VinylIcon },
+          { id: 'media', label: 'Media & Assets', icon: Image },
+          { id: 'metadata', label: 'Metadata', icon: Tag },
+          { id: 'credits', label: 'Credits & Rights', icon: Globe },
+        ].map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setCurrentTab(id as typeof currentTab)}
+            className={`sub-tab ${currentTab === id ? 'active' : ''}`}
+          >
+            <Icon className="tab-icon" />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Basic Info Tab */}
@@ -290,17 +292,17 @@ export default function CatalogForm({
           </div>
 
           <div>
-            <label htmlFor="artist" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700">
               Artist
             </label>
-            <input
-              type="text"
-              id="artist"
-              value={formData.artist}
-              onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              placeholder="Optional"
-            />
+            <div className="mt-1">
+              <ContactTagInput
+                value={formData.artistTags ?? []}
+                onChange={(tags) => setFormData({ ...formData, artistTags: tags, artist: tags.map((t: ContactTag) => t.name).join(', ') })}
+                placeholder="Search or add artist…"
+                preferRole="Artist"
+              />
+            </div>
           </div>
 
           <div>
@@ -449,12 +451,9 @@ export default function CatalogForm({
               <label htmlFor="releaseDate" className="block text-sm font-medium text-gray-700">
                 Release Date
               </label>
-              <input
-                type="date"
-                id="releaseDate"
+              <TMDatePicker
                 value={formData.releaseDate}
-                onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                onChange={(date) => setFormData({ ...formData, releaseDate: date })}
               />
             </div>
 
@@ -564,7 +563,7 @@ export default function CatalogForm({
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Artist
+              Artist Credits
             </label>
             <div className="mt-2">
               <CreditForm
@@ -573,6 +572,7 @@ export default function CatalogForm({
                 type="producers"
                 showMaster={true}
                 showPublishing={false}
+                preferRole="Artist"
               />
             </div>
           </div>
@@ -588,6 +588,7 @@ export default function CatalogForm({
                 type="producers"
                 showMaster={true}
                 showPublishing={false}
+                preferRole="Producer"
               />
             </div>
           </div>
@@ -603,6 +604,7 @@ export default function CatalogForm({
                 type="songwriters"
                 showMaster={false}
                 showPublishing={true}
+                preferRole="Songwriter"
               />
             </div>
           </div>
@@ -618,6 +620,7 @@ export default function CatalogForm({
                 type="mixEngineers"
                 showMaster={true}
                 showPublishing={false}
+                preferRole="Mix Engineer"
               />
             </div>
           </div>
@@ -633,6 +636,7 @@ export default function CatalogForm({
                 type="masteringEngineers"
                 showMaster={true}
                 showPublishing={false}
+                preferRole="Mastering Engineer"
               />
             </div>
           </div>

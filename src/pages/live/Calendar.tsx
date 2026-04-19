@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, MapPin, Clock, Users, Info, Settings, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, MapPin, Clock, Users, Settings } from 'lucide-react';
 import Modal from '../../components/Modal';
 import CalendarConnectionModal from '../../components/calendar/CalendarConnectionModal';
 
@@ -80,13 +80,13 @@ export default function Calendar() {
   return (
     <div>
       {/* Calendar Integration Banner */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+      <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', border: '1px solid' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Calendar Integrations
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs" style={{ color: 'var(--t3)' }}>
               Connect Google Calendar, iCal, and more
             </p>
           </div>
@@ -94,9 +94,10 @@ export default function Calendar() {
             <button
               onClick={handleSyncCalendars}
               disabled={isSyncing}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md hover:opacity-80 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', border: '1px solid' }}
             >
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              <img src="/TM-Refresh-negro.svg" className={`pxi-md icon-white ${isSyncing ? 'animate-spin' : ''}`} alt="" />
               {isSyncing ? 'Syncing...' : 'Sync Now'}
             </button>
             <button
@@ -104,7 +105,8 @@ export default function Calendar() {
                 console.log('Opening calendar connections modal');
                 setIsCalendarConnectionsModalOpen(true);
               }}
-              className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-lg border-2 border-blue-700"
+              className="px-5 py-2.5 text-sm font-bold rounded-lg hover:opacity-80 shadow-lg"
+              style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)', borderColor: 'var(--brand-2)', border: '2px solid' }}
             >
               <span className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
@@ -117,10 +119,10 @@ export default function Calendar() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-lg font-medium text-gray-900">
+          <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm" style={{ color: 'var(--t3)' }}>
             {monthEvents.length} events this month
           </p>
         </div>
@@ -137,25 +139,25 @@ export default function Calendar() {
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-md hover:opacity-80" style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}>
             <Plus className="w-4 h-4" />
             Add Event
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="rounded-lg shadow overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
         {/* Calendar Header */}
-        <div className="grid grid-cols-7 gap-px border-b">
+        <div className="grid grid-cols-7 gap-px" style={{ borderBottom: '1px solid var(--border)' }}>
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="px-4 py-2 text-sm font-medium text-gray-900 text-center">
+            <div key={day} className="px-4 py-2 text-sm font-medium text-center" style={{ color: 'var(--t1)' }}>
               {day}
             </div>
           ))}
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-px bg-gray-200">
+        <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: 'var(--border)' }}>
           {Array.from({ length: 42 }, (_, i) => {
             const dayNumber = i - firstDayOfMonth + 1;
             const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
@@ -164,9 +166,8 @@ export default function Calendar() {
             return (
               <div
                 key={i}
-                className={`min-h-[120px] bg-white ${
-                  isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                }`}
+                className={`min-h-[120px]`}
+                style={{ backgroundColor: isCurrentMonth ? 'var(--surface)' : 'var(--surface-2)', color: isCurrentMonth ? 'var(--t1)' : 'var(--t3)' }}
               >
                 <div className="px-3 py-2">
                   <span className="text-sm">{isCurrentMonth ? dayNumber : ''}</span>
@@ -177,7 +178,8 @@ export default function Calendar() {
                         setSelectedEvent(event);
                         setIsModalOpen(true);
                       }}
-                      className="w-full mt-1 px-2 py-1 text-left text-sm bg-primary/10 text-primary rounded hover:bg-primary/20"
+                      className="w-full mt-1 px-2 py-1 text-left text-sm rounded hover:opacity-80"
+                      style={{ backgroundColor: 'var(--brand-1)', color: 'var(--surface)' }}/10',' opacity:0.1' }}
                     >
                       {event.title}
                     </button>
@@ -201,36 +203,34 @@ export default function Calendar() {
         {selectedEvent && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">{selectedEvent.title}</h3>
-              <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                selectedEvent.status === 'upcoming'
-                  ? 'bg-green-100 text-green-800'
-                  : selectedEvent.status === 'cancelled'
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
+              <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>{selectedEvent.title}</h3>
+              <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`}
+                style={{
+                  backgroundColor: selectedEvent.status === 'upcoming' ? 'var(--status-green)' : selectedEvent.status === 'cancelled' ? 'var(--status-red)' : 'var(--surface-2)',
+                  color: 'var(--t1)'
+                }}>
                 {selectedEvent.status.charAt(0).toUpperCase() + selectedEvent.status.slice(1)}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-start gap-2">
-                <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+                <Clock className="w-5 h-5 mt-0.5" style={{ color: 'var(--t3)' }} />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Time</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Time</p>
+                  <p className="text-sm" style={{ color: 'var(--t3)' }}>
                     {selectedEvent.startTime} - {selectedEvent.endTime}
                   </p>
-                  <p className="text-xs text-gray-500">{selectedEvent.timezone}</p>
+                  <p className="text-xs" style={{ color: 'var(--t3)' }}>{selectedEvent.timezone}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-2">
-                <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                <MapPin className="w-5 h-5 mt-0.5" style={{ color: 'var(--t3)' }} />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Venue</p>
-                  <p className="text-sm text-gray-500">{selectedEvent.venue.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Venue</p>
+                  <p className="text-sm" style={{ color: 'var(--t2)' }}>{selectedEvent.venue.name}</p>
+                  <p className="text-xs" style={{ color: 'var(--t3)' }}>
                     {selectedEvent.venue.city}, {selectedEvent.venue.country}
                   </p>
                 </div>
@@ -239,14 +239,15 @@ export default function Calendar() {
 
             {selectedEvent.venue.accessibility && (
               <div className="flex items-start gap-2">
-                <Users className="w-5 h-5 text-gray-400 mt-0.5" />
+                <Users className="w-5 h-5 mt-0.5" style={{ color: 'var(--t3)' }} />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Accessibility</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Accessibility</p>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {selectedEvent.venue.accessibility.map((item) => (
                       <span
                         key={item}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
                       >
                         {item}
                       </span>
@@ -258,10 +259,10 @@ export default function Calendar() {
 
             {selectedEvent.notes && (
               <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-gray-400 mt-0.5" />
+                <img src="/TM-Info-negro.svg" className="pxi-lg icon-muted mt-0.5" alt="" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Notes</p>
-                  <p className="text-sm text-gray-500">{selectedEvent.notes}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Notes</p>
+                  <p className="text-sm" style={{ color: 'var(--t2)' }}>{selectedEvent.notes}</p>
                 </div>
               </div>
             )}
@@ -272,12 +273,14 @@ export default function Calendar() {
                   setIsModalOpen(false);
                   setSelectedEvent(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', border: '1px solid' }}
               >
                 Close
               </button>
               <button
-                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
               >
                 Edit Event
               </button>

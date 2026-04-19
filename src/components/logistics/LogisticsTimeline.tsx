@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, Building, DollarSign, FileText, CreditCard as Edit2, Trash2, ExternalLink, Plus } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, Building, DollarSign, Plus } from 'lucide-react';
 import { TravelItinerary, AccommodationBooking, LogisticsOverview } from '../../types/logistics';
 import { CREW_MEMBERS, TRANSPORTATION_PROVIDERS, ACCOMMODATION_PROVIDERS } from '../../data/logistics';
 import { formatDate, formatTime } from '../../lib/utils';
@@ -184,11 +184,11 @@ export default function LogisticsTimeline({
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800';
+        return 'badge-green';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'badge-neutral';
       default:
-        return 'bg-beige text-black';
+        return 'badge-yellow';
     }
   };
 
@@ -224,12 +224,12 @@ export default function LogisticsTimeline({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+    <div className="rounded-lg shadow-md" style={{ background: 'var(--surface)' }}>
+      <div className="p-6 border-b flex justify-between items-center" style={{ borderColor: 'var(--border)' }}>
         <div>
-          <h2 className="text-xl font-medium text-charcoal">{overview.showTitle}</h2>
+          <h2 className="text-xl font-medium" style={{ color: 'var(--t1)' }}>{overview.showTitle}</h2>
           <div className="flex items-center gap-4 mt-1">
-            <div className="flex items-center gap-1 text-sm text-gray-600">
+            <div className="flex items-center gap-1 text-sm" style={{ color: 'var(--t2)' }}>
               <Calendar className="w-4 h-4 text-primary" />
               {formatDateLong(new Date(overview.showDate))}
             </div>
@@ -292,7 +292,7 @@ export default function LogisticsTimeline({
                                 <div className="flex items-center gap-2">
                                   <h4 className="text-sm font-medium text-charcoal">{event.title}</h4>
                                   {event.title !== 'SHOW DAY' && (
-                                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadgeColor(event.status)}`}>
+                                    <span className={`status-badge ${getStatusBadgeColor(event.status)}`}>
                                       {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                                     </span>
                                   )}
@@ -313,13 +313,13 @@ export default function LogisticsTimeline({
                                   onClick={() => handleEditClick(event)}
                                   className="p-1 text-gray-400 hover:text-primary rounded-full hover:bg-beige"
                                 >
-                                  <Edit2 className="w-4 h-4" />
+                                  <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteClick(event)}
                                   className="p-1 text-gray-400 hover:text-red-600 rounded-full hover:bg-red-50"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                                 </button>
                               </div>
                             )}

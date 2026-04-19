@@ -88,22 +88,22 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-beige p-4 rounded-lg">
+        <div style={{ background: 'var(--surface-2)' }} className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-medium text-charcoal">{show.title}</h3>
+            <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{show.title}</h3>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm" style={{ color: 'var(--t2)' }}>
             {formatDate(show.date)}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm" style={{ color: 'var(--t2)' }}>
             {show.venue}, {show.city}, {show.country}
           </p>
         </div>
         
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium text-gray-700">Personnel Fees</h3>
+            <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Personnel Fees</h3>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -123,30 +123,30 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
             </div>
           </div>
           
-          <div className="border rounded-md overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div style={{ borderColor: 'var(--border)' }} className="border overflow-hidden">
+            <table className="min-w-full divide-y" style={{ borderColor: 'var(--border)' }}>
+              <thead style={{ background: 'var(--surface-2)' }}>
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                     Select
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                     Name
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                     Role
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                     Standard Fee
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>
                     Show Fee
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody style={{ background: 'var(--surface)', borderColor: 'var(--border)' }} className="divide-y">
                 {eligibleCrew.map((member) => (
-                  <tr key={member.id} className={selectedCrew[member.id] ? 'bg-beige' : ''}>
+                  <tr key={member.id} style={{ background: selectedCrew[member.id] ? 'var(--surface-2)' : 'transparent' }}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
@@ -155,22 +155,22 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
                           ...selectedCrew,
                           [member.id]: e.target.checked
                         })}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                        className="h-4 w-4 text-primary focus:ring-primary" style={{ borderColor: 'var(--border)' }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-charcoal">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" style={{ color: 'var(--t1)' }}>
                       {member.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                       {member.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                       {member.standardFee ? `$${member.standardFee}` : 'Not set'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="relative rounded-md shadow-sm w-24">
+                      <div className="relative shadow-sm w-24">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <DollarSign className="h-4 w-4 text-gray-400" />
+                          <DollarSign className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                         </div>
                         <input
                           type="number"
@@ -179,7 +179,7 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
                             ...fees,
                             [member.id]: e.target.value === '' ? 0 : Number(e.target.value)
                           })}
-                          className="pl-7 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="pl-7 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                           placeholder="0.00"
                           min="0"
                           step="25"
@@ -194,10 +194,10 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
           </div>
         </div>
         
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div style={{ background: 'var(--surface-2)' }} className="p-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-700">Total Fees:</span>
-            <span className="text-lg font-bold text-black">${calculateTotal()}</span>
+            <span className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Total Fees:</span>
+            <span className="text-lg font-bold" style={{ color: 'var(--t1)' }}>${calculateTotal()}</span>
           </div>
         </div>
         
@@ -205,7 +205,7 @@ export default function ShowFeeModal({ isOpen, onClose, onSave, show, crew }: Sh
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             Cancel
           </button>

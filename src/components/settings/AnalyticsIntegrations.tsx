@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Music as Spotify, Instagram, Twitter, Facebook, Music as TikTok, Check, X, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
+import { Youtube, Music as Spotify, Instagram, Twitter, Facebook, Music as TikTok, Loader2 } from 'lucide-react';
 import {
   getYouTubeIntegration,
   initiateYouTubeOAuth,
@@ -207,14 +207,14 @@ export default function AnalyticsIntegrations() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-charcoal font-title mb-2">ANALYTICS INTEGRATIONS</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl font-bold font-title mb-2" style={{ color: 'var(--t1)' }}>ANALYTICS INTEGRATIONS</h2>
+        <p className="text-sm" style={{ color: 'var(--t2)' }}>
           Connect your social media and streaming accounts to track real-time analytics
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+        <div style={{ background: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)' }} className="border px-4 py-3 rounded-md">
           {error}
         </div>
       )}
@@ -227,7 +227,7 @@ export default function AnalyticsIntegrations() {
           const isSyncEnabled = platform.integration?.sync_enabled || false;
 
           return (
-            <div key={platform.id} className="bg-white border border-gray-200 rounded-lg p-6">
+            <div key={platform.id} style={{ background: 'var(--surface)', borderColor: 'var(--border)' }} className="border rounded-lg p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4 flex-1">
                   <div className={`w-12 h-12 ${platform.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
@@ -235,25 +235,25 @@ export default function AnalyticsIntegrations() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{platform.name}</h3>
+                      <h3 className="text-lg font-semibold" style={{ color: 'var(--t1)' }}>{platform.name}</h3>
                       {!platform.available && (
                         <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
                           Coming Soon
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{platform.description}</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--t2)' }}>{platform.description}</p>
 
                     {isConnected && platform.integration && (
                       <div className="mt-3 space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--t2)' }}>
                           <span className="font-medium">Channel:</span>
                           <span>{platform.integration.platform_username}</span>
                         </div>
 
                         {platform.integration.last_sync && (
-                          <p className="text-xs text-gray-500 flex items-center gap-1">
-                            <RefreshCw className="w-3 h-3" />
+                          <p className="text-xs flex items-center gap-1" style={{ color: 'var(--t2)' }}>
+                            <img src="/TM-Refresh-negro.svg" className="pxi-sm icon-muted" alt="" />
                             Last synced: {new Date(platform.integration.last_sync).toLocaleString()}
                           </p>
                         )}
@@ -264,9 +264,9 @@ export default function AnalyticsIntegrations() {
                               type="checkbox"
                               checked={isSyncEnabled}
                               onChange={(e) => handleToggleSync(e.target.checked)}
-                              className="rounded border-gray-300 text-primary focus:ring-primary"
+                              className="rounded text-primary focus:ring-primary" style={{ borderColor: 'var(--border)' }}
                             />
-                            <span className="text-gray-700">Auto-sync daily</span>
+                            <span style={{ color: 'var(--t1)' }}>Auto-sync daily</span>
                           </label>
                         </div>
                       </div>
@@ -279,7 +279,7 @@ export default function AnalyticsIntegrations() {
                     <button
                       onClick={platform.onSync}
                       disabled={syncing}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 rounded-md text-sm font-medium hover:opacity-80 disabled:opacity-50 flex items-center gap-2" style={{ background: 'var(--surface-2)', color: 'var(--t1)' }}
                     >
                       {syncing ? (
                         <>
@@ -288,7 +288,7 @@ export default function AnalyticsIntegrations() {
                         </>
                       ) : (
                         <>
-                          <RefreshCw className="w-4 h-4" />
+                          <img src="/TM-Refresh-negro.svg" className="pxi-md icon-white" alt="" />
                           Sync Now
                         </>
                       )}
@@ -308,7 +308,7 @@ export default function AnalyticsIntegrations() {
                         onClick={platform.onConnect}
                         className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 flex items-center gap-2"
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-white" alt="" />
                         Connect
                       </button>
                     )
@@ -327,11 +327,11 @@ export default function AnalyticsIntegrations() {
         })}
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+      <div style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }} className="border-l-4 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">About Analytics Integrations</h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>About Analytics Integrations</h3>
+            <div className="mt-2 text-sm" style={{ color: 'var(--t2)' }}>
               <ul className="list-disc list-inside space-y-1">
                 <li>Connect your accounts to automatically track performance metrics</li>
                 <li>Data is synced daily and displayed in the Marketing Analytics dashboard</li>

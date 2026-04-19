@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Clock, Plus, Pencil, Trash2, Search, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Calendar, Clock, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { formatDate, formatTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -228,48 +228,48 @@ export default function AllEvents() {
       <div className="mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
+          className="text-sm mb-4 flex items-center gap-2"
+          style={{ color: 'var(--t3)' }}
         >
           <ChevronRight className="w-4 h-4 rotate-180" />
           Back
         </button>
-        <h1 className="text-2xl font-bold text-charcoal font-title">ALL EVENTS</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          View all your scheduled events
-        </p>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+      <div className="shadow-md overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex flex-wrap gap-2 flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <img src="/TM-Search-negro.svg" className="pxi-md icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
                 <input
                   type="text"
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-9 block rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 />
               </div>
 
               <select
                 value={selectedEventType}
                 onChange={(e) => setSelectedEventType(e.target.value as any)}
-                className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
-                <option value="all">All Events</option>
-                <option value="show">Shows</option>
-                <option value="travel">Travel</option>
-                <option value="accommodation">Accommodation</option>
-                <option value="release">Releases</option>
+                <option value="all" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>All Events</option>
+                <option value="show" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>Shows</option>
+                <option value="travel" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>Travel</option>
+                <option value="accommodation" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>Accommodation</option>
+                <option value="release" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>Releases</option>
               </select>
 
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as any)}
-                className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="all">All Dates</option>
                 <option value="upcoming">Upcoming</option>
@@ -286,16 +286,17 @@ export default function AllEvents() {
               {groupedEvents.map(({ monthYear, events }) => (
                 <div key={monthYear} className="grid grid-cols-[140px_1fr] gap-4">
                   <div className="pt-3">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{monthYear}</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--t3)' }}>{monthYear}</h3>
                   </div>
 
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="rounded-lg overflow-hidden" style={{ borderColor: 'var(--border)', border: '1px solid' }}>
                     {events.map((event, idx) => (
                       <div
                         key={event.id}
-                        className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                          idx !== events.length - 1 ? 'border-b border-gray-300' : ''
+                        className={`cursor-pointer transition-colors ${
+                          idx !== events.length - 1 ? '' : ''
                         }`}
+                        style={{ borderBottom: idx !== events.length - 1 ? '1px solid var(--border)' : 'none' }}
                         onClick={() => toggleEventExpand(event.id)}
                       >
                         <div className="px-4 py-3">
@@ -316,10 +317,10 @@ export default function AllEvents() {
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm text-gray-900 truncate">{event.title}</p>
+                                <p className="text-sm truncate" style={{ color: 'var(--t1)' }}>{event.title}</p>
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs" style={{ color: 'var(--t3)' }}>
                                   {formatDate(event.date)}
                                 </span>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -333,25 +334,25 @@ export default function AllEvents() {
                               </div>
                             </div>
                             {expandedEvents.includes(event.id) ? (
-                              <ChevronUp className="w-4 h-4 text-gray-400 ml-2 flex-shrink-0" />
+                              <ChevronUp className="w-4 h-4 ml-2 flex-shrink-0" style={{ color: 'var(--t3)' }} />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-gray-400 ml-2 flex-shrink-0" />
+                              <ChevronDown className="w-4 h-4 ml-2 flex-shrink-0" style={{ color: 'var(--t3)' }} />
                             )}
                           </div>
 
                           {expandedEvents.includes(event.id) && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <div className="flex items-start gap-2 text-sm text-gray-600">
-                                <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                              <div className="flex items-start gap-2 text-sm" style={{ color: 'var(--t2)' }}>
+                                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--t3)' }} />
                                 <span>{event.location}</span>
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                                <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              <div className="flex items-center gap-2 text-sm mt-1" style={{ color: 'var(--t2)' }}>
+                                <Clock className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--t3)' }} />
                                 <span>{formatTime(event.time)}</span>
                               </div>
 
                               {event.description && (
-                                <p className="mt-2 text-sm text-gray-600">{event.description}</p>
+                                <p className="mt-2 text-sm" style={{ color: 'var(--t2)' }}>{event.description}</p>
                               )}
 
                               {event.showId && (
@@ -361,7 +362,8 @@ export default function AllEvents() {
                                       e.stopPropagation();
                                       navigate(`/live/show/${event.showId}`);
                                     }}
-                                    className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+                                    className="text-sm flex items-center gap-1 hover:opacity-80"
+                                    style={{ color: 'var(--brand-1)' }}
                                   >
                                     View Show Details
                                     <ChevronRight className="w-4 h-4" />
@@ -379,9 +381,9 @@ export default function AllEvents() {
             </div>
           ) : (
             <div className="py-12 text-center">
-              <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No events found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <Calendar className="mx-auto h-12 w-12" style={{ color: 'var(--t3)' }} />
+              <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No events found</h3>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                 Try adjusting your filters or adding new events
               </p>
             </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 
 interface ReleasePlan {
   id?: number;
@@ -128,33 +129,36 @@ export default function ReleasePlanForm({ initialData, onSubmit, onCancel, catal
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Title</label>
+          <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>Title</label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Artist</label>
+          <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>Artist</label>
           <input
             type="text"
             value={formData.artist}
             onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Release Type</label>
+          <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>Release Type</label>
           <select
             value={formData.releaseType}
             onChange={(e) => setFormData({ ...formData, releaseType: e.target.value as 'single' | 'ep' | 'album' })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             required
           >
             <option value="single">Single</option>
@@ -165,11 +169,9 @@ export default function ReleasePlanForm({ initialData, onSubmit, onCancel, catal
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Release Date</label>
-          <input
-            type="date"
+          <TMDatePicker
             value={formData.releaseDate}
-            onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            onChange={(date) => setFormData({ ...formData, releaseDate: date })}
             required
           />
         </div>

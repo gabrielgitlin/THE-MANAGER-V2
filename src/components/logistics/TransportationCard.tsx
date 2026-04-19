@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plane, Bus, Train, Car, Calendar, Clock, MapPin, Users, DollarSign, FileText, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Plane, Bus, Train, Car, Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
 import { TravelItinerary } from '../../types/logistics';
 import { CREW_MEMBERS, TRANSPORTATION_PROVIDERS } from '../../data/logistics';
 import { formatDate } from '../../lib/utils';
@@ -30,13 +30,13 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
   const passengers = CREW_MEMBERS.filter(m => itinerary.passengers.includes(String(m.id)));
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="p-4 border-b border-gray-200">
+    <div className="rounded-lg border shadow-sm hover:shadow-md transition-shadow" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             {getTransportIcon()}
             <div>
-              <h3 className="text-sm font-medium text-charcoal">
+              <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 {itinerary.transportationType.charAt(0).toUpperCase() + itinerary.transportationType.slice(1)}
                 {provider && ` - ${provider.name}`}
               </h3>
@@ -46,12 +46,12 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
               </p>
             </div>
           </div>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            itinerary.status === 'confirmed' 
-              ? 'bg-green-100 text-green-800' 
+          <span className={`status-badge ${
+            itinerary.status === 'confirmed'
+              ? 'badge-green'
               : itinerary.status === 'cancelled'
-              ? 'bg-red-100 text-red-800'
-              : 'bg-beige text-black'
+              ? 'badge-neutral'
+              : 'badge-yellow'
           }`}>
             {itinerary.status.charAt(0).toUpperCase() + itinerary.status.slice(1)}
           </span>
@@ -87,7 +87,7 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
         <div className="grid grid-cols-2 gap-4">
           <div>
             <h4 className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
+              <img src="/TM-File-negro.svg" className="pxi-sm icon-muted" alt="" />
               Confirmation
             </h4>
             <p className="text-sm text-gray-900">{itinerary.confirmationNumber || 'Not available'}</p>
@@ -126,7 +126,7 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
         {itinerary.notes && (
           <div>
             <h4 className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
+              <img src="/TM-File-negro.svg" className="pxi-sm icon-muted" alt="" />
               Notes
             </h4>
             <p className="text-sm text-gray-600">{itinerary.notes}</p>
@@ -134,7 +134,7 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
         )}
       </div>
 
-      <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
+      <div className="p-4 border-t flex justify-end gap-2" style={{ borderColor: 'var(--border)' }}>
         {provider?.website && (
           <a
             href={provider.website}
@@ -143,7 +143,7 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
             className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-beige"
             title="Visit provider website"
           >
-            <ExternalLink className="w-4 h-4" />
+            <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
           </a>
         )}
         <button
@@ -151,14 +151,14 @@ export default function TransportationCard({ itinerary, onEdit, onDelete }: Tran
           className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-beige"
           title="Edit transportation"
         >
-          <Edit2 className="w-4 h-4" />
+          <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
         </button>
         <button
           onClick={() => onDelete(itinerary.id)}
           className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50"
           title="Delete transportation"
         >
-          <Trash2 className="w-4 h-4" />
+          <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
         </button>
       </div>
     </div>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Users, Key, Eye, EyeOff, AlertTriangle, Plus, Pencil, Trash2, User, Mail, Phone, MapPin, Calendar, Flag, Import as Passport, FileText, Globe, CreditCard, Building2, DollarSign } from 'lucide-react';
+import { Lock, Users, Key, Eye, EyeOff, Plus, User, Mail, Phone, MapPin, Calendar, Flag, Import as Passport, FileText, Globe, CreditCard, Building2, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { TMDatePicker } from '../components/ui/TMDatePicker';
 
 interface PersonalInfo {
   firstName: string;
@@ -214,25 +215,25 @@ export default function Info() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+        <div className="p-8 shadow-md max-w-md w-full" style={{ backgroundColor: 'var(--surface)' }}>
           <div className="flex items-center justify-center mb-6">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Lock className="w-6 h-6 text-primary" />
+            <div className="p-3 rounded-full" style={{ backgroundColor: 'var(--brand-1)' }}>
+              <Lock className="w-6 h-6 text-white" />
             </div>
           </div>
-          
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
+
+          <h2 className="text-2xl font-bold text-center mb-2" style={{ color: 'var(--t1)' }}>
             Protected Information
           </h2>
-          <p className="text-center text-gray-500 mb-6">
+          <p className="text-center mb-6" style={{ color: 'var(--t2)' }}>
             Please enter your password to access sensitive information
           </p>
 
-          <div className="bg-beige border-l-4 border-yellow-400 p-4 mb-6">
+          <div className="border-l-4 p-4 mb-6" style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--status-yellow)' }}>
             <div className="flex items-start">
-              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+              <img src="/TM-Info-negro.svg" className="pxi-lg icon-muted mt-0.5" alt="" />
               <div className="ml-3">
-                <p className="text-sm text-black">
+                <p className="text-sm" style={{ color: 'var(--t1)' }}>
                   This section contains sensitive information. Make sure you're in a private location.
                 </p>
               </div>
@@ -241,7 +242,7 @@ export default function Info() {
 
           <form onSubmit={handleAuthenticate} className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Password
               </label>
               <div className="mt-1 relative">
@@ -250,7 +251,8 @@ export default function Info() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   required
                 />
                 <button
@@ -259,21 +261,21 @@ export default function Info() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-4 w-4" style={{ color: 'var(--t2)' }} />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-4 w-4" style={{ color: 'var(--t2)' }} />
                   )}
                 </button>
               </div>
             </div>
 
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm" style={{ color: 'var(--status-red)' }}>{error}</p>
             )}
 
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="w-full flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               Continue
             </button>
@@ -285,44 +287,27 @@ export default function Info() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 font-title">Sensitive Information</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage logins and sensitive information
-        </p>
+      <div className="sub-tabs mb-6">
+        <button
+          onClick={() => setActiveTab('logins')}
+          className={`sub-tab ${activeTab === 'logins' ? 'active' : ''}`}
+        >
+          <Key className="tab-icon" />
+          Logins & Passwords
+        </button>
+        <button
+          onClick={() => setActiveTab('personnel')}
+          className={`sub-tab ${activeTab === 'personnel' ? 'active' : ''}`}
+        >
+          <Users className="tab-icon" />
+          Personnel Information
+        </button>
       </div>
 
-      <div className="mb-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('logins')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-              activeTab === 'logins'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Key className="w-4 h-4" />
-            Logins & Passwords
-          </button>
-          <button
-            onClick={() => setActiveTab('personnel')}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-              activeTab === 'personnel'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Personnel Information
-          </button>
-        </nav>
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg">
-        <div className="p-6 border-b border-gray-200">
+      <div className="shadow-md" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="p-6 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium text-gray-900">
+            <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>
               {activeTab === 'logins' ? 'Logins & Passwords' : 'Personnel Information'}
             </h2>
             {activeTab === 'logins' && (
@@ -337,7 +322,7 @@ export default function Info() {
                     notes: '',
                   });
                 }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary  hover:bg-primary/90"
               >
                 <Plus className="w-4 h-4" />
                 Add Login
@@ -352,14 +337,14 @@ export default function Info() {
               {isAddingLogin || editingLoginId ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                       Platform
                     </label>
                     <input
                       type="text"
                       value={newLogin.platform}
                       onChange={(e) => setNewLogin({ ...newLogin, platform: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       placeholder="e.g., Spotify"
                       required
                     />
@@ -373,7 +358,7 @@ export default function Info() {
                       type="text"
                       value={newLogin.username}
                       onChange={(e) => setNewLogin({ ...newLogin, username: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       required
                     />
                   </div>
@@ -386,7 +371,7 @@ export default function Info() {
                       type="password"
                       value={newLogin.password}
                       onChange={(e) => setNewLogin({ ...newLogin, password: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       required
                     />
                   </div>
@@ -399,7 +384,7 @@ export default function Info() {
                       value={newLogin.notes}
                       onChange={(e) => setNewLogin({ ...newLogin, notes: e.target.value })}
                       rows={3}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -415,13 +400,13 @@ export default function Info() {
                           notes: '',
                         });
                       }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300  hover:bg-gray-50"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={editingLoginId ? handleUpdateLogin : handleAddLogin}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                      className="px-4 py-2 text-sm font-medium text-white bg-primary  hover:bg-primary/90"
                     >
                       {editingLoginId ? 'Save Changes' : 'Add Login'}
                     </button>
@@ -429,25 +414,25 @@ export default function Info() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y" style={{ borderColor: 'var(--border)' }}>
                     <thead>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Platform</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Username</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Password</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Notes</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Last Updated</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--t2)' }}>Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                       {logins.map((login) => (
-                        <tr key={login.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{login.platform}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{login.username}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{login.password}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{login.notes}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <tr key={login.id} className="hover:opacity-80" style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)' }}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t1)' }}>{login.platform}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t1)' }}>{login.username}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t1)' }}>{login.password}</td>
+                          <td className="px-6 py-4 text-sm" style={{ color: 'var(--t2)' }}>{login.notes}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--t2)' }}>
                             {login.lastUpdated.toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -464,7 +449,7 @@ export default function Info() {
                                 }}
                                 className="text-primary hover:text-primary/80"
                               >
-                                <Pencil className="w-4 h-4" />
+                                <img src="/TM-Pluma-negro.png" className="pxi-md icon-white" alt="" />
                               </button>
                               {showDeleteConfirm === login.id ? (
                                 <div className="flex items-center gap-2">
@@ -486,7 +471,7 @@ export default function Info() {
                                   onClick={() => setShowDeleteConfirm(login.id)}
                                   className="text-gray-400 hover:text-red-500"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                                 </button>
                               )}
                             </div>
@@ -512,7 +497,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.firstName}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -524,7 +509,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.familyName}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, familyName: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -536,7 +521,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.position}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, position: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -548,7 +533,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.address}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -560,7 +545,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.zipCode}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, zipCode: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -572,7 +557,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.country}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, country: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -584,7 +569,7 @@ export default function Info() {
                       type="tel"
                       value={personalInfo.mobile}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, mobile: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -596,7 +581,7 @@ export default function Info() {
                       type="email"
                       value={personalInfo.email}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -604,11 +589,9 @@ export default function Info() {
                     <label className="block text-sm font-medium text-gray-700">
                       Date of Birth
                     </label>
-                    <input
-                      type="date"
+                    <TMDatePicker
                       value={personalInfo.dateOfBirth}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, dateOfBirth: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      onChange={(date) => setPersonalInfo({ ...personalInfo, dateOfBirth: date })}
                     />
                   </div>
 
@@ -620,7 +603,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.placeOfBirth}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, placeOfBirth: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -632,7 +615,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.citizenship}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, citizenship: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -644,7 +627,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.passportNumber}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, passportNumber: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
 
@@ -652,11 +635,9 @@ export default function Info() {
                     <label className="block text-sm font-medium text-gray-700">
                       Issued
                     </label>
-                    <input
-                      type="date"
+                    <TMDatePicker
                       value={personalInfo.passportIssued}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, passportIssued: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      onChange={(date) => setPersonalInfo({ ...personalInfo, passportIssued: date })}
                     />
                   </div>
 
@@ -664,11 +645,9 @@ export default function Info() {
                     <label className="block text-sm font-medium text-gray-700">
                       Expires
                     </label>
-                    <input
-                      type="date"
+                    <TMDatePicker
                       value={personalInfo.passportExpires}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, passportExpires: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      onChange={(date) => setPersonalInfo({ ...personalInfo, passportExpires: date })}
                     />
                   </div>
 
@@ -680,7 +659,7 @@ export default function Info() {
                       type="text"
                       value={personalInfo.passportIssuedBy}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, passportIssuedBy: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                      className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
                 </div>
@@ -688,7 +667,7 @@ export default function Info() {
                 <div className="mt-6 flex justify-end">
                   <button
                     type="button"
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary  hover:bg-primary/90"
                   >
                     Save Changes
                   </button>
@@ -712,7 +691,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card1AccountName}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card1AccountName: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -722,7 +701,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card1Type}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card1Type: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -732,7 +711,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card1Number}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card1Number: e .target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -743,7 +722,7 @@ export default function Info() {
                           type="text"
                           value={bankingInfo.card1Expiry}
                           onChange={(e) => setBankingInfo({ ...bankingInfo, card1Expiry: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           placeholder="MM/YY"
                         />
                       </div>
@@ -754,7 +733,7 @@ export default function Info() {
                           type="text"
                           value={bankingInfo.card1CVC}
                           onChange={(e) => setBankingInfo({ ...bankingInfo, card1CVC: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         />
                       </div>
                     </div>
@@ -765,7 +744,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card1BillingAddress}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card1BillingAddress: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                   </div>
@@ -784,7 +763,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card2AccountName}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card2AccountName: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -794,7 +773,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card2Number}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card2Number: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -805,7 +784,7 @@ export default function Info() {
                           type="text"
                           value={bankingInfo.card2Expiry}
                           onChange={(e) => setBankingInfo({ ...bankingInfo, card2Expiry: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           placeholder="MM/YY"
                         />
                       </div>
@@ -816,7 +795,7 @@ export default function Info() {
                           type="text"
                           value={bankingInfo.card2CVC}
                           onChange={(e) => setBankingInfo({ ...bankingInfo, card2CVC: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         />
                       </div>
                     </div>
@@ -827,7 +806,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.card2BillingAddress}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, card2BillingAddress: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                   </div>
@@ -846,7 +825,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankName}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankName: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -856,7 +835,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankBranchAddress}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankBranchAddress: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -866,7 +845,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankAccountName}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankAccountName: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -876,7 +855,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankAccountNumber}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankAccountNumber: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -886,7 +865,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankRouting}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankRouting: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -896,7 +875,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankSwift}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankSwift: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -906,7 +885,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.bankWireNumber}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, bankWireNumber: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                   </div>
@@ -925,7 +904,7 @@ export default function Info() {
                         type="text"
                         value={bankingInfo.paypalZelle}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, paypalZelle: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                     
@@ -935,7 +914,7 @@ export default function Info() {
                         type="password"
                         value={bankingInfo.paypalPassword}
                         onChange={(e) => setBankingInfo({ ...bankingInfo, paypalPassword: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                        className="mt-1 block w-full  border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     </div>
                   </div>
@@ -944,7 +923,7 @@ export default function Info() {
                 <div className="mt-6 flex justify-end">
                   <button
                     type="button"
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary  hover:bg-primary/90"
                   >
                     Save Changes
                   </button>

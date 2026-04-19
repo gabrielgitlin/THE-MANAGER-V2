@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, X, Pencil, FileSpreadsheet, FileText, Download, ChevronLeft, Trash2 } from 'lucide-react';
+import { Plus, X, FileSpreadsheet, ChevronLeft } from 'lucide-react';
 import { utils, writeFile } from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -388,7 +388,7 @@ export default function FinanceDetails() {
               disabled={isExporting}
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
+              <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
               CSV
             </button>
             <button
@@ -396,7 +396,7 @@ export default function FinanceDetails() {
               disabled={isExporting}
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
             >
-              <FileText className="w-4 h-4" />
+              <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" />
               PDF
             </button>
           </div>
@@ -773,7 +773,7 @@ export default function FinanceDetails() {
                       }}
                       className="text-primary hover:text-black inline-flex items-center gap-1"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                       Edit
                     </button>
                     <button
@@ -784,7 +784,7 @@ export default function FinanceDetails() {
                       }}
                       className="text-red-600 hover:text-red-800 inline-flex items-center gap-1"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                       Delete
                     </button>
                   </div>
@@ -916,7 +916,7 @@ export default function FinanceDetails() {
                       }}
                       className="text-primary hover:text-black inline-flex items-center gap-1"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                       Edit
                     </button>
                     <button
@@ -927,7 +927,7 @@ export default function FinanceDetails() {
                       }}
                       className="text-red-600 hover:text-red-800 inline-flex items-center gap-1"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                       Delete
                     </button>
                   </div>
@@ -959,7 +959,7 @@ export default function FinanceDetails() {
                 }}
                 className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
-                <Pencil className="w-4 h-4 inline mr-1" />
+                <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted inline mr-1" alt="" />
                 Edit Rates
               </button>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -1262,7 +1262,7 @@ export default function FinanceDetails() {
                         }))}
                         className="ml-1 hover:text-blue-600"
                       >
-                        <X className="h-3 w-3" />
+                        <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                       </button>
                     </span>
                   ))}

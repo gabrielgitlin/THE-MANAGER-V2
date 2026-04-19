@@ -1,48 +1,33 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Settings } from 'lucide-react';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import ArtistPortal from './ArtistPortal';
 import MusicPlayer from './MusicPlayer';
 import AIManager from './AIManager';
 import MobileTabBar from './MobileTabBar';
 
-const PolyhedraIcons = {
-  Dashboard: () => (
-    <img src="/TM-Pin-negro.png" alt="Dashboard" className="w-10 h-10 object-contain" />
-  ),
-  Calendar: () => (
-    <img src="/TM-Calendario-negro.png" alt="Calendar" className="w-10 h-10 object-contain" />
-  ),
-  Catalog: () => (
-    <img src="/TM-Vinil-negro.png" alt="Catalog" className="w-10 h-10 object-contain" />
-  ),
-  Finance: () => (
-    <img src="/TM-Monedas-negro.png" alt="Finance" className="w-10 h-10 object-contain" />
-  ),
-  Legal: () => (
-    <img src="/TM-Contrato-negro.png" alt="Legal" className="w-10 h-10 object-contain" />
-  ),
-  Live: () => (
-    <img src="/TM-Maletin-negro.png" alt="Live" className="w-10 h-10 object-contain" />
-  ),
-  Marketing: () => (
-    <img src="/TM-Ajedrez Caballo-negro.png" alt="Marketing" className="w-10 h-10 object-contain" />
-  ),
-  Artist: () => (
-    <img src="/TM-Icono-negro.png" alt="Artist" className="w-10 h-10 object-contain" />
-  ),
-  Team: () => (
-    <img src="/TM-Sello-negro.png" alt="Team" className="w-10 h-10 object-contain" />
-  ),
-};
+/* ── Pixel art icon map (from Andrés Higueros brand identity) ── */
+const menuItems = [
+  // { icon: '/TM-Pin-negro.png',               path: '/dashboard', tooltip: 'Dashboard', label: 'DASH' },
+  { icon: '/TM-Calendario-negro.png',         path: '/calendar',  tooltip: 'Calendar',  label: 'CAL'  },
+  { icon: '/TM-Vinil-negro.png',              path: '/catalog',   tooltip: 'Catalog',   label: 'CTLG' },
+  // { icon: '/TM-Monedas-negro.png',         path: '/finance',   tooltip: 'Finance',   label: 'FIN'  }, // v2
+  { icon: '/TM-Contrato-negro.png',           path: '/legal',     tooltip: 'Legal',     label: 'LEGAL'},
+  { icon: '/TM-Maletin-negro.png',            path: '/live',      tooltip: 'Live',      label: 'LIVE' },
+  // { icon: '/TM-Ajedrez Caballo-negro.png',    path: '/marketing', tooltip: 'Marketing', label: 'MKTG' },
+  { icon: '/TM-Sello-negro.png',              path: '/team',      tooltip: 'Team',      label: 'TEAM' },
+  { icon: '/TM-Icono-negro.png',              path: '/artist',    tooltip: 'Artist',    label: 'ART'  },
+];
+
+/* Active icon filter: turns black pixel icon to brand green #009C55 */
+const activeFilter = 'brightness(0) saturate(100%) invert(40%) sepia(85%) saturate(600%) hue-rotate(118deg) brightness(95%) contrast(101%)';
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isArtistPortalOpen, setIsArtistPortalOpen] = useState(false);
   const [isAIManagerOpen, setIsAIManagerOpen] = useState(false);
-  const [titleAnimating, setTitleAnimating] = useState(false);
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const titleRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -67,166 +52,121 @@ export default function Layout() {
     console.log('Saving artist info:', info);
   };
 
-  const menuItems = [
-    {
-      icon: PolyhedraIcons.Dashboard,
-      label: 'DASHBOARD',
-      path: '/dashboard',
-      permission: 'view_dashboard' as const,
-      group: 1
-    },
-    {
-      icon: PolyhedraIcons.Calendar,
-      label: 'CALENDAR',
-      path: '/calendar',
-      permission: 'view_live' as const,
-      group: 1
-    },
-    {
-      icon: PolyhedraIcons.Catalog,
-      label: 'CATALOG',
-      path: '/catalog',
-      permission: 'view_catalog' as const,
-      group: 2
-    },
-    {
-      icon: PolyhedraIcons.Finance,
-      label: 'FINANCE',
-      path: '/finance',
-      permission: 'view_finance' as const,
-      group: 2
-    },
-    {
-      icon: PolyhedraIcons.Legal,
-      label: 'LEGAL',
-      path: '/legal',
-      permission: 'view_legal' as const,
-      group: 2
-    },
-    {
-      icon: PolyhedraIcons.Live,
-      label: 'LIVE',
-      path: '/live',
-      permission: 'view_live' as const,
-      group: 2
-    },
-    {
-      icon: PolyhedraIcons.Marketing,
-      label: 'MARKETING',
-      path: '/marketing',
-      permission: 'view_marketing' as const,
-      group: 2
-    },
-    {
-      icon: PolyhedraIcons.Team,
-      label: 'TEAM',
-      path: '/team',
-      permission: 'view_personnel' as const,
-      group: 3
-    },
-    {
-      icon: PolyhedraIcons.Artist,
-      label: 'ARTIST',
-      path: '/artist',
-      permission: 'view_sensitive_info' as const,
-      group: 3
-    },
-  ];
-
-  const handleTitleClick = () => {
-    if (titleAnimating) return;
-
-    setTitleAnimating(true);
-
-    if (titleRef.current) {
-      titleRef.current.style.transition = 'transform 0.6s ease-in-out';
-      titleRef.current.style.transformStyle = 'preserve-3d';
-      titleRef.current.style.transform = 'perspective(800px) rotateY(180deg)';
-
-      setTimeout(() => {
-        if (titleRef.current) {
-          titleRef.current.style.transform = 'perspective(800px) rotateY(360deg)';
-
-          setTimeout(() => {
-            if (titleRef.current) {
-              titleRef.current.style.transition = '';
-              titleRef.current.style.transform = '';
-              setTitleAnimating(false);
-            }
-          }, 600);
-        }
-      }, 300);
-    }
-
-    setIsAIManagerOpen(true);
-  };
-
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen" style={{ background: 'var(--bg)' }}>
       <div className="flex-1 flex flex-col min-h-0">
+        {/* ── SINGLE NAV BAR: Logo + Icons + Settings ── */}
         <header
-          className="bg-white/95 backdrop-blur-md border-b border-black sticky top-0 z-50"
-          style={{ paddingTop: 'var(--sat)' }}
+          className="sticky top-0 z-50"
+          style={{
+            background: 'var(--bg)',
+            paddingTop: 'var(--sat)',
+          }}
         >
-          <div className="flex items-center justify-between px-4 md:px-8 h-12 md:h-16">
+          <div className="flex items-center h-[56px] px-4 md:px-5">
+            {/* Logo — left (swaps to hovered page name) */}
             <div
-              className="cursor-pointer flex-shrink-0"
-              onClick={handleTitleClick}
+              className="cursor-pointer flex-shrink-0 flex items-center mr-6"
+              onClick={() => setIsAIManagerOpen(true)}
               ref={titleRef}
+              style={{ width: '120px', position: 'relative', height: '24px' }}
             >
               <img
                 src="/The Manager_Logo_PNG-2.png"
                 alt="The Manager"
-                className="h-5 md:h-8 object-contain"
+                className="h-5 md:h-6 object-contain invert"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  opacity: hoveredPath ? 0 : 1,
+                  transition: 'opacity 0.15s ease',
+                  pointerEvents: hoveredPath ? 'none' : 'auto',
+                }}
               />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'var(--t1)',
+                  opacity: hoveredPath ? 1 : 0,
+                  transition: 'opacity 0.15s ease',
+                  whiteSpace: 'nowrap',
+                  lineHeight: '21.75px',
+                }}
+              >
+                {menuItems.find(m => m.path === hoveredPath)?.tooltip ?? ''}
+              </span>
             </div>
 
-            <nav className="hidden md:flex items-center gap-6">
+            {/* Nav icons — center/fill */}
+            <nav className="hidden md:flex items-center gap-0 flex-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.path ||
                   (location.pathname.startsWith(item.path) && item.path !== '/');
-                const Icon = item.icon;
+                const isHovered = hoveredPath === item.path;
 
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`relative flex flex-col items-center justify-center p-2 group ${
-                      isActive ? 'opacity-100' : 'opacity-60 hover:opacity-80'
-                    }`}
+                    title={item.tooltip}
+                    className="flex items-center justify-center"
+                    style={{
+                      width: '52px',
+                      height: '56px',
+                      borderBottom: isActive
+                        ? '2px solid var(--brand-1)'
+                        : isHovered
+                          ? '2px solid var(--border-3)'
+                          : '2px solid transparent',
+                      transition: 'border-color 0.12s',
+                    }}
+                    onMouseEnter={() => setHoveredPath(item.path)}
+                    onMouseLeave={() => setHoveredPath(null)}
                   >
-                    <div
-                      className="w-10 h-10 transition-all duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:drop-shadow-md"
-                      style={isActive ? {
-                        filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(130deg) brightness(92%) contrast(102%)'
-                      } : {}}
-                    >
-                      <Icon />
-                    </div>
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
-                      {item.label}
-                    </div>
+                    <img
+                      src={item.icon}
+                      alt={item.tooltip}
+                      className="w-7 h-7 object-contain"
+                      style={{
+                        filter: isActive ? activeFilter : 'invert(1)',
+                        opacity: isActive ? 1 : isHovered ? 0.75 : 0.35,
+                        transform: isHovered && !isActive ? 'translateY(-2px)' : 'translateY(0)',
+                        transition: 'opacity 0.12s, transform 0.15s cubic-bezier(0.16,1,0.3,1)',
+                      }}
+                    />
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="flex items-center gap-4">
+            {/* Settings — right */}
+            <div className="flex items-center ml-auto">
               <button
                 onClick={() => navigate('/settings')}
-                className="hidden md:block p-2"
+                className="hidden md:flex items-center justify-center w-[52px] h-[56px]"
+                style={{ color: 'var(--t3)' }}
               >
-                <Settings className="w-6 h-6" />
+                <img src="/TM-Settings-negro.svg" className="pxi-lg icon-muted" alt="Settings" />
               </button>
             </div>
           </div>
         </header>
 
+        {/* ── MAIN CONTENT ── */}
         <main
           className="flex-1 overflow-y-auto overflow-x-hidden"
-          style={{ paddingBottom: 'calc(var(--tab-bar-height) + var(--sab) + 16px)' }}
+          style={{
+            background: 'var(--bg)',
+            paddingBottom: 'calc(var(--tab-bar-height) + var(--sab) + 16px)',
+          }}
         >
-          <div className="px-4 py-4 md:px-8 md:py-8">
+          <div className="max-w-[1600px] mx-auto px-4 pt-7 pb-3 md:px-6 md:pt-8 md:pb-4">
             <Outlet />
           </div>
         </main>

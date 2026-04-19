@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { formatDateTime } from '../../../lib/utils';
 import type { Show, MarketingTask } from '../../../types';
 
@@ -91,14 +91,14 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
   return (
     <div>
       <div className="mb-4">
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+        <div className="flex items-center justify-between text-sm mb-2" style={{ color: 'var(--t3)' }}>
           <span>Progress</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full rounded-full h-2" style={{ backgroundColor: 'var(--surface-2)' }}>
           <div
-            className="bg-primary rounded-full h-2 transition-all duration-300"
-            style={{ width: `${progress}%` }}
+            className="rounded-full h-2 transition-all duration-300"
+            style={{ backgroundColor: 'var(--brand-1)', width: `${progress}%` }}
           />
         </div>
       </div>
@@ -107,18 +107,20 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-3 rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--surface-2)' }}
           >
             <div className="flex items-center gap-3 flex-1">
               <button
                 onClick={() => handleToggleTask(task.id)}
-                className={`w-5 h-5 rounded flex items-center justify-center border ${
-                  task.completed
-                    ? 'bg-primary border-primary text-white'
-                    : 'border-gray-300 hover:border-primary'
-                }`}
+                className={`w-5 h-5 rounded flex items-center justify-center border`}
+                style={{
+                  backgroundColor: task.completed ? 'var(--brand-1)' : 'transparent',
+                  borderColor: task.completed ? 'var(--brand-1)' : 'var(--border)',
+                  color: 'var(--t1)'
+                }}
               >
-                {task.completed && <Check className="w-3 h-3" />}
+                {task.completed && <img src="/The Manager_Iconografia-11.svg" className="pxi-sm icon-white" alt="" />}
               </button>
               {editingTaskId === task.id ? (
                 <input
@@ -132,11 +134,12 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
                       setNewTaskLabel('');
                     }
                   }}
-                  className="flex-1 bg-white rounded border-gray-300 focus:border-primary focus:ring-primary text-sm"
+                  className="flex-1 rounded text-sm focus:ring-primary"
+                  style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   autoFocus
                 />
               ) : (
-                <span className={`text-sm flex-1 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                <span className={`text-sm flex-1`} style={{ color: task.completed ? 'var(--t3)' : 'var(--t1)', textDecoration: task.completed ? 'line-through' : 'none' }}>
                   {task.label}
                 </span>
               )}
@@ -144,28 +147,30 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
             <div className="flex items-center gap-2">
               {task.completed && task.completedAt && (
                 <div className="flex items-center gap-4 mr-4">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs" style={{ color: 'var(--t3)' }}>
                     {formatDateTime(task.completedAt)}
                   </span>
-                  <span className="text-xs text-gray-500">{task.completedBy}</span>
+                  <span className="text-xs" style={{ color: 'var(--t3)' }}>{task.completedBy}</span>
                 </div>
               )}
               {editingTaskId === task.id ? (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEditTask(task.id)}
-                    className="p-1 text-primary hover:text-primary/80"
+                    className="p-1 hover:opacity-80"
+                    style={{ color: 'var(--brand-1)' }}
                   >
-                    <Check className="w-4 h-4" />
+                    <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
                   </button>
                   <button
                     onClick={() => {
                       setEditingTaskId(null);
                       setNewTaskLabel('');
                     }}
-                    className="p-1 text-gray-400 hover:text-gray-500"
+                    className="p-1 hover:opacity-80"
+                    style={{ color: 'var(--t3)' }}
                   >
-                    <X className="w-4 h-4" />
+                    <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                   </button>
                 </div>
               ) : (
@@ -175,21 +180,24 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
                       setEditingTaskId(task.id);
                       setNewTaskLabel(task.label);
                     }}
-                    className="p-1 text-gray-400 hover:text-gray-500"
+                    className="p-1 hover:opacity-80"
+                    style={{ color: 'var(--t3)' }}
                   >
-                    <Pencil className="w-4 h-4" />
+                    <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />
                   </button>
                   {showDeleteConfirm === task.id ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleDeleteTask(task.id)}
-                        className="px-2 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                        className="px-2 py-1 text-xs rounded hover:opacity-80"
+                        style={{ backgroundColor: 'var(--status-red)', color: 'var(--t1)' }}
                       >
                         Delete
                       </button>
                       <button
                         onClick={() => setShowDeleteConfirm(null)}
-                        className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                        className="px-2 py-1 text-xs rounded hover:opacity-80"
+                        style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)' }}
                       >
                         Cancel
                       </button>
@@ -197,9 +205,10 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
                   ) : (
                     <button
                       onClick={() => setShowDeleteConfirm(task.id)}
-                      className="p-1 text-gray-400 hover:text-red-500"
+                      className="p-1 hover:opacity-80"
+                      style={{ color: 'var(--t3)' }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <img src="/TM-Trash-negro.svg" className="pxi-md icon-danger" alt="" />
                     </button>
                   )}
                 </div>
@@ -209,7 +218,7 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
         ))}
 
         {isAddingTask ? (
-          <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 p-3 rounded-lg" style={{ backgroundColor: 'var(--surface-2)' }}>
             <input
               type="text"
               value={newTaskLabel}
@@ -222,13 +231,15 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
                 }
               }}
               placeholder="Enter task name..."
-              className="flex-1 rounded border-gray-300 focus:border-primary focus:ring-primary text-sm"
+              className="flex-1 rounded text-sm focus:ring-primary"
+              style={{ backgroundColor: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               autoFocus
             />
             <div className="flex items-center gap-2">
               <button
                 onClick={handleAddTask}
-                className="px-3 py-1 text-sm text-white bg-primary rounded hover:bg-primary/90"
+                className="px-3 py-1 text-sm rounded hover:opacity-80"
+                style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
               >
                 Add
               </button>
@@ -237,7 +248,8 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
                   setIsAddingTask(false);
                   setNewTaskLabel('');
                 }}
-                className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                className="px-3 py-1 text-sm rounded hover:opacity-80"
+                style={{ backgroundColor: 'var(--surface-3)', color: 'var(--t1)' }}
               >
                 Cancel
               </button>
@@ -246,7 +258,8 @@ export default function MarketingChecklist({ show, onUpdate }: MarketingChecklis
         ) : (
           <button
             onClick={() => setIsAddingTask(true)}
-            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
+            className="flex items-center gap-2 text-sm hover:opacity-80"
+            style={{ color: 'var(--brand-1)' }}
           >
             <Plus className="w-4 h-4" />
             Add Task

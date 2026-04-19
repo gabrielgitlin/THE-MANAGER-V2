@@ -4,7 +4,7 @@ import { CalendarIcon, Disc, Plane, Building, CheckCircle, Scale, Cake } from 'l
 export interface CalendarEvent {
   id: string;
   title: string;
-  type: 'show' | 'release' | 'other' | 'task' | 'travel_accommodation';
+  type: 'show' | 'release' | 'other' | 'task' | 'travel_accommodation' | 'birthday';
   date: string;
   time?: string;
   location?: string;
@@ -12,7 +12,7 @@ export interface CalendarEvent {
   color: string;
   icon: any;
   tags?: string[];
-  source: 'internal' | 'database';
+  source: 'internal' | 'database' | 'google' | 'ical' | 'outlook';
   relatedId?: string;
 }
 
@@ -29,13 +29,17 @@ export const calendarEventSyncService = {
         releaseEvents,
         taskEvents,
         contractEvents,
-        userCalendarEvents
+        userCalendarEvents,
+        birthdayEvents,
+        syncedExternalEvents,
       ] = await Promise.all([
         this.getShowEvents(),
         this.getReleaseEvents(),
         this.getTaskEvents(),
         this.getContractEvents(),
-        this.getUserCalendarEvents()
+        this.getUserCalendarEvents(),
+        this.getBirthdayEvents(),
+        this.getSyncedExternalEvents(),
       ]);
 
       events.push(
@@ -43,7 +47,9 @@ export const calendarEventSyncService = {
         ...releaseEvents,
         ...taskEvents,
         ...contractEvents,
-        ...userCalendarEvents
+        ...userCalendarEvents,
+        ...birthdayEvents,
+        ...syncedExternalEvents,
       );
 
       return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -258,6 +264,55 @@ export const calendarEventSyncService = {
     }
   },
 
+  async getSyncedExternalEvents(): Promise<CalendarEvent[]> {
+    try {
+      // PostgREST default cap is 1 000 rows — paginate to fetch everything
+      const PAGE = 1000;
+      let allRows: any[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('synced_events')
+          .select(`
+            *,
+            calendar_connections!inner(provider, color, account_name)
+          `)
+          .order('start_date', { ascending: true })
+          .range(from, from + PAGE - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) allRows = allRows.concat(data);
+        if (!data || data.length < PAGE) break; // last page
+        from += PAGE;
+      }
+
+      return allRows.map((event: any) => {
+        const provider = event.calendar_connections?.provider || 'google';
+        const calColor = event.calendar_connections?.color || '#4285f4';
+
+        return {
+          id: `synced-${event.id}`,
+          title: event.title,
+          type: 'other' as const,
+          date: event.start_date,
+          time: event.start_time || undefined,
+          location: event.location || undefined,
+          description: event.description || undefined,
+          color: calColor,
+          icon: CalendarIcon,
+          tags: ['external', provider],
+          source: provider as 'google' | 'ical' | 'outlook',
+          relatedId: event.id,
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching synced external events:', error);
+      return [];
+    }
+  },
+
   async createTaskEvent(task: {
     title: string;
     description?: string;
@@ -309,6 +364,55 @@ export const calendarEventSyncService = {
     } catch (error) {
       console.error('Error updating task status:', error);
       throw error;
+    }
+  },
+
+  async getBirthdayEvents(): Promise<CalendarEvent[]> {
+    try {
+      const { data: contacts, error } = await supabase
+        .from('contacts')
+        .select('id, first_name, last_name, date_of_birth')
+        .not('date_of_birth', 'is', null);
+
+      if (error) throw error;
+
+      const events: CalendarEvent[] = [];
+      const currentYear = new Date().getFullYear();
+
+      for (const contact of contacts || []) {
+        if (!contact.date_of_birth) continue;
+        // Parse as local date to avoid timezone shift
+        const [dobYear, dobMonth, dobDay] = (contact.date_of_birth as string)
+          .split('-')
+          .map(Number);
+
+        // Generate for previous, current, and next year so the calendar
+        // always has upcoming AND past birthdays visible
+        for (const year of [currentYear - 1, currentYear, currentYear + 1]) {
+          const mm = String(dobMonth).padStart(2, '0');
+          const dd = String(dobDay).padStart(2, '0');
+          const birthdayDate = `${year}-${mm}-${dd}`;
+          const age = year - dobYear;
+
+          events.push({
+            id: `birthday-${contact.id}-${year}`,
+            title: `${contact.first_name}'s Birthday`,
+            type: 'birthday' as const,
+            date: birthdayDate,
+            description: `${contact.first_name} ${contact.last_name} turns ${age}`,
+            color: 'bg-[#EEF2EA] text-black',
+            icon: Cake,
+            tags: ['birthday'],
+            source: 'database' as const,
+            relatedId: contact.id,
+          });
+        }
+      }
+
+      return events;
+    } catch (error) {
+      console.error('Error fetching birthday events:', error);
+      return [];
     }
   },
 

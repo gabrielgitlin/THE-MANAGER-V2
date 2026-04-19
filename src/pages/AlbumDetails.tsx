@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Disc, Calendar, Tag, Globe, Share2, Download, Play, Pause, ExternalLink, Pencil, File, Edit, Save, X, Plus, DollarSign, TrendingUp, Trash2 } from 'lucide-react';
+import { ChevronLeft, Disc, Calendar, Tag, Globe, DollarSign, TrendingUp, Plus, GripVertical } from 'lucide-react';
+import { TMDatePicker } from '../components/ui/TMDatePicker';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Album, CreditShare, DigitalAsset, Budget } from '../types';
+import type { Album, CreditShare } from '../types';
 import { CATALOG } from '../data/catalog';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
-import DigitalAssetUploader, { AssetCategory } from '../components/catalog/DigitalAssetUploader';
-import BudgetLinkSection from '../components/BudgetLinkSection';
+import DigitalAssetUploader from '../components/catalog/DigitalAssetUploader';
+import { listAssets as listDigitalAssets } from '../lib/digitalAssetService';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { KebabMenu } from '../components/ui/KebabMenu';
+import { ContactTagInput, type ContactTag } from '../components/ui/ContactTagInput';
+import { syncArtistsToTeam } from '../lib/contacts';
 
 
 export default function AlbumDetails() {
@@ -20,23 +24,49 @@ export default function AlbumDetails() {
   const [album, setAlbum] = useState<Album | null>(null);
   const [albumData, setAlbumData] = useState<Album | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditingAlbum, setIsEditingAlbum] = useState(false);
+  // Inline edit state: null = no field being edited. Double-click a field to edit it.
+  type EditableField = 'title' | 'format' | 'artist' | 'releaseDate';
+  const [editingField, setEditingField] = useState<EditableField | null>(null);
+  const [editDraft, setEditDraft] = useState<string>('');
   const [isEditingTracks, setIsEditingTracks] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
+  const [draggedTrackId, setDraggedTrackId] = useState<string | number | null>(null);
+  const [activeSpotifyEmbed, setActiveSpotifyEmbed] = useState<string | null>(null);
   const [isEditingCredits, setIsEditingCredits] = useState(false);
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
   const [editingTrackId, setEditingTrackId] = useState<number | null>(null);
   const [newGenre, setNewGenre] = useState('');
   const [newCredit, setNewCredit] = useState<{ type: string; credit: CreditShare }>({ type: '', credit: { name: '' } });
   const [isAddingCredit, setIsAddingCredit] = useState(false);
-  const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
-  const [linkedBudget, setLinkedBudget] = useState<Budget | null>(null);
   const [isUploadingArtwork, setIsUploadingArtwork] = useState(false);
+  const [showStockPicker, setShowStockPicker] = useState(false);
   const artworkInputRef = React.useRef<HTMLInputElement>(null);
+  const stockCarouselRef = React.useRef<HTMLDivElement>(null);
+
+  // Inline artist tag editing
+  const [isEditingArtist, setIsEditingArtist] = useState(false);
+  const [artistEditTags, setArtistEditTags] = useState<ContactTag[]>([]);
+
+  const saveArtistTags = async (tags: ContactTag[]) => {
+    if (!album) return;
+    const artistStr = tags.map(t => t.name).join(', ');
+    const { error } = await supabase.from('albums').update({
+      artist: artistStr || 'Unknown Artist',
+      artist_contacts: JSON.stringify(tags),
+    }).eq('id', album.id);
+    if (error) { console.error('Failed to save artist:', error); return; }
+    const updated = { ...album, artist: artistStr || 'Unknown Artist', artistTags: tags } as any;
+    setAlbum(updated);
+    setAlbumData(updated);
+    setIsEditingArtist(false);
+    if (tags.length > 0) syncArtistsToTeam(tags.map(t => ({ name: t.name, role: 'Artist' })));
+  };
 
   useEffect(() => {
     const fetchAlbum = async () => {
       if (!user) {
-        const catalogAlbum = CATALOG.find(a => a.id === Number(id));
+        const numericId = Number(id);
+        const catalogAlbum = !Number.isNaN(numericId) ? CATALOG.find(a => a.id === numericId) : null;
         setAlbum(catalogAlbum || null);
         setAlbumData(catalogAlbum || null);
         setIsLoading(false);
@@ -51,14 +81,18 @@ export default function AlbumDetails() {
             id,
             title,
             release_date,
-            cover_url,
+            artwork_url,
             format,
             status,
             spotify_id,
             spotify_url,
             total_tracks,
             genres_array,
+            label,
+            upc,
             artist_id,
+            artist,
+            artist_contacts,
             artists (
               name
             )
@@ -92,23 +126,36 @@ export default function AlbumDetails() {
           .order('disc_number', { ascending: true })
           .order('track_number', { ascending: true });
 
+        const artistName = (albumData as any).artists?.name || (albumData as any).artist || 'Unknown Artist';
+        // Parse artist_contacts; fall back to a plain tag from the artist string
+        let artistTags: { id?: string; name: string }[] = [];
+        try {
+          const raw = (albumData as any).artist_contacts;
+          if (raw && raw.length > 0) {
+            artistTags = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          }
+        } catch { /* silent */ }
+        if (artistTags.length === 0 && artistName && artistName !== 'Unknown Artist') {
+          artistTags = [{ name: artistName }];
+        }
         const formattedAlbum: Album = {
           id: albumData.id as any,
           title: albumData.title,
-          artist: albumData.artists?.name || 'Unknown Artist',
+          artist: artistName,
+          artistTags,
           releaseDate: albumData.release_date,
-          artworkUrl: albumData.cover_url,
+          artworkUrl: (albumData as any).artwork_url,
           format: albumData.format as 'Album' | 'EP' | 'Single',
           status: albumData.status,
-          genres: albumData.genres_array || [],
-          label: '',
+          genres: (albumData as any).genres_array || [],
+          label: (albumData as any).label || '',
           distributor: '',
-          upc: '',
-          spotifyUrl: albumData.spotify_url,
+          upc: (albumData as any).upc || '',
+          spotifyUrl: (albumData as any).spotify_url,
           tracks: (albumTracks || []).map((at: any) => ({
             id: at.tracks.id as any,
             title: at.tracks.title,
-            duration: formatDuration(at.tracks.duration || 0),
+            duration: formatDuration(Number(at.tracks.duration) || 0),
             trackNumber: at.track_number,
             isrc: at.tracks.isrc || '',
             spotifyUri: at.tracks.spotify_url ? `spotify:track:${at.tracks.spotify_id}` : undefined,
@@ -124,11 +171,16 @@ export default function AlbumDetails() {
 
         setAlbum(formattedAlbum);
         setAlbumData(formattedAlbum);
-      } catch (err) {
-        console.error('Error fetching album:', err);
-        const catalogAlbum = CATALOG.find(a => a.id === Number(id));
-        setAlbum(catalogAlbum || null);
-        setAlbumData(catalogAlbum || null);
+      } catch (err: any) {
+        console.error('Error fetching album:', err?.message || err, err);
+        // Only fall back to mock catalog when id is a numeric mock id;
+        // DB albums use UUIDs so Number(id) would be NaN and wipe the state.
+        const numericId = Number(id);
+        if (!Number.isNaN(numericId)) {
+          const catalogAlbum = CATALOG.find(a => a.id === numericId);
+          setAlbum(catalogAlbum || null);
+          setAlbumData(catalogAlbum || null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -151,22 +203,49 @@ export default function AlbumDetails() {
     currentTrackIndex 
   } = useMusicPlayerStore();
 
+  // 3-tier playback:
+  //  1. audioUrl (uploaded file or Spotify preview) → play natively
+  //  2. spotifyUri only → open Spotify in a new tab
+  //  3. neither → button is disabled
+  const getTrackPlayMode = (track: { audioUrl?: string; spotifyUri?: string }) => {
+    if (track.audioUrl) return 'native' as const;
+    if (track.spotifyUri) return 'spotify' as const;
+    return 'none' as const;
+  };
+
+  const spotifyUriToUrl = (uri: string) => {
+    // spotify:track:XXXXX → https://open.spotify.com/track/XXXXX
+    const id = uri.replace('spotify:track:', '');
+    return `https://open.spotify.com/track/${id}`;
+  };
+
   const handlePlayPause = (trackId: number) => {
     const track = album?.tracks.find(t => t.id === trackId);
     if (!track || !album) return;
 
-    const currentTrack = tracks[currentTrackIndex];
-    if (currentTrack?.id === track.id) {
-      togglePlayPause();
-    } else {
-      playTrack({
-        id: track.id,
-        title: track.title,
-        artist: album.artist,
-        duration: track.duration || '0:00',
-        audioUrl: track.audioUrl,
-        coverArt: album.artworkUrl
-      });
+    const mode = getTrackPlayMode(track);
+
+    if (mode === 'spotify' && track.spotifyUri) {
+      const spotifyId = track.spotifyUri.replace('spotify:track:', '');
+      setActiveSpotifyEmbed(prev => prev === spotifyId ? null : spotifyId);
+      return;
+    }
+    setActiveSpotifyEmbed(null);
+
+    if (mode === 'native') {
+      const currentTrack = tracks[currentTrackIndex];
+      if (currentTrack?.id === track.id) {
+        togglePlayPause();
+      } else {
+        playTrack({
+          id: track.id,
+          title: track.title,
+          artist: album.artist,
+          duration: track.duration || '0:00',
+          audioUrl: track.audioUrl,
+          coverArt: album.artworkUrl
+        });
+      }
     }
   };
 
@@ -174,23 +253,103 @@ export default function AlbumDetails() {
     return tracks[currentTrackIndex]?.id === trackId && isPlayerPlaying;
   };
 
-  const handleAddAsset = (asset: DigitalAsset) => {
-    setDigitalAssets([...digitalAssets, asset]);
+
+  // Map a UI field to the corresponding albums table column.
+  const FIELD_TO_COLUMN: Record<EditableField, string> = {
+    title: 'title',
+    format: 'format',
+    artist: 'artist', // legacy NOT NULL text column
+    releaseDate: 'release_date',
   };
 
-  const handleDeleteAsset = (assetId: string) => {
-    setDigitalAssets(digitalAssets.filter(asset => asset.id !== assetId));
+  const beginEditing = (field: EditableField, currentValue: string) => {
+    setEditingField(field);
+    setEditDraft(currentValue || '');
   };
 
-  const handleUpdateAsset = (updatedAsset: DigitalAsset) => {
-    setDigitalAssets(digitalAssets.map(asset => 
-      asset.id === updatedAsset.id ? updatedAsset : asset
-    ));
+  const cancelEditing = () => {
+    setEditingField(null);
+    setEditDraft('');
   };
 
-  const handleSaveAlbum = () => {
-    // In a real app, this would save to the database
-    setIsEditingAlbum(false);
+  const commitEditing = async () => {
+    if (!editingField || !albumData) {
+      cancelEditing();
+      return;
+    }
+    const field = editingField;
+    const column = FIELD_TO_COLUMN[field];
+    const rawValue = editDraft.trim();
+
+    // Guard: title, format, and artist are NOT NULL in prod schema. Reject empty saves.
+    if ((field === 'title' || field === 'format' || field === 'artist') && !rawValue) {
+      cancelEditing();
+      return;
+    }
+
+    // Optimistic local update, keyed on the React field name.
+    const patchLocal: Partial<Album> =
+      field === 'releaseDate' ? { releaseDate: rawValue } : { [field]: rawValue } as Partial<Album>;
+    setAlbumData({ ...albumData, ...patchLocal });
+    cancelEditing();
+
+    // Persist. Only attempt when we have a real DB-backed album (UUID id).
+    if (!user || typeof album?.id !== 'string') return;
+    const { error } = await supabase
+      .from('albums')
+      .update({ [column]: rawValue || null })
+      .eq('id', album.id);
+    if (error) {
+      console.error('Error updating album field:', field, error);
+      // Roll back optimistic update
+      setAlbumData({ ...albumData });
+    }
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitEditing();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelEditing();
+    }
+  };
+
+  // ---- Track reorder via drag-and-drop ----
+  const handleDragStart = (trackId: string | number) => {
+    setDraggedTrackId(trackId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetTrackNumber: number) => {
+    e.preventDefault();
+    if (!draggedTrackId || !albumData) return;
+
+    const tracks = [...albumData.tracks];
+    const draggedIdx = tracks.findIndex(t => t.id === draggedTrackId);
+    const targetIdx = tracks.findIndex(t => t.trackNumber === targetTrackNumber);
+    if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) return;
+
+    // Swap track numbers
+    const tmpNum = tracks[draggedIdx].trackNumber;
+    tracks[draggedIdx] = { ...tracks[draggedIdx], trackNumber: tracks[targetIdx].trackNumber };
+    tracks[targetIdx] = { ...tracks[targetIdx], trackNumber: tmpNum };
+    tracks.sort((a, b) => a.trackNumber - b.trackNumber);
+
+    setAlbumData({ ...albumData, tracks });
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedTrackId(null);
+    // Persist the new track order to album_tracks in Supabase
+    if (!user || !albumData) return;
+    for (const track of albumData.tracks) {
+      await supabase
+        .from('album_tracks')
+        .update({ track_number: track.trackNumber })
+        .eq('album_id', albumData.id)
+        .eq('track_id', track.id);
+    }
   };
 
   const handleSaveTrack = (trackId: number, updates: any) => {
@@ -272,7 +431,7 @@ export default function AlbumDetails() {
 
       const { error: updateError } = await supabase
         .from('albums')
-        .update({ cover_url: publicUrl })
+        .update({ artwork_url: publicUrl })
         .eq('id', id);
 
       if (updateError) throw updateError;
@@ -288,28 +447,52 @@ export default function AlbumDetails() {
     }
   };
 
+  const STOCK_COVERS = [
+    '/covers/cover-green.jpg',
+    '/covers/cover-dark.jpg',
+    '/covers/cover-light.jpg',
+  ];
+
+  const handleStockCoverSelect = async (url: string) => {
+    if (!id) return;
+    try {
+      const { error } = await supabase
+        .from('albums')
+        .update({ artwork_url: url })
+        .eq('id', id);
+      if (error) throw error;
+      setAlbumData(prev => prev ? { ...prev, artworkUrl: url } : null);
+      setAlbum(prev => prev ? { ...prev, artworkUrl: url } : null);
+      setShowStockPicker(false);
+    } catch (err) {
+      console.error('Error setting stock cover:', err);
+      alert('Failed to set cover. Please try again.');
+    }
+  };
+
   const renderCreditList = (credits: CreditShare[]) => (
     <div className="space-y-2">
       {credits.map((credit, index) => (
-        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span className="text-sm text-gray-900">{credit.name}</span>
+        <div key={index} className="flex items-center justify-between p-3" style={{ backgroundColor: 'var(--surface-2)' }}>
+          <span className="text-sm" style={{ color: 'var(--t1)' }}>{credit.name}</span>
           <div className="flex items-center gap-4">
             {typeof credit.masterPercentage !== 'undefined' && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm" style={{ color: 'var(--t2)' }}>
                 Master: {credit.masterPercentage}%
               </span>
             )}
             {typeof credit.publishingPercentage !== 'undefined' && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm" style={{ color: 'var(--t2)' }}>
                 Publishing: {credit.publishingPercentage}%
               </span>
             )}
             {isEditingCredits && (
               <button
                 onClick={() => handleRemoveCredit('artistCredits', index)}
-                className="p-1 text-gray-400 hover:text-red-500"
+                className="p-1 hover:text-red-500"
+                style={{ color: 'var(--t3)' }}
               >
-                <X className="w-4 h-4" />
+                <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="Remove" />
               </button>
             )}
           </div>
@@ -318,6 +501,10 @@ export default function AlbumDetails() {
     </div>
   );
 
+  const isDemo = album?.status === 'demo';
+  const backUrl = isDemo ? '/catalog?tab=demos' : '/catalog';
+  const backLabel = isDemo ? 'Back to Demos' : 'Back to Catalog';
+
   if (isLoading) {
     return <LoadingSpinner fullScreen={false} />;
   }
@@ -325,13 +512,13 @@ export default function AlbumDetails() {
   if (!album) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Release Not Found</h2>
-        <p className="text-gray-600 mb-8">The release you're looking for doesn't exist or has been removed.</p>
+        <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--t1)' }}>Release Not Found</h2>
+        <p className="mb-8" style={{ color: 'var(--t2)' }}>The release you're looking for doesn't exist or has been removed.</p>
         <button
-          onClick={() => navigate('/catalog')}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          onClick={() => navigate(backUrl)}
+          className="px-4 py-2 bg-primary text-white hover:bg-primary/90"
         >
-          Return to Catalog
+          {backLabel}
         </button>
       </div>
     );
@@ -340,7 +527,7 @@ export default function AlbumDetails() {
   // Use albumData instead of album for display
   const displayAlbum = albumData || album;
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const doc = new jsPDF();
 
     // Add title and artist
@@ -438,13 +625,21 @@ export default function AlbumDetails() {
     doc.text('Digital Assets', 14, yPos);
     yPos += 10;
 
-    const assets = digitalAssets.map(asset => [
-      asset.name,
-      asset.category.charAt(0).toUpperCase() + asset.category.slice(1),
-      formatFileSize(asset.size),
-      new Date(asset.uploadDate).toLocaleDateString(),
-      asset.description || 'N/A',
-    ]);
+    // Fetch assets fresh at export time so the PDF always reflects current state.
+    let digitalAssetsForPdf: Array<[string, string, string, string, string]> = [];
+    try {
+      const rows = await listDigitalAssets('album', String(album.id));
+      digitalAssetsForPdf = rows.map((a) => [
+        a.name,
+        a.category.charAt(0).toUpperCase() + a.category.slice(1),
+        a.source_type === 'upload' ? formatFileSize(a.file_size || 0) : a.source_type,
+        new Date(a.created_at).toLocaleDateString(),
+        a.description || 'N/A',
+      ]);
+    } catch (err) {
+      console.warn('Could not fetch assets for PDF export:', err);
+    }
+    const assets = digitalAssetsForPdf;
 
     if (assets.length > 0) {
       autoTable(doc, {
@@ -502,10 +697,113 @@ export default function AlbumDetails() {
         if (error) throw error;
       }
 
-      navigate('/catalog');
+      navigate(backUrl);
     } catch (error) {
       console.error('Error deleting album:', error);
       alert('Failed to delete album. Please try again.');
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (!displayAlbum) return;
+    const rows = [
+      ['#', 'Title', 'Artist', 'Duration', 'ISRC'],
+      ...(displayAlbum.tracks || []).map((t: any, i: number) => [
+        String(i + 1),
+        t.title || '',
+        displayAlbum.artist || '',
+        t.duration || '',
+        t.isrc || '',
+      ]),
+    ];
+    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${displayAlbum.artist} - ${displayAlbum.title}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDuplicateAlbum = async () => {
+    if (!album || !user) return;
+    try {
+      const { data: newAlbum, error: albumErr } = await supabase
+        .from('albums')
+        .insert({
+          title: `Copy of ${album.title}`,
+          artist: album.artist || '',
+          artist_id: (album as any).artist_id || null,
+          user_id: user.id,
+          format: album.format,
+          status: 'draft',
+          release_date: album.releaseDate,
+          artwork_url: (album as any).artwork_url || null,
+          genres_array: (album as any).genres_array || [],
+          label: (album as any).label || null,
+        })
+        .select()
+        .single();
+      if (albumErr) throw albumErr;
+
+      for (const track of (displayAlbum?.tracks || [])) {
+        const { data: newTrack, error: trackErr } = await supabase
+          .from('tracks')
+          .insert({
+            title: (track as any).title,
+            duration: (track as any).duration,
+            audio_url: (track as any).audioUrl || null,
+            album_id: newAlbum.id,
+            user_id: user.id,
+            track_number: (track as any).trackNumber || 1,
+          })
+          .select()
+          .single();
+        if (trackErr) throw trackErr;
+        await supabase.from('album_tracks').insert({
+          album_id: newAlbum.id,
+          track_id: newTrack.id,
+          track_number: (track as any).trackNumber || 1,
+          disc_number: 1,
+        });
+      }
+      navigate(`/album/${newAlbum.id}`);
+    } catch (err: any) {
+      alert(`Failed to duplicate: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
+  const STATUS_CYCLE: Record<string, string> = {
+    draft: 'ready',
+    ready: 'released',
+    released: 'draft',
+    demo: 'draft',
+  };
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: 'Draft',
+    ready: 'Ready for Release',
+    released: 'Released',
+    demo: 'Demo',
+  };
+
+  const handleChangeStatus = async () => {
+    if (!album || !user || !id) return;
+    const current = ((album as any).status || 'draft').toLowerCase();
+    const next = STATUS_CYCLE[current] || 'draft';
+    try {
+      const { error } = await supabase
+        .from('albums')
+        .update({ status: next })
+        .eq('id', id);
+      if (error) throw error;
+      setAlbum(prev => prev ? { ...prev, status: next } as any : prev);
+      setAlbumData(prev => prev ? { ...prev, status: next } as any : prev);
+    } catch (err: any) {
+      alert(`Failed to update status: ${err?.message}`);
     }
   };
 
@@ -522,16 +820,17 @@ export default function AlbumDetails() {
     <div>
       <div className="mb-8">
         <button
-          onClick={() => navigate('/catalog')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          onClick={() => navigate(backUrl)}
+          className="flex items-center gap-2 text-sm mb-4 hover:opacity-80"
+          style={{ color: 'var(--t2)' }}
         >
           <ChevronLeft className="w-4 h-4" />
-          Back to Catalog
+          {backLabel}
         </button>
         <div className="flex justify-between items-start">
           <div className="flex gap-6">
             {/* Album Artwork */}
-            <div className="w-48 h-48 rounded-lg overflow-hidden bg-gray-100 relative group">
+            <div className="w-48 h-48 overflow-hidden relative group" style={{ backgroundColor: 'var(--surface)' }}>
               {displayAlbum.artworkUrl ? (
                 <img
                   src={displayAlbum.artworkUrl}
@@ -543,55 +842,210 @@ export default function AlbumDetails() {
                   <img src="/tm-vinil-negro_(2).png" alt="Album" className="w-12 h-12 object-contain opacity-40" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <input
-                  ref={artworkInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleArtworkChange}
-                  className="hidden"
-                />
+              <input
+                ref={artworkInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleArtworkChange}
+                className="hidden"
+              />
+              {/* Hover: "Edit" label */}
+              {!showStockPicker && (
                 <button
-                  onClick={() => artworkInputRef.current?.click()}
-                  disabled={isUploadingArtwork}
-                  className="px-3 py-1 text-xs text-white bg-black bg-opacity-50 rounded-md hover:bg-opacity-70 disabled:opacity-50"
+                  onClick={() => setShowStockPicker(true)}
+                  className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
                 >
-                  {isUploadingArtwork ? 'Uploading...' : 'Change'}
+                  <span className="flex items-center gap-1.5 text-xs text-white" style={{ fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    <img src="/TM-Pluma-negro.png" className="pxi-sm icon-white" alt="" />
+                    Edit
+                  </span>
                 </button>
-              </div>
+              )}
+              {/* Expanded: Upload / Stock picker */}
+              {showStockPicker && (
+                <div className="absolute inset-0 z-20 flex flex-col" style={{ backgroundColor: 'var(--surface)' }}>
+                  <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                    <p className="text-xs uppercase tracking-wide" style={{ color: 'var(--t3)', fontFamily: 'var(--font-mono)' }}>
+                      Cover Art
+                    </p>
+                    <button onClick={() => setShowStockPicker(false)} className="hover:opacity-70">
+                      <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="Close" />
+                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-3">
+                    <button
+                      onClick={() => { artworkInputRef.current?.click(); setShowStockPicker(false); }}
+                      disabled={isUploadingArtwork}
+                      className="w-full py-2 text-xs uppercase tracking-wide flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                      style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', border: '1px solid var(--border)', fontFamily: 'var(--font-mono)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-3)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                    >
+                      <img src="/TM-Upload-negro.svg" className="pxi-sm icon-white" alt="" />
+                      {isUploadingArtwork ? 'Uploading...' : 'Upload Image'}
+                    </button>
+                    <div className="w-full">
+                      <p className="text-xs uppercase tracking-wide mb-2 text-center" style={{ color: 'var(--t3)', fontFamily: 'var(--font-mono)' }}>
+                        Or use stock
+                      </p>
+                      <div className="relative">
+                        <button
+                          onClick={() => stockCarouselRef.current?.scrollBy({ left: -72, behavior: 'smooth' })}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-5 h-5 flex items-center justify-center"
+                          style={{ backgroundColor: 'var(--surface)', color: 'var(--t2)', border: '1px solid var(--border)' }}
+                        >
+                          <img src="/TM-ArrowLeft-negro.svg" className="pxi-sm icon-white" alt="" />
+                        </button>
+                        <div
+                          ref={stockCarouselRef}
+                          className="flex gap-1.5 overflow-x-auto px-6 justify-center"
+                          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        >
+                          {STOCK_COVERS.map((url) => (
+                            <button
+                              key={url}
+                              onClick={() => handleStockCoverSelect(url)}
+                              className="flex-shrink-0 w-14 h-14 overflow-hidden transition-all duration-[120ms]"
+                              style={{
+                                border: displayAlbum.artworkUrl === url ? '2px solid var(--brand-1)' : '1px solid var(--border)',
+                                opacity: displayAlbum.artworkUrl === url ? 1 : 0.7,
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                              onMouseLeave={(e) => { if (displayAlbum.artworkUrl !== url) e.currentTarget.style.opacity = '0.7'; }}
+                            >
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => stockCarouselRef.current?.scrollBy({ left: 72, behavior: 'smooth' })}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-5 h-5 flex items-center justify-center"
+                          style={{ backgroundColor: 'var(--surface)', color: 'var(--t2)', border: '1px solid var(--border)', transform: 'translateY(-50%) scaleX(-1)' }}
+                        >
+                          <img src="/TM-ArrowLeft-negro.svg" className="pxi-sm icon-white" alt="" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-500 uppercase">{displayAlbum.format}</span>
-              <div className="flex items-center gap-2 mt-1">
-                {isEditingAlbum ? (
-                  <input
-                    type="text"
-                    value={displayAlbum.title}
-                    onChange={(e) => setAlbumData({ ...displayAlbum, title: e.target.value })}
-                    className="text-3xl font-bold text-gray-900 font-title bg-transparent border-b-2 border-primary focus:outline-none"
-                  />
-                ) : (
-                  <h1 className="text-3xl font-bold text-gray-900 font-title">{displayAlbum.title}</h1>
-                )}
-                <button
-                  onClick={() => isEditingAlbum ? handleSaveAlbum() : setIsEditingAlbum(true)}
-                  className="p-1 text-gray-400 hover:text-primary"
+              {/* Format — double-click to edit */}
+              {editingField === 'format' ? (
+                <select
+                  autoFocus
+                  value={editDraft}
+                  onChange={(e) => setEditDraft(e.target.value)}
+                  onBlur={commitEditing}
+                  onKeyDown={handleEditKeyDown}
+                  className="text-sm font-medium uppercase bg-transparent border-b border-primary focus:outline-none"
+                  style={{ color: 'var(--t2)', backgroundColor: 'var(--surface-2)' }}
                 >
-                  {isEditingAlbum ? <Save className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
-                </button>
-              </div>
+                  <option value="Album">Album</option>
+                  <option value="EP">EP</option>
+                  <option value="Single">Single</option>
+                </select>
+              ) : (
+                <span
+                  onDoubleClick={() => beginEditing('format', displayAlbum.format)}
+                  className="text-sm font-medium uppercase cursor-text select-none"
+                  style={{ color: 'var(--t2)' }}
+                  title="Double-click to edit"
+                >
+                  {displayAlbum.format}
+                </span>
+              )}
+
+              {/* Title — double-click to edit */}
               <div className="flex items-center gap-2 mt-1">
-                {isEditingAlbum ? (
+                {editingField === 'title' ? (
                   <input
+                    autoFocus
                     type="text"
-                    value={displayAlbum.artist}
-                    onChange={(e) => setAlbumData({ ...displayAlbum, artist: e.target.value })}
-                    className="text-xl text-gray-500 bg-transparent border-b border-gray-300 focus:outline-none focus:border-primary"
+                    value={editDraft}
+                    onChange={(e) => setEditDraft(e.target.value)}
+                    onBlur={commitEditing}
+                    onKeyDown={handleEditKeyDown}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="text-3xl font-bold font-title bg-transparent border-b-2 border-primary focus:outline-none w-full"
+                    style={{ color: 'var(--t1)', backgroundColor: 'transparent' }}
                   />
                 ) : (
-                  <p className="text-xl text-gray-500">{displayAlbum.artist}</p>
+                  <h1
+                    onDoubleClick={() => beginEditing('title', displayAlbum.title)}
+                    className="text-3xl font-bold font-title cursor-text select-none"
+                    style={{ color: 'var(--t1)' }}
+                    title="Double-click to edit"
+                  >
+                    {displayAlbum.title}
+                  </h1>
                 )}
               </div>
+
+              {/* Artist */}
+              <div className="mt-1">
+                {isEditingArtist ? (
+                  <div style={{ maxWidth: 360 }}>
+                    <ContactTagInput
+                      value={artistEditTags}
+                      onChange={setArtistEditTags}
+                      placeholder="Search or add artist…"
+                      preferRole="Artist"
+                    />
+                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={() => saveArtistTags(artistEditTags)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setIsEditingArtist(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1">
+                    {((displayAlbum as any).artistTags as { id?: string; name: string }[] | undefined)?.map((tag, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '2px 9px',
+                          borderRadius: 9999,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          background: tag.id ? 'var(--surface-4)' : 'var(--surface-3)',
+                          color: tag.id ? 'var(--t1)' : 'var(--t2)',
+                          border: '1px solid var(--border-2)',
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-icon"
+                      title="Edit artist"
+                      onClick={() => {
+                        setArtistEditTags(((displayAlbum as any).artistTags as ContactTag[]) ?? []);
+                        setIsEditingArtist(true);
+                      }}
+                      style={{ width: 20, height: 20, minWidth: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Plus size={12} style={{ color: 'var(--t3)' }} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center gap-4 mt-4">
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   displayAlbum.status === 'Released'
@@ -600,18 +1054,18 @@ export default function AlbumDetails() {
                 }`}>
                   {displayAlbum.status}
                 </span>
-                {isEditingAlbum ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">Released</span>
-                    <input
-                      type="date"
-                      value={displayAlbum.releaseDate}
-                      onChange={(e) => setAlbumData({ ...displayAlbum, releaseDate: e.target.value })}
-                      className="text-sm text-gray-500 bg-transparent border-b border-gray-300 focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                {editingField === 'releaseDate' ? (
+                  <TMDatePicker
+                    value={editDraft}
+                    onChange={(date) => setEditDraft(date)}
+                  />
                 ) : (
-                  <span className="text-sm text-gray-500">
+                  <span
+                    onDoubleClick={() => beginEditing('releaseDate', displayAlbum.releaseDate)}
+                    className="text-sm cursor-text select-none"
+                    style={{ color: 'var(--t2)' }}
+                    title="Double-click to edit"
+                  >
                     Released {new Date(displayAlbum.releaseDate).toLocaleDateString()}
                   </span>
                 )}
@@ -626,7 +1080,6 @@ export default function AlbumDetails() {
                   text: `Check out ${album.title} by ${album.artist}`,
                   url: window.location.href,
                 };
-
                 if (navigator.share && navigator.canShare(shareData)) {
                   navigator.share(shareData);
                 } else {
@@ -634,61 +1087,118 @@ export default function AlbumDetails() {
                   alert('Link copied to clipboard!');
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="btn btn-secondary"
             >
-              <Share2 className="w-4 h-4" />
+              <img src="/TM-Share-negro.svg" style={{ width: 14, height: 14, filter: 'invert(1)', opacity: 0.6 }} alt="Share" />
               Share
             </button>
-            <button
-              onClick={handleExportPDF}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
-            >
-              <Download className="w-4 h-4" />
-              Export PDF
-            </button>
-            <button
-              onClick={handleDeleteAlbum}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </button>
+            <KebabMenu
+              items={[
+                {
+                  label: 'Export PDF',
+                  icon: '/TM-Download-negro.svg',
+                  onClick: handleExportPDF,
+                },
+                {
+                  label: 'Export Tracklist as CSV',
+                  icon: '/TM-Download-negro.svg',
+                  onClick: handleExportCSV,
+                },
+                {
+                  label: `Set Status: ${STATUS_LABELS[STATUS_CYCLE[((album as any).status || 'draft').toLowerCase()] || 'draft']}`,
+                  icon: '/TM-Tag-negro.svg',
+                  onClick: handleChangeStatus,
+                },
+                {
+                  label: 'Duplicate Album',
+                  icon: '/TM-Copy-negro.svg',
+                  onClick: handleDuplicateAlbum,
+                  dividerBefore: true,
+                },
+                {
+                  label: 'Delete Album',
+                  icon: '/TM-Trash-negro.svg',
+                  onClick: handleDeleteAlbum,
+                  danger: true,
+                  dividerBefore: true,
+                },
+              ]}
+            />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ color: 'var(--t1)' }}>
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Track Listing */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-medium text-gray-900">Track Listing</h2>
-              <button
-                onClick={() => setIsEditingTracks(!isEditingTracks)}
-                className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-primary hover:text-primary/80"
-              >
-                {isEditingTracks ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                {isEditingTracks ? 'Save Changes' : 'Edit Tracks'}
-              </button>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Track Listing</h2>
+              <div className="flex items-center gap-2">
+                {displayAlbum.tracks.length > 1 && (
+                  <button
+                    onClick={() => setIsReordering(!isReordering)}
+                    className="flex items-center gap-2 px-3 py-1 text-sm font-medium hover:opacity-80"
+                    style={{
+                      backgroundColor: isReordering ? 'var(--brand-1)' : 'var(--surface-2)',
+                      color: isReordering ? '#fff' : 'var(--t2)',
+                      border: isReordering ? 'none' : '1px solid var(--border)',
+                    }}
+                  >
+                    <GripVertical className="w-4 h-4" />
+                    {isReordering ? 'Done Reordering' : 'Reorder Tracks'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsEditingTracks(!isEditingTracks)}
+                  className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-primary hover:text-primary/80"
+                >
+                  {isEditingTracks ? <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-white" alt="Save" /> : <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="Edit" />}
+                  {isEditingTracks ? 'Save Changes' : 'Edit Tracks'}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               {displayAlbum.tracks.map((track) => (
+                <React.Fragment key={track.id}>
                 <div
-                  key={track.id}
-                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  draggable={isReordering}
+                  onDragStart={() => handleDragStart(track.id)}
+                  onDragOver={(e) => handleDragOver(e, track.trackNumber)}
+                  onDragEnd={handleDragEnd}
+                  className="flex items-center gap-4 p-3 transition-colors"
+                  style={{
+                    backgroundColor: 'var(--surface-2)',
+                    color: 'var(--t1)',
+                    cursor: isReordering ? 'grab' : undefined,
+                  }}
                 >
-                  <button
-                    onClick={() => handlePlayPause(track.id)}
-                    className="p-2 text-gray-400 hover:text-primary"
-                  >
-                    {isTrackPlaying(track.id) ? (
-                      <Pause className="w-4 h-4" />
-                    ) : (
-                      <Play className="w-4 h-4" />
-                    )}
-                  </button>
-                  <span className="w-8 text-sm text-gray-500 text-right">
+                  {isReordering && (
+                    <GripVertical className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--t3)', cursor: 'grab' }} />
+                  )}
+                  {(() => {
+                    const mode = getTrackPlayMode(track);
+                    if (mode === 'none') return (
+                      <span className="p-2" style={{ opacity: 0.3 }}>
+                        <img src="/pixel-play.svg" alt="Play" className="w-4 h-4" style={{ filter: 'brightness(0) invert(0.6)' }} />
+                      </span>
+                    );
+                    return (
+                      <button
+                        onClick={() => handlePlayPause(track.id)}
+                        className="p-2 hover:opacity-80"
+                        title={mode === 'spotify' ? 'Play on Spotify' : isTrackPlaying(track.id) ? 'Pause' : 'Play'}
+                      >
+                        {mode === 'native' && isTrackPlaying(track.id) ? (
+                          <img src="/TM-Pause-negro.svg" className="pxi-md icon-muted" alt="Pause" />
+                        ) : (
+                          <img src="/pixel-play.svg" alt="Play" className="w-4 h-4" style={{ filter: mode === 'spotify' ? 'brightness(0) saturate(100%) invert(52%) sepia(87%) saturate(520%) hue-rotate(107deg) brightness(97%) contrast(101%)' : 'brightness(0) invert(0.6)' }} />
+                        )}
+                      </button>
+                    );
+                  })()}
+                  <span className="w-8 text-sm text-right" style={{ color: 'var(--t2)' }}>
                     {track.trackNumber}.
                   </span>
                   {isEditingTracks && editingTrackId === track.id ? (
@@ -697,79 +1207,95 @@ export default function AlbumDetails() {
                         type="text"
                         value={track.title}
                         onChange={(e) => {
-                          const updatedTracks = displayAlbum.tracks.map(t => 
+                          const updatedTracks = displayAlbum.tracks.map(t =>
                             t.id === track.id ? { ...t, title: e.target.value } : t
                           );
                           setAlbumData({ ...displayAlbum, tracks: updatedTracks });
                         }}
-                        className="flex-1 text-sm bg-white border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                        className="flex-1 text-sm border rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                        style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                       />
                       <input
                         type="text"
                         value={track.duration || ''}
                         onChange={(e) => {
-                          const updatedTracks = displayAlbum.tracks.map(t => 
+                          const updatedTracks = displayAlbum.tracks.map(t =>
                             t.id === track.id ? { ...t, duration: e.target.value } : t
                           );
                           setAlbumData({ ...displayAlbum, tracks: updatedTracks });
                         }}
                         placeholder="00:00"
-                        className="w-16 text-sm bg-white border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                        className="w-16 text-sm border rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                        style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                       />
                       <button
                         onClick={() => setEditingTrackId(null)}
                         className="p-1 text-green-600 hover:text-green-700"
                       >
-                        <Save className="w-4 h-4" />
+                        <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-white" alt="Save" />
                       </button>
                     </div>
                   ) : (
                     <>
                       <button
                         onClick={() => navigate(`/catalog/track/${track.id}`)}
-                        className="flex-1 text-left text-sm text-gray-900 hover:text-primary"
+                        className="flex-1 text-left text-sm hover:text-primary"
+                        style={{ color: 'var(--t1)' }}
                       >
                         {track.title}
                       </button>
-                      <span className="text-sm text-gray-500">{track.duration}</span>
+                      <span className="text-sm" style={{ color: 'var(--t2)' }}>{track.duration}</span>
                       {isEditingTracks ? (
                         <button
                           onClick={() => setEditingTrackId(track.id)}
-                          className="p-1 text-gray-400 hover:text-primary"
+                          className="p-1 text-gray-400 hover:text-primary" style={{ color: 'var(--t3)' }}
                         >
-                          <Edit className="w-4 h-4" />
+                          <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="Edit" />
                         </button>
                       ) : (
                         <button
                           onClick={() => navigate(`/catalog/track/${track.id}`)}
-                          className="p-1 text-gray-400 hover:text-gray-600"
+                          className="p-1 text-gray-400 hover:text-gray-600" style={{ color: 'var(--t3)' }}
                         >
-                          <Pencil className="w-4 h-4" />
+                          <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="Edit" />
                         </button>
                       )}
                     </>
                   )}
                 </div>
+                {activeSpotifyEmbed && track.spotifyUri?.includes(activeSpotifyEmbed) && (
+                  <iframe
+                    src={`https://open.spotify.com/embed/track/${activeSpotifyEmbed}?utm_source=generator&theme=0`}
+                    width="100%"
+                    height="80"
+                    frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    style={{ border: 'none', display: 'block' }}
+                    title="Spotify player"
+                  />
+                )}
+                </React.Fragment>
               ))}
             </div>
           </div>
 
           {/* Credits */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-medium text-gray-900">Credits</h2>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Credits</h2>
               <button
                 onClick={() => setIsEditingCredits(!isEditingCredits)}
                 className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-primary hover:text-primary/80"
               >
-                {isEditingCredits ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                {isEditingCredits ? <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-white" alt="Save" /> : <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="Edit" />}
                 {isEditingCredits ? 'Done Editing' : 'Edit Credits'}
               </button>
             </div>
             <div className="grid grid-cols-1 gap-8">
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-medium text-gray-500">Artist</h3>
+                  <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Artist</h3>
                   {isEditingCredits && (
                     <button
                       onClick={() => {
@@ -915,13 +1441,9 @@ export default function AlbumDetails() {
           </div>
 
           {/* Digital Assets */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <DigitalAssetUploader
-              assets={digitalAssets}
-              onAssetAdd={handleAddAsset}
-              onAssetDelete={handleDeleteAsset}
-              onAssetUpdate={handleUpdateAsset}
-              entityId={album.id}
+              entityId={String(album.id)}
               entityType="album"
             />
           </div>
@@ -930,20 +1452,20 @@ export default function AlbumDetails() {
         {/* Sidebar */}
         <div className="space-y-8">
           {/* Metadata */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="shadow-md p-6" style={{ backgroundColor: 'var(--surface)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-medium text-gray-900">Metadata</h2>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Metadata</h2>
               <button
                 onClick={() => setIsEditingMetadata(!isEditingMetadata)}
                 className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-primary hover:text-primary/80"
               >
-                {isEditingMetadata ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                {isEditingMetadata ? <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-white" alt="Save" /> : <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="Edit" />}
                 {isEditingMetadata ? 'Done Editing' : 'Edit'}
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Genres</h3>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Genres</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {displayAlbum.genres.map((genre) => (
                     <span
@@ -956,7 +1478,7 @@ export default function AlbumDetails() {
                           onClick={() => handleRemoveGenre(genre)}
                           className="ml-1 text-primary/60 hover:text-red-500"
                         >
-                          <X className="w-3 h-3" />
+                          <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="Remove" />
                         </button>
                       )}
                     </span>
@@ -987,16 +1509,17 @@ export default function AlbumDetails() {
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Label</h3>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Label</h3>
                 {isEditingMetadata ? (
                   <input
                     type="text"
                     value={displayAlbum.label || ''}
                     onChange={(e) => setAlbumData({ ...displayAlbum, label: e.target.value })}
-                    className="mt-1 block w-full text-sm border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                    className="mt-1 block w-full text-sm rounded px-2 py-1 focus:border-primary focus:ring-primary"
+                    style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   />
                 ) : (
-                  <p className="mt-1 text-sm text-gray-900">{displayAlbum.label}</p>
+                  <p className="mt-1 text-sm" style={{ color: 'var(--t1)' }}>{displayAlbum.label}</p>
                 )}
               </div>
               <div>
@@ -1029,8 +1552,7 @@ export default function AlbumDetails() {
           </div>
         </div>
 
-        {/* Budget Section */}
-        <BudgetLinkSection budget={linkedBudget} entityType="album" entityName={displayAlbum.title} />
+        {/* Budget Section — hidden until v2 */}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Plus, X, Calendar, Clock, Users, Info, MessageSquare, User, Pencil, ArrowRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
+import { Plus, Calendar, Clock, MessageSquare, User, ArrowRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../lib/permissions';
 import { formatDate } from '../../lib/utils';
@@ -360,11 +361,11 @@ export default function TodoList() {
   const getPriorityColor = (priority: Todo['priority']) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'badge-red';
       case 'medium':
-        return 'bg-beige text-black';
+        return 'badge-yellow';
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'badge-neutral';
     }
   };
 
@@ -404,28 +405,29 @@ export default function TodoList() {
 
   if (isLoading) {
     return (
-      <div className="bg-white shadow-md rounded-lg p-8">
+      <div className="shadow-md p-8" style={{ background: 'var(--surface)' }}>
         <div className="flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          <span className="ml-2 text-gray-500">Loading tasks...</span>
+          <span className="ml-2" style={{ color: 'var(--t2)' }}>Loading tasks...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg">
-      <div className="p-4 md:p-6 border-b border-gray-200 scroll-row">
+    <div className="shadow-md" style={{ background: 'var(--surface)' }}>
+      <div className="p-4 md:p-6 border-b scroll-row" style={{ borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-center gap-3 min-w-fit">
-          <h2 className="text-lg font-medium text-charcoal uppercase whitespace-nowrap">To-Do List</h2>
+          <h2 className="text-lg font-medium uppercase whitespace-nowrap" style={{ color: 'var(--t1)' }}>To-Do List</h2>
           <div className="flex items-center gap-2">
             {todos.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 whitespace-nowrap">Sort by:</span>
+                <span className="text-sm whitespace-nowrap" style={{ color: 'var(--t2)' }}>Sort by:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'priority' | 'date' | 'assignee')}
-                  className="px-3 py-1.5 text-sm border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                  className="px-3 py-1.5 text-sm border focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                  style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                 >
                   <option value="priority">Priority</option>
                   <option value="date">Date</option>
@@ -436,7 +438,7 @@ export default function TodoList() {
             {canEdit && todos.length > 0 && (
               <button
                 onClick={() => setIsAdding(true)}
-                className="flex items-center gap-2 text-sm text-primary hover:text-black whitespace-nowrap"
+                className="flex items-center gap-2 text-sm text-primary hover:opacity-80 whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" />
                 Add Task
@@ -444,7 +446,7 @@ export default function TodoList() {
             )}
             <button
               onClick={() => navigate('/tasks')}
-              className="flex items-center gap-2 text-sm text-primary hover:text-black whitespace-nowrap"
+              className="flex items-center gap-2 text-sm text-primary hover:opacity-80 whitespace-nowrap"
             >
               View All
               <ArrowRight className="w-4 h-4" />
@@ -453,38 +455,38 @@ export default function TodoList() {
         </div>
       </div>
 
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
         {(isAdding || (canEdit && todos.length === 0)) && (
-          <div className="p-4 bg-gray-50">
+          <div className="p-4" style={{ background: 'var(--surface-2)' }}>
             <div className="space-y-4">
               <input
                 type="text"
                 value={newTodo}
                 onChange={(e) => setNewTodo(e.target.value)}
                 placeholder="What needs to be done?"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                 autoFocus
               />
               <div className="scroll-row"><div className="grid grid-cols-3 gap-4 min-w-[500px]">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Due Date
                   </label>
-                  <input
-                    type="date"
+                  <TMDatePicker
                     value={newDueDate}
-                    onChange={(e) => setNewDueDate(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    onChange={(date) => setNewDueDate(date)}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Priority
                   </label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as Todo['priority'])}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -492,13 +494,14 @@ export default function TodoList() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Assign To
                   </label>
                   <select
                     value={newAssignee}
                     onChange={(e) => setNewAssignee(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full border shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--t1)' }}
                   >
                     <option value="">Unassigned</option>
                     {teamMembers.map(member => (
@@ -516,14 +519,15 @@ export default function TodoList() {
                     setNewPriority('medium');
                     setNewAssignee('');
                   }}
-                  className="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-3 py-2 text-sm border hover:opacity-80"
+                  style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddTodo}
                   disabled={!newTodo.trim() || isSaving}
-                  className="px-3 py-2 text-sm text-white bg-primary rounded-md hover:bg-primary disabled:opacity-50 flex items-center gap-2"
+                  className="px-3 py-2 text-sm text-white bg-primary hover:opacity-80 disabled:opacity-50 flex items-center gap-2"
                 >
                   {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   Add Task
@@ -573,11 +577,9 @@ export default function TodoList() {
                         <label className="block text-sm font-medium text-gray-700">
                           Due Date
                         </label>
-                        <input
-                          type="date"
+                        <TMDatePicker
                           value={editDueDate}
-                          onChange={(e) => setEditDueDate(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          onChange={(date) => setEditDueDate(date)}
                         />
                       </div>
                       <div>
@@ -660,20 +662,9 @@ export default function TodoList() {
                     <div className="mt-1 flex items-center gap-4 flex-wrap">
                       {editingField?.todoId === todo.id && editingField.field === 'date' ? (
                         <div className="flex items-center gap-2">
-                          <input
-                            type="date"
+                          <TMDatePicker
                             value={editDueDate}
-                            onChange={(e) => setEditDueDate(e.target.value)}
-                            onBlur={() => handleInlineUpdate(todo.id, 'date')}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleInlineUpdate(todo.id, 'date');
-                              } else if (e.key === 'Escape') {
-                                handleCancelInlineEdit();
-                              }
-                            }}
-                            className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                            autoFocus
+                            onChange={(date) => setEditDueDate(date)}
                           />
                         </div>
                       ) : todo.dueDate ? (
@@ -716,7 +707,7 @@ export default function TodoList() {
                         </select>
                       ) : (
                         <span
-                          className={`px-2 py-0.5 text-sm font-medium rounded-full ${todo.completed ? 'bg-green-100 text-green-800' : getPriorityColor(todo.priority)} ${canEdit && !todo.completed ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          className={`status-badge ${todo.completed ? 'badge-neutral' : getPriorityColor(todo.priority)} ${canEdit && !todo.completed ? 'cursor-pointer hover:opacity-80' : ''}`}
                           onDoubleClick={() => handleDoubleClick(todo, 'priority')}
                           title={canEdit && !todo.completed ? "Double-click to edit" : ""}
                         >
@@ -787,7 +778,7 @@ export default function TodoList() {
                       onClick={() => handleDeleteTodo(todo.id)}
                       className="p-1 text-gray-400 hover:text-red-500"
                     >
-                      <X className="w-4 h-4" />
+                      <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
                     </button>
                   </div>
                 </div>
@@ -851,7 +842,7 @@ export default function TodoList() {
                           {todo.notes ? (
                             <div className={`text-base p-2 rounded-md ${todo.completed ? 'text-green-600 bg-green-50' : 'text-gray-600 bg-gray-50'}`}>
                               <div className="flex items-center gap-2 mb-1">
-                                <Info className={`w-3.5 h-3.5 ${todo.completed ? 'text-green-500' : 'text-gray-400'}`} />
+                                <img src="/TM-Info-negro.svg" className={`pxi-sm icon-muted`} alt="" />
                                 <span className={`text-sm font-medium ${todo.completed ? 'text-green-700' : 'text-gray-700'}`}>Notes</span>
                               </div>
                               {todo.notes}
@@ -876,7 +867,7 @@ export default function TodoList() {
                               }}
                               className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <Pencil className="w-3 h-3" />
+                              <img src="/TM-Pluma-negro.png" className="pxi-sm icon-muted" alt="" />
                             </button>
                           )}
                         </div>

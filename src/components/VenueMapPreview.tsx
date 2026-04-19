@@ -1,4 +1,4 @@
-import { MapPin, ExternalLink } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 interface VenueMapPreviewProps {
   latitude: number;
@@ -82,7 +82,7 @@ export default function VenueMapPreview({
             rel="noopener noreferrer"
             className="ml-3 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors whitespace-nowrap"
           >
-            <ExternalLink className="w-4 h-4" />
+            <img src="/TM-ExternalLink-negro.svg" className="pxi-md icon-muted" alt="" />
             Open in Maps
           </a>
         </div>

@@ -7,10 +7,19 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { getContacts } from '../lib/contacts';
 import type { Contact, ContactCategory } from '../types/contacts';
 
+const CATEGORIES: Array<{ value: ContactCategory | 'all' | 'artists'; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'artists', label: 'Artists' },
+  { value: 'collaborator', label: 'Collaborators' },
+  { value: 'crew', label: 'Crew' },
+  { value: 'business', label: 'Business' },
+  { value: 'other', label: 'Other' },
+];
+
 export default function Team() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<ContactCategory | 'all'>('all');
+  const [category, setCategory] = useState<ContactCategory | 'all' | 'artists'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -38,94 +47,101 @@ export default function Team() {
       c.email?.toLowerCase().includes(q) ||
       c.role?.toLowerCase().includes(q) ||
       c.tags.some((t) => t.toLowerCase().includes(q));
-    return matchesSearch && (category === 'all' || c.category === category);
+    const matchesCategory =
+      category === 'all' ||
+      (category === 'artists' ? c.role === 'Artist' : c.category === category);
+    return matchesSearch && matchesCategory;
   });
 
   if (isLoading) return <LoadingSpinner fullScreen={false} />;
 
   return (
-    <div className="p-4 md:p-6 space-y-[28px]">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1>Contacts</h1>
-        <button
-          className="btn btn-primary btn-md"
-          onClick={() => { setEditingContact(null); setIsFormOpen(true); }}
-        >
-          + Add Contact
-        </button>
+    <div>
+      {/* Sub-tabs — bare root so these sit at the same y-offset as every other page */}
+      <div className="sub-tabs mb-6">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.value}
+            className={`sub-tab ${category === c.value ? 'active' : ''}`}
+            onClick={() => setCategory(c.value)}
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
 
-      {error && (
-        <div
-          className="p-4 border-l-4 text-sm"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--status-red)',
-            color: 'var(--status-red)',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      <ContactFilters
-        search={search}
-        onSearchChange={setSearch}
-        category={category}
-        onCategoryChange={setCategory}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-      />
-
-      {/* Count */}
-      {contacts.length > 0 && (
-        <p className="text-t3 text-xs" style={{ fontFamily: 'var(--font-mono)' }}>
-          {filtered.length} OF {contacts.length} CONTACTS
-        </p>
-      )}
-
-      {/* Empty state */}
-      {filtered.length === 0 && (
-        <div className="empty-state">
-          <img src="/TM-File-negro.svg" className="pxi-xl icon-muted empty-state-icon" alt="" />
-          <p className="empty-state-title">No contacts found</p>
-          <p className="empty-state-desc">
-            {contacts.length === 0
-              ? 'Add your first contact to get started.'
-              : 'Try adjusting your search or filters.'}
-          </p>
-        </div>
-      )}
-
-      {/* Grid view */}
-      {filtered.length > 0 && viewMode === 'grid' && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filtered.map((c) => <ContactCard key={c.id} contact={c} />)}
-        </div>
-      )}
-
-      {/* List view */}
-      {filtered.length > 0 && viewMode === 'list' && (
-        <div className="tm-card">
-          <div className="data-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>City</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c) => <ContactRow key={c.id} contact={c} />)}
-              </tbody>
-            </table>
+      {/* Content area — matches the spacing used by other pages */}
+      <div className="space-y-[28px]">
+        {error && (
+          <div
+            className="p-4 border-l-4 text-sm"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--status-red)',
+              color: 'var(--status-red)',
+            }}
+          >
+            {error}
           </div>
-        </div>
-      )}
+        )}
+
+        <ContactFilters
+          search={search}
+          onSearchChange={setSearch}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAdd={() => { setEditingContact(null); setIsFormOpen(true); }}
+        />
+
+        {/* Count */}
+        {contacts.length > 0 && (
+          <p className="text-t3 text-xs" style={{ fontFamily: 'var(--font-mono)' }}>
+            {filtered.length} OF {contacts.length} CONTACTS
+          </p>
+        )}
+
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <div className="empty-state">
+            <img src="/TM-File-negro.svg" className="pxi-xl icon-muted empty-state-icon" alt="" />
+            <p className="empty-state-title">No contacts found</p>
+            <p className="empty-state-desc">
+              {contacts.length === 0
+                ? 'Add your first contact to get started.'
+                : 'Try adjusting your search or filters.'}
+            </p>
+          </div>
+        )}
+
+        {/* Grid view */}
+        {filtered.length > 0 && viewMode === 'grid' && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filtered.map((c) => <ContactCard key={c.id} contact={c} />)}
+          </div>
+        )}
+
+        {/* List view */}
+        {filtered.length > 0 && viewMode === 'list' && (
+          <div className="tm-card">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((c) => <ContactRow key={c.id} contact={c} />)}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {isFormOpen && (
         <ContactFormModal

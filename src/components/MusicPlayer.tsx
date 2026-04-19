@@ -1,5 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
+
+// Extend Window to accommodate the Spotify IFrame API
+declare global {
+  interface Window {
+    onSpotifyIframeApiReady?: (api: SpotifyIFrameAPI) => void;
+    SpotifyIframeApi?: SpotifyIFrameAPI;
+  }
+}
+interface SpotifyIFrameAPI {
+  createController: (
+    element: HTMLElement,
+    options: { uri: string; width?: string | number; height?: string | number },
+    callback: (controller: SpotifyEmbedController) => void
+  ) => void;
+}
+interface SpotifyEmbedController {
+  play: () => void;
+  pause: () => void;
+  loadUri: (uri: string) => void;
+  addListener: (event: string, callback: (e: any) => void) => void;
+}
 
 interface Track {
   id: number;
@@ -8,6 +29,7 @@ interface Track {
   duration: string;
   audioUrl?: string;
   coverArt?: string;
+  spotifyId?: string;
 }
 
 interface MusicPlayerProps {
@@ -33,12 +55,82 @@ export default function MusicPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [spotifyApiReady, setSpotifyApiReady] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const spotifyEmbedRef = useRef<HTMLDivElement>(null);
+  const spotifyControllerRef = useRef<SpotifyEmbedController | null>(null);
 
   const currentTrack = tracks[currentTrackIndex];
+  const isSpotifyTrack = !currentTrack?.audioUrl && !!currentTrack?.spotifyId;
 
+  // Load Spotify IFrame API once
+  useEffect(() => {
+    if (window.SpotifyIframeApi) {
+      setSpotifyApiReady(true);
+      return;
+    }
+    const prev = window.onSpotifyIframeApiReady;
+    window.onSpotifyIframeApiReady = (api) => {
+      window.SpotifyIframeApi = api;
+      setSpotifyApiReady(true);
+      if (prev) prev(api);
+    };
+    if (!document.querySelector('script[src*="open.spotify.com/embed/iframe-api"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://open.spotify.com/embed/iframe-api/v1';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  // Mount/update Spotify embed when Spotify track becomes active
+  useEffect(() => {
+    if (!isSpotifyTrack || !spotifyApiReady || !spotifyEmbedRef.current) return;
+
+    // Destroy previous controller
+    spotifyControllerRef.current = null;
+    spotifyEmbedRef.current.innerHTML = '';
+
+    const el = document.createElement('div');
+    spotifyEmbedRef.current.appendChild(el);
+
+    window.SpotifyIframeApi!.createController(
+      el,
+      { uri: `spotify:track:${currentTrack!.spotifyId}`, width: '100%', height: 80 },
+      (controller) => {
+        spotifyControllerRef.current = controller;
+
+        controller.addListener('playback_update', (e: any) => {
+          const { isPaused, position, duration: dur } = e.data;
+          // Detect end: paused after actually playing (position > 0) and at/near end
+          if (isPaused && position > 1 && dur > 0 && Math.abs(position - dur) < 2) {
+            if (currentTrackIndex < tracks.length - 1) {
+              onTrackChange(currentTrackIndex + 1);
+            } else {
+              onPlayPause();
+            }
+          }
+        });
+
+        if (isPlaying) controller.play();
+      }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrack?.spotifyId, spotifyApiReady]);
+
+  // Play/pause Spotify controller when isPlaying changes
+  useEffect(() => {
+    if (!isSpotifyTrack || !spotifyControllerRef.current) return;
+    if (isPlaying) {
+      spotifyControllerRef.current.play();
+    } else {
+      spotifyControllerRef.current.pause();
+    }
+  }, [isPlaying, isSpotifyTrack]);
+
+  // HTML5 audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -83,19 +175,14 @@ export default function MusicPlayer({
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || isSpotifyTrack) return;
 
     if (isPlaying && isReady) {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error('Play error:', error);
-        });
-      }
+      audio.play().catch(error => console.error('Play error:', error));
     } else {
       audio.pause();
     }
-  }, [isPlaying, isReady]);
+  }, [isPlaying, isReady, isSpotifyTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -143,31 +230,13 @@ export default function MusicPlayer({
   };
 
   const handlePrevious = () => {
-    console.log('Previous clicked');
-    console.log('Current index:', currentTrackIndex);
-    console.log('Total tracks:', tracks.length);
-    console.log('Tracks:', tracks);
-    if (tracks.length <= 1) {
-      console.log('Only one track, not changing');
-      return;
-    }
-    const newIndex = currentTrackIndex > 0 ? currentTrackIndex - 1 : tracks.length - 1;
-    console.log('Changing to index:', newIndex);
-    onTrackChange(newIndex);
+    if (tracks.length <= 1) return;
+    onTrackChange(currentTrackIndex > 0 ? currentTrackIndex - 1 : tracks.length - 1);
   };
 
   const handleNext = () => {
-    console.log('Next clicked');
-    console.log('Current index:', currentTrackIndex);
-    console.log('Total tracks:', tracks.length);
-    console.log('Tracks:', tracks);
-    if (tracks.length <= 1) {
-      console.log('Only one track, not changing');
-      return;
-    }
-    const newIndex = currentTrackIndex < tracks.length - 1 ? currentTrackIndex + 1 : 0;
-    console.log('Changing to index:', newIndex);
-    onTrackChange(newIndex);
+    if (tracks.length <= 1) return;
+    onTrackChange(currentTrackIndex < tracks.length - 1 ? currentTrackIndex + 1 : 0);
   };
 
   if (!currentTrack) return null;
@@ -175,7 +244,7 @@ export default function MusicPlayer({
   const hasAudio = !!currentTrack.audioUrl;
 
   return (
-    <div style={{ borderRadius: 0 }} className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+    <div style={{ borderRadius: 0, backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }} className="fixed bottom-0 left-0 right-0 border-t shadow-lg z-50">
       {hasAudio && (
         <audio
           ref={audioRef}
@@ -184,43 +253,69 @@ export default function MusicPlayer({
         />
       )}
 
+      {/* Hidden Spotify embed mount point — the IFrame API renders into this */}
       <div
-        ref={progressBarRef}
-        onClick={handleProgressClick}
-        style={{ borderRadius: 0 }}
-        className="absolute top-0 left-0 right-0 h-1 bg-gray-300 cursor-pointer group hover:h-1.5 transition-all duration-150"
-      >
+        ref={spotifyEmbedRef}
+        style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}
+        aria-hidden="true"
+      />
+
+      {/* Progress bar — only for HTML5 audio tracks */}
+      {!isSpotifyTrack && (
         <div
-          className="h-full bg-black relative transition-all duration-100"
-          style={{ width: `${progress}%` }}
+          ref={progressBarRef}
+          onClick={handleProgressClick}
+          style={{ borderRadius: 0, backgroundColor: 'var(--surface-2)' }}
+          className="absolute top-0 left-0 right-0 h-1 cursor-pointer group hover:h-1.5 transition-all duration-150"
         >
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
+          <div
+            className="h-full relative transition-all duration-100"
+            style={{ width: `${progress}%`, backgroundColor: 'var(--brand-1)' }}
+          >
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md" style={{ backgroundColor: 'var(--brand-1)' }} />
+          </div>
         </div>
-      </div>
+      )}
+      {/* Thin static bar placeholder for Spotify tracks */}
+      {isSpotifyTrack && (
+        <div
+          className="absolute top-0 left-0 right-0 h-1"
+          style={{ backgroundColor: 'var(--surface-2)' }}
+        >
+          <div className="h-full animate-pulse" style={{ width: isPlaying ? '100%' : '0%', backgroundColor: 'var(--brand-1)', transition: 'width 0.3s' }} />
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between gap-8">
           <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs">
-            <div className="w-12 h-12 flex-shrink-0 bg-gray-100 shadow-md border border-gray-200" style={{ borderRadius: '8px', overflow: 'hidden' }}>
+            <div className="w-12 h-12 flex-shrink-0 shadow-md border" style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', borderRadius: 0, overflow: 'hidden' }}>
               {currentTrack.coverArt ? (
                 <img
                   src={currentTrack.coverArt}
                   alt={currentTrack.title}
                   className="w-full h-full object-cover"
-                  style={{ borderRadius: '7px' }}
+                  style={{ borderRadius: 0 }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Play className="w-5 h-5 text-gray-400" />
+                  <img src="/TM-Play-negro.svg" className="pxi-lg icon-muted" alt="Play" />
                 </div>
               )}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-gray-900 mb-0.5">
+              <div className="truncate text-sm font-semibold mb-0.5" style={{ color: 'var(--t1)' }}>
                 {currentTrack.title}
               </div>
-              <div className="truncate text-sm text-gray-500">
-                {currentTrack.artist}
+              <div className="flex items-center gap-1.5">
+                <div className="truncate text-sm" style={{ color: 'var(--t2)' }}>
+                  {currentTrack.artist}
+                </div>
+                {isSpotifyTrack && (
+                  <span className="text-xs flex-shrink-0 px-1.5 py-0.5 font-medium" style={{ backgroundColor: '#1DB954', color: '#fff', borderRadius: 2 }}>
+                    Spotify
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -229,49 +324,56 @@ export default function MusicPlayer({
             <button
               onClick={handlePrevious}
               disabled={tracks.length <= 1}
-              className="p-2 text-gray-700 hover:text-gray-900 transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-2 transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ color: 'var(--t1)' }}
               title="Previous track"
             >
-              <SkipBack className="w-6 h-6" strokeWidth={2} />
+              <img src="/TM-SkipBack-negro.svg" className="pxi-xl icon-white" alt="Previous" />
             </button>
 
             <button
               onClick={onPlayPause}
-              disabled={!hasAudio || !isReady}
-              style={{ borderRadius: '50%' }}
-              className="p-3 bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-2 border-black aspect-square overflow-hidden"
-              title={!hasAudio ? 'No audio available' : isPlaying ? 'Pause' : 'Play'}
+              disabled={!hasAudio && !isSpotifyTrack}
+              style={{ borderRadius: '50%', backgroundColor: 'var(--brand-1)', borderColor: 'var(--brand-1)' }}
+              className="p-3 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-2 aspect-square overflow-hidden"
+              title={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
-                <Pause className="w-7 h-7" fill="currentColor" strokeWidth={0} />
+                <img src="/TM-Pause-negro.svg" className="pxi-xl icon-white" alt="Pause" />
               ) : (
-                <Play className="w-7 h-7 ml-0.5" fill="currentColor" strokeWidth={0} />
+                <img src="/TM-Play-negro.svg" className="pxi-xl icon-white" alt="Play" />
               )}
             </button>
 
             <button
               onClick={handleNext}
               disabled={tracks.length <= 1}
-              className="p-2 text-gray-700 hover:text-gray-900 transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-2 transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ color: 'var(--t1)' }}
               title="Next track"
             >
-              <SkipForward className="w-6 h-6" strokeWidth={2} />
+              <img src="/TM-SkipFwd-negro.svg" className="pxi-xl icon-white" alt="Next" />
             </button>
           </div>
 
           <div className="flex items-center gap-4 flex-1 justify-end max-w-xs">
-            <span className="text-xs text-gray-500 tabular-nums">
-              {formatTime(currentTime)}
-            </span>
-            <span className="text-xs text-gray-400">/</span>
-            <span className="text-xs text-gray-500 tabular-nums">
-              {formatTime(duration)}
-            </span>
+            {!isSpotifyTrack && (
+              <>
+                <span className="text-xs tabular-nums" style={{ color: 'var(--t2)' }}>
+                  {formatTime(currentTime)}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--t3)' }}>/</span>
+                <span className="text-xs tabular-nums" style={{ color: 'var(--t2)' }}>
+                  {formatTime(duration)}
+                </span>
+              </>
+            )}
 
             <div className="flex items-center gap-2 ml-4 group/volume">
               <button
                 onClick={toggleMute}
-                className="p-2 text-gray-700 hover:text-gray-900 transition-colors"
+                className="p-2 transition-colors"
+                style={{ color: 'var(--t1)' }}
               >
                 {isMuted || volume === 0 ? (
                   <VolumeX className="w-5 h-5" strokeWidth={2} />
@@ -288,12 +390,11 @@ export default function MusicPlayer({
                   step="0.01"
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
-                  className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer
+                  className="w-24 h-1 appearance-none cursor-pointer
                     [&::-webkit-slider-thumb]:appearance-none
                     [&::-webkit-slider-thumb]:w-3
                     [&::-webkit-slider-thumb]:h-3
                     [&::-webkit-slider-thumb]:rounded-full
-                    [&::-webkit-slider-thumb]:bg-black
                     [&::-webkit-slider-thumb]:cursor-pointer
                     [&::-webkit-slider-thumb]:transition-all
                     [&::-webkit-slider-thumb]:opacity-0
@@ -303,7 +404,6 @@ export default function MusicPlayer({
                     [&::-moz-range-thumb]:w-3
                     [&::-moz-range-thumb]:h-3
                     [&::-moz-range-thumb]:rounded-full
-                    [&::-moz-range-thumb]:bg-black
                     [&::-moz-range-thumb]:border-0
                     [&::-moz-range-thumb]:cursor-pointer
                     [&::-moz-range-thumb]:transition-all
@@ -311,19 +411,25 @@ export default function MusicPlayer({
                     [&::-moz-range-thumb]:group-hover/volume:opacity-100
                     [&::-moz-range-thumb]:hover:scale-125
                     [&::-moz-range-thumb]:shadow-md"
+                  style={{
+                    backgroundColor: 'var(--surface-2)',
+                    '--webkit-slider-thumb-bg': 'var(--brand-1)',
+                    '--moz-range-thumb-bg': 'var(--brand-1)'
+                  } as any}
                 />
                 <div
-                  className="absolute top-0 left-0 h-1 bg-black rounded-lg pointer-events-none transition-all duration-100"
-                  style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
+                  className="absolute top-0 left-0 h-1 pointer-events-none transition-all duration-100"
+                  style={{ width: `${(isMuted ? 0 : volume) * 100}%`, backgroundColor: 'var(--brand-1)', borderRadius: 0 }}
                 />
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="ml-2 p-2 text-gray-500 hover:text-gray-900 transition-colors"
+              className="ml-2 p-2 transition-colors"
+              style={{ color: 'var(--t2)' }}
             >
-              <X className="w-5 h-5" strokeWidth={2} />
+              <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="Close" />
             </button>
           </div>
         </div>

@@ -44,6 +44,7 @@ export interface Contact {
   socialLinks: SocialLinks;
   proAffiliations: ProAffiliation[];
   publisherAffiliations: PublisherAffiliation[];
+  dateOfBirth?: string; // YYYY-MM-DD
   bio?: string;
   notes?: string;
   tags: string[];

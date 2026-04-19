@@ -19,10 +19,16 @@ const Finance = React.lazy(() => import('./pages/Finance'));
 const FinanceDetails = React.lazy(() => import('./pages/FinanceDetails'));
 const Movements = React.lazy(() => import('./pages/Movements'));
 const Legal = React.lazy(() => import('./pages/Legal'));
-const Live = React.lazy(() => import('./pages/Live'));
-const Overview = React.lazy(() => import('./pages/live/Overview'));
-const ShowDay = React.lazy(() => import('./pages/live/ShowDay'));
+const LegalDetails = React.lazy(() => import('./pages/LegalDetails'));
+const Live = React.lazy(() => import('./pages/live/Live'));
+const Tours = React.lazy(() => import('./pages/live/Tours'));
+const TourDetails = React.lazy(() => import('./pages/live/TourDetails'));
+const TourItinerary = React.lazy(() => import('./pages/live/TourItinerary'));
 const AllShows = React.lazy(() => import('./pages/live/AllShows'));
+const Venues = React.lazy(() => import('./pages/live/Venues'));
+const VenueDetails = React.lazy(() => import('./pages/live/VenueDetails'));
+const TourCalendar = React.lazy(() => import('./pages/live/TourCalendar'));
+const ShowDay = React.lazy(() => import('./pages/live/ShowDay'));
 const AllEvents = React.lazy(() => import('./pages/live/AllEvents'));
 const Calendar = React.lazy(() => import('./pages/Calendar'));
 const Marketing = React.lazy(() => import('./pages/Marketing'));
@@ -139,14 +145,24 @@ function AppRoutes() {
               <Legal />
             </ProtectedRoute>
           } />
+          <Route path="legal/:id" element={
+            <ProtectedRoute requiredPermission="view_legal">
+              <LegalDetails />
+            </ProtectedRoute>
+          } />
 
           <Route path="live" element={
             <ProtectedRoute requiredPermission="view_live">
               <Live />
             </ProtectedRoute>
           }>
-            <Route index element={<Overview />} />
+            <Route index element={<Tours />} />
             <Route path="shows" element={<AllShows />} />
+            <Route path="venues" element={<Venues />} />
+            <Route path="calendar" element={<TourCalendar />} />
+            <Route path="tour/:tourId" element={<TourDetails />} />
+            <Route path="tour/:tourId/itinerary" element={<TourItinerary />} />
+            <Route path="venue/:venueId" element={<VenueDetails />} />
             <Route path="events" element={<AllEvents />} />
             <Route path="showday" element={<ShowDay />} />
             <Route path="show/:id" element={<ShowDetails />} />

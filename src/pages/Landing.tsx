@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Zap, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -13,31 +13,36 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
+      {/* ── NAV ── */}
       <nav
-        className="bg-white border-b border-black"
-        style={{ paddingTop: 'var(--sat)' }}
+        style={{
+          background: '#111111',
+          borderBottom: '1px solid var(--border)',
+          paddingTop: 'var(--sat)',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div className="hidden md:block w-48" />
             <div className="flex items-center">
               <img
-                src="/TM-Icono-negro.png"
+                src="/The Manager_Logo_PNG-2.png"
                 alt="The Manager"
-                className="h-12 w-12 md:h-20 md:w-20"
+                className="h-6 md:h-8 object-contain invert"
               />
             </div>
             <div className="flex items-center gap-3 md:gap-4 md:w-48 justify-end">
               <button
                 onClick={() => navigate('/login')}
-                className="text-xs md:text-sm font-medium text-black hover:text-gray-600 transition-colors"
+                className="text-xs md:text-sm font-medium transition-colors"
+                style={{ color: 'var(--t3)' }}
               >
                 Sign Up
               </button>
               <button
                 onClick={() => navigate('/login')}
-                className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-white bg-black hover:bg-gray-800 active:bg-gray-700 transition-colors"
+                className="btn-primary"
               >
                 Log In
               </button>
@@ -46,30 +51,46 @@ export default function Landing() {
         </div>
       </nav>
 
-      <section className="relative min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-90px)] flex items-center justify-center bg-white">
+      {/* ── HERO ── */}
+      <section
+        className="min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-90px)] flex items-center justify-center"
+        style={{ background: 'var(--bg)' }}
+      >
         <div className="text-center px-5 md:px-6 py-12 md:py-20">
-          <h1 className="text-[3.5rem] sm:text-[5rem] md:text-[10rem] lg:text-[12rem] font-black text-black leading-[0.85] tracking-tighter mb-2 md:mb-4">
+          <h1
+            className="text-[3.5rem] sm:text-[5rem] md:text-[10rem] lg:text-[12rem] font-black leading-[0.85] tracking-tighter mb-2 md:mb-4"
+            style={{ color: 'var(--t1)' }}
+          >
             RUN THE
           </h1>
-          <h1 className="text-[3.5rem] sm:text-[5rem] md:text-[10rem] lg:text-[12rem] font-black text-black leading-[0.85] tracking-tighter mb-8 md:mb-12">
+          <h1
+            className="text-[3.5rem] sm:text-[5rem] md:text-[10rem] lg:text-[12rem] font-black leading-[0.85] tracking-tighter mb-8 md:mb-12"
+            style={{ color: 'var(--brand-1)' }}
+          >
             SHOW
           </h1>
-          <p className="text-base md:text-xl text-black max-w-2xl mx-auto mb-2 md:mb-4 font-medium">
+          <p
+            className="text-base md:text-xl max-w-2xl mx-auto mb-2 md:mb-4 font-medium"
+            style={{ color: 'var(--t2)' }}
+          >
             The first truly all-in-one artist management platform.
           </p>
-          <p className="text-base md:text-xl text-black max-w-2xl mx-auto mb-8 md:mb-12 font-medium">
+          <p
+            className="text-base md:text-xl max-w-2xl mx-auto mb-8 md:mb-12 font-medium"
+            style={{ color: 'var(--t3)' }}
+          >
             Built for managers by managers
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-6 justify-center px-4 sm:px-0">
             <button
               onClick={handleWaitlist}
-              className="px-8 py-4 bg-black text-white font-medium text-sm tracking-wide hover:bg-gray-900 active:bg-gray-800 transition-all"
+              className="btn-primary px-8 py-4 text-sm tracking-wide"
             >
               join the waitlist
             </button>
             <button
               onClick={handleDemo}
-              className="px-8 py-4 bg-transparent text-black font-medium text-sm tracking-wide border-2 border-black hover:bg-black/10 active:bg-black/5 transition-all"
+              className="btn-secondary px-8 py-4 text-sm tracking-wide"
             >
               request free demo
             </button>
@@ -77,34 +98,53 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="min-h-screen flex items-center justify-center bg-black px-5 md:px-6 py-16 md:py-20">
+      {/* ── FEATURES ── */}
+      <section
+        id="features"
+        className="min-h-screen flex items-center justify-center px-5 md:px-6 py-16 md:py-20"
+        style={{ background: 'var(--surface)' }}
+      >
         <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-[#00a651]/50 rounded-full text-xs md:text-sm font-medium text-[#00a651] mb-8 md:mb-10">
-            <Zap className="w-4 h-4" />
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs md:text-sm font-medium mb-8 md:mb-10"
+            style={{
+              border: '1px solid rgba(68,170,153,0.3)',
+              color: 'var(--brand-1)',
+              background: 'var(--status-green-bg)',
+            }}
+          >
             Artist Management Reimagined
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 md:mb-4 leading-tight tracking-tight">
+          <h2
+            className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 md:mb-4 leading-tight tracking-tight"
+            style={{ color: 'var(--t1)' }}
+          >
             The Complete Platform for
           </h2>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-[#00a651] mb-6 md:mb-8 leading-tight tracking-tight italic">
+          <h2
+            className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 md:mb-8 leading-tight tracking-tight italic"
+            style={{ color: 'var(--brand-1)' }}
+          >
             Artist Management
           </h2>
-          <p className="text-gray-400 text-base md:text-xl max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
-            From tour logistics to catalog management, financial tracking to contract analysis. Everything you need to manage your artists, all in one powerful platform.
+          <p
+            className="text-base md:text-xl max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed"
+            style={{ color: 'var(--t3)' }}
+          >
+            From tour logistics to catalog management, financial tracking to contract analysis.
+            Everything you need to manage your artists, all in one powerful platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4 sm:px-0">
             <button
               onClick={() => navigate('/login')}
-              className="px-8 py-4 bg-[#00a651] text-white font-medium rounded-lg hover:bg-[#00a651]/90 active:bg-[#00a651]/80 transition-all flex items-center justify-center gap-2"
+              className="btn-primary px-8 py-4 flex items-center justify-center gap-2"
             >
               Get Started
               <ChevronRight className="w-5 h-5" />
             </button>
             <button
-              onClick={() => {
-                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-8 py-4 bg-gray-800 text-white font-medium rounded-lg hover:bg-gray-700 active:bg-gray-600 transition-all"
+              onClick={() => navigate('/login')}
+              className="btn-secondary px-8 py-4"
             >
               Learn More
             </button>
@@ -112,18 +152,24 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 py-6 md:py-8 px-5 md:px-6 bg-black">
+      {/* ── FOOTER ── */}
+      <footer
+        className="py-6 md:py-8 px-5 md:px-6"
+        style={{
+          background: '#111111',
+          borderTop: '1px solid var(--border)',
+        }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
             <div className="flex items-center gap-2">
               <img
-                src="/TM-Icono-negro.png"
+                src="/The Manager_Logo_PNG-2.png"
                 alt="The Manager"
-                className="h-7 w-7 md:h-8 md:w-8 invert"
+                className="h-4 md:h-5 object-contain invert"
               />
-              <span className="text-base md:text-lg font-bold text-white">THE MANAGER</span>
             </div>
-            <div className="text-gray-400 text-xs md:text-sm">
+            <div className="text-xs md:text-sm" style={{ color: 'var(--t3)' }}>
               &copy; 2025 The Manager. All rights reserved.
             </div>
           </div>

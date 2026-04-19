@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, X, Globe, Phone, Mail, MapPin, Calendar, Flag, Import as Passport, Link2 } from 'lucide-react';
+import { Plus, Globe, Mail, MapPin, Calendar, Flag, Import as Passport, Link2 } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import type { PersonnelFormData } from '../../types/personnel';
 
 interface PersonnelFormProps {
@@ -122,16 +123,16 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
     }} className="space-y-8">
       {/* Basic Information */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+        <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Basic Information</h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Type
             </label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as PersonnelFormData['type'] })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             >
               {PERSONNEL_TYPES.map(type => (
                 <option key={type.value} value={type.value}>{type.label}</option>
@@ -140,79 +141,71 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               First Name
             </label>
             <input
               type="text"
               value={formData.firstName}
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Last Name
             </label>
             <input
               type="text"
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Email
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-4 w-4 text-gray-400" />
+                <Mail className="h-4 w-4" style={{ color: 'var(--t3)' }} />
               </div>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Phone
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Phone className="h-4 w-4 text-gray-400" />
+                <img src="/TM-Phone-negro.svg" className="pxi-md icon-muted" alt="" />
               </div>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Date of Birth
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              />
+            <div className="mt-1">
+              <TMDatePicker value={formData.dateOfBirth} onChange={(date) => setFormData({ ...formData, dateOfBirth: date })} />
             </div>
           </div>
         </div>
@@ -220,75 +213,75 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
 
       {/* Address */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Address</h3>
+        <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Address</h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Street Address
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MapPin className="h-4 w-4 text-gray-400" />
+                <MapPin className="h-4 w-4" style={{ color: 'var(--t3)' }} />
               </div>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               City
             </label>
             <input
               type="text"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               State / Province
             </label>
             <input
               type="text"
               value={formData.state}
               onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Country
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Flag className="h-4 w-4 text-gray-400" />
+                <Flag className="h-4 w-4" style={{ color: 'var(--t3)' }} />
               </div>
               <input
                 type="text"
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Postal Code
             </label>
             <input
               type="text"
               value={formData.postalCode}
               onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-              className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             />
           </div>
         </div>
@@ -297,7 +290,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
       {/* PROs */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Performance Rights Organizations</h3>
+          <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Performance Rights Organizations</h3>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -318,29 +311,29 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
         </div>
 
         {isAddingPRO && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <div style={{ background: 'var(--surface-2)' }} className="mb-4 p-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   PRO Name
                 </label>
                 <input
                   type="text"
                   value={newPRO.name}
                   onChange={(e) => setNewPRO({ ...newPRO, name: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   placeholder="e.g., SESAC"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                   Country
                 </label>
                 <input
                   type="text"
                   value={newPRO.country}
                   onChange={(e) => setNewPRO({ ...newPRO, country: e.target.value })}
-                  className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   placeholder="e.g., United States"
                 />
               </div>
@@ -352,7 +345,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                   setIsAddingPRO(false);
                   setNewPRO({ name: '', country: '' });
                 }}
-                className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                className="px-3 py-1 text-sm rounded hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)' }}
               >
                 Cancel
               </button>
@@ -369,10 +362,10 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
 
         <div className="space-y-4">
           {formData.pros.map((pro, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <div key={index} style={{ background: 'var(--surface-2)' }} className="flex items-start gap-4 p-4">
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     PRO
                   </label>
                   <select
@@ -382,7 +375,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       newPros[index] = { ...pro, proId: e.target.value };
                       setFormData({ ...formData, pros: newPros });
                     }}
-                    className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                     required
                   >
                     <option value="">Select PRO</option>
@@ -393,7 +386,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     IPI Number
                   </label>
                   <input
@@ -404,7 +397,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       newPros[index] = { ...pro, ipiNumber: e.target.value };
                       setFormData({ ...formData, pros: newPros });
                     }}
-                    className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                     required
                   />
                 </div>
@@ -421,7 +414,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       }}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="ml-2 text-sm text-gray-900">Primary PRO</span>
+                    <span className="ml-2 text-sm" style={{ color: 'var(--t1)' }}>Primary PRO</span>
                   </label>
                 </div>
               </div>
@@ -429,9 +422,9 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
               <button
                 type="button"
                 onClick={() => handleRemovePRO(index)}
-                className="p-1 text-gray-400 hover:text-red-500"
+                className="p-1 hover:text-red-500" style={{ color: 'var(--t3)' }}
               >
-                <X className="w-4 h-4" />
+                <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
               </button>
             </div>
           ))}
@@ -441,7 +434,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
       {/* Publishers */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Publishers</h3>
+          <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Publishers</h3>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -462,16 +455,16 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
         </div>
 
         {isAddingPublisher && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <div style={{ background: 'var(--surface-2)' }} className="mb-4 p-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                 Publisher Name
               </label>
               <input
                 type="text"
                 value={newPublisher.name}
                 onChange={(e) => setNewPublisher({ name: e.target.value })}
-                className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 placeholder="e.g., Universal Music Publishing"
               />
             </div>
@@ -482,7 +475,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                   setIsAddingPublisher(false);
                   setNewPublisher({ name: '' });
                 }}
-                className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                className="px-3 py-1 text-sm rounded hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)' }}
               >
                 Cancel
               </button>
@@ -499,10 +492,10 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
 
         <div className="space-y-4">
           {formData.publishers.map((pub, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <div key={index} style={{ background: 'var(--surface-2)' }} className="flex items-start gap-4 p-4">
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     Publisher
                   </label>
                   <select
@@ -512,7 +505,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       newPublishers[index] = { ...pub, publisherId: e.target.value };
                       setFormData({ ...formData, publishers: newPublishers });
                     }}
-                    className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                     required
                   >
                     <option value="">Select Publisher</option>
@@ -523,7 +516,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
                     IPI Number
                   </label>
                   <input
@@ -534,7 +527,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       newPublishers[index] = { ...pub, ipiNumber: e.target.value };
                       setFormData({ ...formData, publishers: newPublishers });
                     }}
-                    className="mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                     required
                   />
                 </div>
@@ -551,7 +544,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                       }}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="ml-2 text-sm text-gray-900">Primary Publisher</span>
+                    <span className="ml-2 text-sm" style={{ color: 'var(--t1)' }}>Primary Publisher</span>
                   </label>
                 </div>
               </div>
@@ -559,9 +552,9 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
               <button
                 type="button"
                 onClick={() => handleRemovePublisher(index)}
-                className="p-1 text-gray-400 hover:text-red-500"
+                className="p-1 hover:text-red-500" style={{ color: 'var(--t3)' }}
               >
-                <X className="w-4 h-4" />
+                <img src="/TM-Close-negro.svg" className="pxi-md icon-muted" alt="" />
               </button>
             </div>
           ))}
@@ -570,35 +563,35 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
 
       {/* Online Presence */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Online Presence</h3>
+        <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Online Presence</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Website
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Globe className="h-4 w-4 text-gray-400" />
+                <Globe className="h-4 w-4" style={{ color: 'var(--t3)' }} />
               </div>
               <input
                 type="url"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 placeholder="https://example.com"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
               Social Media
             </label>
             {SOCIAL_PLATFORMS.map(platform => (
               <div key={platform.id} className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Link2 className="h-4 w-4 text-gray-400" />
+                    <Link2 className="h-4 w-4" style={{ color: 'var(--t3)' }} />
                   </div>
                   <input
                     type="url"
@@ -610,7 +603,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
                         [platform.id]: e.target.value
                       }
                     })}
-                    className="pl-10 block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="pl-10 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                     placeholder={`${platform.label} URL`}
                   />
                 </div>
@@ -622,7 +615,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
 
       {/* Bio */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium" style={{ color: 'var(--t1)' }}>
           Biography
         </label>
         <div className="mt-1">
@@ -630,7 +623,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
             value={formData.bio}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             rows={4}
-            className="block w-full rounded-none border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            className="block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm" style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
           />
         </div>
       </div>
@@ -640,7 +633,7 @@ export default function PersonnelForm({ initialData, onSubmit, onCancel, pros: i
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           Cancel
         </button>

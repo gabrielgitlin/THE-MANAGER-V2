@@ -238,6 +238,8 @@ export interface Show {
   venue_longitude?: number;
   google_place_id?: string;
   venue_id?: number;
+  tour_id?: string;
+  tour_name?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   capacity: number;
   ticketsSold?: number;
@@ -442,6 +444,8 @@ export interface ProductionFile {
   name: string;
   type: string;
   url: string;
+  /** How the file is stored — uploaded blob or external cloud link. Defaults to 'upload'. */
+  sourceType?: 'upload' | 'gdrive' | 'dropbox' | 'sharepoint' | 'onedrive' | 'url';
   uploadedAt: Date;
   uploadedBy: string;
   version: string;
@@ -449,7 +453,7 @@ export interface ProductionFile {
 
 // Legal types
 export type DocumentType = 'contract' | 'license' | 'release' | 'agreement' | 'other';
-export type DocumentStatus = 'draft' | 'pending_review' | 'pending_signature' | 'active' | 'expired' | 'terminated';
+export type DocumentStatus = 'draft' | 'needs_signature' | 'signed';
 
 export interface LegalDocument {
   id: number;
@@ -520,3 +524,7 @@ export interface Tag {
   name: string;
   color: string;
 }
+
+// Re-export Tour and Venue types
+export type { Tour, TourDay, TourStatus, DayType, TourFormData, TourDayFormData } from './tour';
+export type { EnhancedVenue, VenueContact, VenueFormData } from './venue';

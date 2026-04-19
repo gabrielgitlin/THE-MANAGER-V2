@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, DollarSign, Calendar, MapPin, Plus, Download, Search } from 'lucide-react';
+import { ChevronLeft, DollarSign, Calendar, MapPin, Plus, Download } from 'lucide-react';
 import FeeSummaryTable from '../../components/FeeSummaryTable';
 import ShowFeeModal from '../../components/personnel/ShowFeeModal';
 import { formatDate } from '../../lib/utils';
@@ -73,28 +73,26 @@ export default function ShowFees() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/live')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm mb-4 hover:opacity-80"
+          style={{ color: 'var(--t3)' }}
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Live Events
         </button>
-        <h1 className="text-2xl font-bold text-charcoal font-title">Show Fees</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage personnel fees for each show
-        </p>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+      <div className="shadow-md rounded-lg p-6 mb-8" style={{ backgroundColor: 'var(--surface)' }}>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
               <input
                 type="text"
                 placeholder="Search shows..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
@@ -102,7 +100,8 @@ export default function ShowFees() {
             <select
               value={selectedShowId || ''}
               onChange={(e) => setSelectedShowId(e.target.value ? Number(e.target.value) : null)}
-              className="block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="block rounded-md shadow-sm focus:ring-primary sm:text-sm"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
             >
               <option value="">All Shows</option>
               {MOCK_SHOWS.map(show => (
@@ -117,14 +116,14 @@ export default function ShowFees() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {filteredShows.map(show => (
-          <div key={show.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-charcoal uppercase">{show.title}</h2>
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+          <div key={show.id} className="rounded-lg shadow-md overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+            <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <h2 className="text-lg font-medium uppercase" style={{ color: 'var(--t1)' }}>{show.title}</h2>
+              <div className="mt-1 flex items-center gap-2 text-sm" style={{ color: 'var(--t3)' }}>
                 <Calendar className="w-4 h-4" />
                 <span>{formatDate(show.date)}</span>
               </div>
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+              <div className="mt-1 flex items-center gap-2 text-sm" style={{ color: 'var(--t3)' }}>
                 <MapPin className="w-4 h-4" />
                 <span>{show.venue}, {show.city}</span>
               </div>
@@ -133,15 +132,16 @@ export default function ShowFees() {
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-medium text-gray-700">Personnel Fees</h3>
+                  <DollarSign className="w-4 h-4" style={{ color: 'var(--brand-1)' }} />
+                  <h3 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Personnel Fees</h3>
                 </div>
                 <button
                   onClick={() => {
                     setSelectedShow(show);
                     setIsModalOpen(true);
                   }}
-                  className="text-xs text-primary hover:text-black"
+                  className="text-xs hover:opacity-80"
+                  style={{ color: 'var(--brand-1)' }}
                 >
                   Manage Fees
                 </button>
@@ -156,9 +156,9 @@ export default function ShowFees() {
                     member.shows?.some(s => s.name === show.title && s.fee)
                   )
                   .map(member => (
-                    <div key={member.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span className="text-sm text-gray-700">{member.name}</span>
-                      <span className="text-sm font-medium text-black">
+                    <div key={member.id} className="flex justify-between items-center p-2 rounded" style={{ backgroundColor: 'var(--surface-2)' }}>
+                      <span className="text-sm" style={{ color: 'var(--t2)' }}>{member.name}</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
                         ${member.shows?.find(s => s.name === show.title)?.fee || 0}
                       </span>
                     </div>
@@ -169,16 +169,16 @@ export default function ShowFees() {
                   member.role !== 'production_manager' &&
                   member.shows?.some(s => s.name === show.title && s.fee)
                 ).length === 0 && (
-                  <div className="text-center py-2 text-sm text-gray-500">
+                  <div className="text-center py-2 text-sm" style={{ color: 'var(--t3)' }}>
                     No fees set for this show
                   </div>
                 )}
               </div>
-              
+
               {/* Total fees for this show */}
-              <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700">Total:</span>
-                <span className="text-sm font-bold text-black">
+              <div className="mt-4 pt-4 flex justify-between items-center" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Total:</span>
+                <span className="text-sm font-bold" style={{ color: 'var(--t1)' }}>
                   ${crew.reduce((total, member) => {
                     const showFee = member.shows?.find(s => s.name === show.title)?.fee || 0;
                     return total + showFee;
@@ -190,16 +190,16 @@ export default function ShowFees() {
         ))}
         
         {/* Add New Show Card */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-dashed border-gray-200 flex items-center justify-center">
+        <div className="rounded-lg shadow-md overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--surface)', border: '2px dashed var(--border-2)' }}>
           <button
             onClick={() => navigate('/live')}
             className="p-6 text-center"
           >
-            <div className="mx-auto w-12 h-12 rounded-full bg-beige flex items-center justify-center mb-3">
-              <Plus className="w-6 h-6 text-primary" />
+            <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--surface-2)' }}>
+              <Plus className="w-6 h-6" style={{ color: 'var(--brand-1)' }} />
             </div>
-            <h3 className="text-sm font-medium text-charcoal">Add New Show</h3>
-            <p className="mt-1 text-xs text-gray-500">
+            <h3 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>Add New Show</h3>
+            <p className="mt-1 text-xs" style={{ color: 'var(--t3)' }}>
               Create a new show to manage fees
             </p>
           </button>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Loader2, Bot, User, Zap, Sparkles, Download, Copy } from 'lucide-react';
+import { Loader2, Bot, User, Zap, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import OpenAI from 'openai';
@@ -121,28 +121,30 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
     >
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.9 }}
-        className="bg-white rounded-lg shadow-xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden"
+        className="shadow-xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden"
+        style={{ backgroundColor: 'var(--surface)', borderRadius: 0 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Bot className="w-5 h-5 text-blue-600" />
+            <div className="p-2 rounded-full" style={{ backgroundColor: 'var(--surface-2)' }}>
+              <Bot className="w-5 h-5" style={{ color: 'var(--brand-1)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-gray-900">AI Mentor</h2>
-              <p className="text-xs text-gray-500">General knowledge assistant powered by industry experts and AI</p>
+              <h2 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>AI Mentor</h2>
+              <p className="text-xs" style={{ color: 'var(--t2)' }}>General knowledge assistant powered by industry experts and AI</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
+            className="p-2 rounded-full"
+            style={{ color: 'var(--t3)', backgroundColor: 'transparent' }}
           >
-            <X className="w-5 h-5" />
+            <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="Close" />
           </button>
         </div>
 
@@ -154,11 +156,12 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
+                className={`max-w-[80%] p-3`}
+                style={{
+                  backgroundColor: message.role === 'user' ? 'var(--brand-1)' : 'var(--surface-2)',
+                  color: message.role === 'user' ? 'var(--t1)' : 'var(--t1)',
+                  borderRadius: 0
+                }}
               >
                 <div className="flex items-center gap-2 mb-1">
                   {message.role === 'user' ? (
@@ -180,10 +183,11 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                   <div className="flex justify-end mt-2 gap-2">
                     <button
                       onClick={() => copyToClipboard(message.content)}
-                      className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                      className="p-1 rounded"
+                      style={{ color: 'var(--t3)', backgroundColor: 'transparent' }}
                       title="Copy to clipboard"
                     >
-                      <Copy className="w-3 h-3" />
+                      <img src="/TM-Copy-negro.svg" className="pxi-sm icon-muted" alt="Copy" />
                     </button>
                   </div>
                 )}
@@ -208,7 +212,7 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea
@@ -217,23 +221,23 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything..."
-                className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 resize-none"
+                className="w-full p-3 pr-10 border resize-none"
                 rows={1}
-                style={{ minHeight: "44px", maxHeight: "120px" }}
+                style={{ minHeight: "44px", maxHeight: "120px", backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--t1)', borderRadius: 0 }}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="absolute right-3 bottom-3 text-blue-500 hover:text-blue-600"
+                style={{ color: 'var(--brand-1)' }}
               >
-                <Send className="w-5 h-5" />
+                <img src="/TM-Send-negro.svg" className="pxi-lg icon-green absolute right-3 bottom-3" alt="Send" />
               </button>
             </div>
           </div>
           <div className="mt-2 flex justify-between items-center">
             <div className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-blue-500" />
-              <span className="text-xs text-gray-500">Provide direct answers to questions. Be helpful and concise.</span>
+              <Sparkles className="w-3 h-3" style={{ color: 'var(--brand-1)' }} />
+              <span className="text-xs" style={{ color: 'var(--t2)' }}>Provide direct answers to questions. Be helpful and concise.</span>
             </div>
           </div>
         </div>

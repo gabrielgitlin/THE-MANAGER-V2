@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, Plus, X, Download, Share2, Upload } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { TMDatePicker } from './ui/TMDatePicker';
 import Modal from './Modal';
 import jsPDF from 'jspdf';
 import { formatDate } from '../lib/utils';
@@ -346,7 +347,7 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
           </label>
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200">
-              <Upload className="w-4 h-4" />
+              <img src="/TM-Upload-negro.svg" className="pxi-md icon-muted" alt="" />
               <span className="text-sm">Upload Logo</span>
               <input
                 type="file"
@@ -363,7 +364,7 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
                   onClick={() => setInvoiceData({ ...invoiceData, logo: '' })}
                   className="text-red-600 hover:text-red-700"
                 >
-                  <X className="w-4 h-4" />
+                  <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             )}
@@ -386,11 +387,9 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date
             </label>
-            <input
-              type="date"
+            <TMDatePicker
               value={invoiceData.date}
-              onChange={(e) => setInvoiceData({ ...invoiceData, date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              onChange={(date) => setInvoiceData({ ...invoiceData, date: date })}
             />
           </div>
         </div>
@@ -399,11 +398,9 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Due Date
           </label>
-          <input
-            type="date"
+          <TMDatePicker
             value={invoiceData.dueDate}
-            onChange={(e) => setInvoiceData({ ...invoiceData, dueDate: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            onChange={(date) => setInvoiceData({ ...invoiceData, dueDate: date })}
           />
         </div>
 
@@ -530,7 +527,7 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
                   className="col-span-1 flex items-center justify-center text-red-600 hover:text-red-700"
                   disabled={invoiceData.items.length === 1}
                 >
-                  <X className="w-4 h-4" />
+                  <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
                 </button>
               </div>
             ))}
@@ -592,7 +589,7 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
           onClick={handleShare}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-blue-300 border border-black rounded-md hover:bg-blue-400"
         >
-          <Share2 className="w-4 h-4" />
+          <img src="/TM-Share-negro.svg" className="pxi-md icon-muted" alt="" />
           Share
         </button>
         <button
@@ -600,7 +597,7 @@ export default function InvoiceGenerator({ isOpen, onClose }: InvoiceGeneratorPr
           onClick={handleDownload}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-green border border-black rounded-md hover:bg-green/90"
         >
-          <Download className="w-4 h-4" />
+          <img src="/TM-Download-negro.svg" className="pxi-md icon-green" alt="" />
           Download
         </button>
       </div>

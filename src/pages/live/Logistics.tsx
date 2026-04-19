@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Search, Filter, Calendar, MapPin, DollarSign, Plane, Building, Download, FileSpreadsheet, FileText, Clock } from 'lucide-react';
+import { ChevronLeft, Plus, Calendar, FileSpreadsheet, Clock } from 'lucide-react';
 import Modal from '../../components/Modal';
 import TransportationForm from '../../components/logistics/TransportationForm';
 import AccommodationForm from '../../components/logistics/AccommodationForm';
@@ -289,62 +289,47 @@ export default function Logistics() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/live')}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm mb-4 hover:opacity-80"
+          style={{ color: 'var(--t3)' }}
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Live Events
         </button>
-        <h1 className="text-2xl font-bold text-charcoal font-title">Logistics Management</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Plan and manage transportation and accommodation for your tour
-        </p>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <div className="sub-tabs mb-6">
+        <button
+          onClick={() => { setActiveTab('overview'); setSelectedShowId(null); }}
+          className={`sub-tab ${activeTab === 'overview' ? 'active' : ''}`}
+        >
+          <Calendar className="tab-icon" />
+          Overview
+        </button>
+        {selectedShowId && (
           <button
-            onClick={() => {
-              setActiveTab('overview');
-              setSelectedShowId(null);
-            }}
-            className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-              activeTab === 'overview'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            onClick={() => setActiveTab('timeline')}
+            className={`sub-tab ${activeTab === 'timeline' ? 'active' : ''}`}
           >
-            <Calendar className="w-4 h-4" />
-            Overview
+            <Clock className="tab-icon" />
+            Timeline
           </button>
-          {selectedShowId && (
-            <button
-              onClick={() => setActiveTab('timeline')}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'timeline'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Clock className="w-4 h-4" />
-              Timeline
-            </button>
-          )}
-        </nav>
+        )}
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+      <div className="shadow-md rounded-lg p-6 mb-8" style={{ backgroundColor: 'var(--surface)' }}>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <img src="/TM-Search-negro.svg" className="pxi-lg icon-muted absolute left-3 top-1/2 -translate-y-1/2" alt="" />
               <input
                 type="text"
                 placeholder={`Search ${activeTab === 'overview' ? 'shows' : 'logistics'}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="pl-10 block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
@@ -352,7 +337,8 @@ export default function Logistics() {
             {selectedShowId && activeTab !== 'timeline' && (
               <button
                 onClick={() => setSelectedShowId(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', border: '1px solid' }}
               >
                 Clear Show Filter
               </button>
@@ -364,7 +350,8 @@ export default function Logistics() {
                     setEditingTransportationId(null);
                     setTransportationModalOpen(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                  style={{ backgroundColor: 'var(--brand-1)', color: 'var(--t1)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add Transportation
@@ -374,7 +361,8 @@ export default function Logistics() {
                     setEditingAccommodationId(null);
                     setAccommodationModalOpen(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                  style={{ backgroundColor: 'var(--status-blue)', color: 'var(--t1)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add Accommodation
@@ -384,7 +372,8 @@ export default function Logistics() {
             <button
               onClick={handleExportExcel}
               disabled={isExporting}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:opacity-80 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', border: '1px solid' }}
             >
               <FileSpreadsheet className="w-4 h-4" />
               Excel
@@ -392,9 +381,10 @@ export default function Logistics() {
             <button
               onClick={handleExportPDF}
               disabled={isExporting}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:opacity-80 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', border: '1px solid' }}
             >
-              <FileText className="w-4 h-4" />
+              <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" />
               PDF
             </button>
           </div>
@@ -413,9 +403,9 @@ export default function Logistics() {
           ))}
           {filteredOverviews.length === 0 && (
             <div className="col-span-3 py-12 text-center">
-              <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No shows found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <Calendar className="mx-auto h-12 w-12" style={{ color: 'var(--t3)' }} />
+              <h3 className="mt-2 text-sm font-medium" style={{ color: 'var(--t1)' }}>No shows found</h3>
+              <p className="mt-1 text-sm" style={{ color: 'var(--t3)' }}>
                 Try adjusting your search or add a new show from the Live Events page.
               </p>
             </div>

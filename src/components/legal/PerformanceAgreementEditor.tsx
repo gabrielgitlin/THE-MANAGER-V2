@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, DollarSign, MapPin, User, Building2, Clock } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import { jsPDF } from 'jspdf';
 import Modal from '../Modal';
 import { formatDate } from '../../lib/utils';
@@ -231,41 +232,44 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Agency Information */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Agency Information</h3>
+          <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Agency Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Agency Name
               </label>
               <input
                 type="text"
                 value={formData.agencyName}
                 onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Representative Name
               </label>
               <input
                 type="text"
                 value={formData.agencyRepName}
                 onChange={(e) => setFormData({ ...formData, agencyRepName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Address
               </label>
               <input
                 type="text"
                 value={formData.agencyAddress}
                 onChange={(e) => setFormData({ ...formData, agencyAddress: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
@@ -274,41 +278,44 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
 
         {/* Contractor Information */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Contractor Information</h3>
+          <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Contractor Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Contractor Name
               </label>
               <input
                 type="text"
                 value={formData.contractorName}
                 onChange={(e) => setFormData({ ...formData, contractorName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Representative Name
               </label>
               <input
                 type="text"
                 value={formData.contractorRepName}
                 onChange={(e) => setFormData({ ...formData, contractorRepName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Address
               </label>
               <input
                 type="text"
                 value={formData.contractorAddress}
                 onChange={(e) => setFormData({ ...formData, contractorAddress: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
@@ -317,149 +324,153 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
 
         {/* Event Details */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Event Details</h3>
+          <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Event Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Artist Name
               </label>
               <input
                 type="text"
                 value={formData.artistName}
                 onChange={(e) => setFormData({ ...formData, artistName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Event Name
               </label>
               <input
                 type="text"
                 value={formData.eventName}
                 onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Event Date
               </label>
-              <input
-                type="date"
-                value={formData.eventDate}
-                onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                required
-              />
+              <TMDatePicker value={formData.eventDate} onChange={(date) => setFormData({ ...formData, eventDate: date })} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Duration
               </label>
               <input
                 type="text"
                 value={formData.eventDuration}
                 onChange={(e) => setFormData({ ...formData, eventDuration: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 placeholder="e.g., 2 hours"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Capacity
               </label>
               <input
                 type="number"
                 value={formData.eventCapacity}
                 onChange={(e) => setFormData({ ...formData, eventCapacity: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Schedule
               </label>
               <input
                 type="text"
                 value={formData.eventSchedule}
                 onChange={(e) => setFormData({ ...formData, eventSchedule: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 placeholder="e.g., Doors 7PM, Show 8PM"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Artist Fee
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span style={{ color: 'var(--t3)' }} className="sm:text-sm">$</span>
                 </div>
                 <input
                   type="number"
                   value={formData.artistFee}
                   onChange={(e) => setFormData({ ...formData, artistFee: e.target.value })}
-                  className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-7 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   required
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Advance Payment
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span style={{ color: 'var(--t3)' }} className="sm:text-sm">$</span>
                 </div>
                 <input
                   type="number"
                   value={formData.advancePayment}
                   onChange={(e) => setFormData({ ...formData, advancePayment: e.target.value })}
-                  className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-7 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   required
                 />
               </div>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Venue Details
               </label>
               <input
                 type="text"
                 value={formData.venueDetails}
                 onChange={(e) => setFormData({ ...formData, venueDetails: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Banking Details
               </label>
               <textarea
                 value={formData.bankDetails}
                 onChange={(e) => setFormData({ ...formData, bankDetails: e.target.value })}
                 rows={3}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Additional Requirements/Instructions
               </label>
               <textarea
                 value={formData.additionalRequirements}
                 onChange={(e) => setFormData({ ...formData, additionalRequirements: e.target.value })}
                 rows={4}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               />
             </div>
           </div>
@@ -467,40 +478,43 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
 
         {/* Accommodation & Travel */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Accommodation & Travel</h3>
+          <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Accommodation & Travel</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Number of Nights
               </label>
               <input
                 type="number"
                 value={formData.numNights}
                 onChange={(e) => setFormData({ ...formData, numNights: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Number of Rooms
               </label>
               <input
                 type="number"
                 value={formData.numRooms}
                 onChange={(e) => setFormData({ ...formData, numRooms: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Bed Type
               </label>
               <select
                 value={formData.bedType}
                 onChange={(e) => setFormData({ ...formData, bedType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
               >
                 <option value="single">Single</option>
                 <option value="double">Double</option>
@@ -509,48 +523,51 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Per Diem Amount
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span style={{ color: 'var(--t3)' }} className="sm:text-sm">$</span>
                 </div>
                 <input
                   type="number"
                   value={formData.perDiemAmount}
                   onChange={(e) => setFormData({ ...formData, perDiemAmount: e.target.value })}
-                  className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-7 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   required
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Travel Expense Amount
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span style={{ color: 'var(--t3)' }} className="sm:text-sm">$</span>
                 </div>
                 <input
                   type="number"
                   value={formData.travelExpenseAmount}
                   onChange={(e) => setFormData({ ...formData, travelExpenseAmount: e.target.value })}
-                  className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="pl-7 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   required
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--t2)' }}>
                 Luggage Weight (kg)
               </label>
               <input
                 type="number"
                 value={formData.luggageWeight}
                 onChange={(e) => setFormData({ ...formData, luggageWeight: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                className="mt-1 block w-full border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                style={{ background: 'var(--surface)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                 required
               />
             </div>
@@ -561,13 +578,14 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium border"
+            style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary hover:opacity-80"
           >
             Generate Agreement
           </button>

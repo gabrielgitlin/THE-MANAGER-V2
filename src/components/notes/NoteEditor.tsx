@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Palette, X, Maximize2, Minimize2, Download, GripVertical } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Palette, Maximize2, Minimize2, GripVertical } from 'lucide-react';
 import type { Note, NoteCategory } from '../../types';
 
 interface NoteEditorProps {
@@ -155,9 +155,10 @@ export default function NoteEditor({
         onDragStart?.(e, note.id);
       }}
       onDragEnd={() => onDragEnd?.()}
-      className={`relative ${note.color || colors[0]} border border-black p-4 h-full ${
+      className={`relative border border-black p-4 h-full ${
         isDragging ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
       } ${!isEditing && !isResizing ? 'cursor-move' : 'cursor-auto'} ${isResizing ? '' : 'transition-all'} flex flex-col`}
+      style={{ background: note.color || colors[0] }}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -190,7 +191,7 @@ export default function NoteEditor({
               onClick={() => onDelete(note.id)}
               className="p-1 hover:bg-black/5 rounded"
             >
-              <X className="w-4 h-4" />
+              <img src="/TM-Close-negro.svg" className="pxi-md icon-danger" alt="" />
             </button>
           )}
         </div>
@@ -231,7 +232,7 @@ export default function NoteEditor({
               </div>
               <div className="relative group ml-auto">
                 <button className="p-1 hover:bg-black/5 rounded">
-                  <Download className="w-4 h-4" />
+                  <img src="/TM-Download-negro.svg" className="pxi-md icon-muted" alt="" />
                 </button>
                 <div className="absolute right-0 hidden group-hover:flex flex-col bg-white p-1 rounded shadow-lg">
                   <button

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { FileText, User, Calendar, CheckSquare, Edit, FileSignature, X, Check } from 'lucide-react';
+import { User, Calendar, CheckSquare, FileSignature } from 'lucide-react';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import Modal from '../Modal';
-import type { LegalDocument } from '../../types';
+import type { LegalDocument } from '../../lib/legalService';
 
 interface SignatureEmailPreviewProps {
   isOpen: boolean;
@@ -152,15 +153,15 @@ export default function SignatureEmailPreview({
       case 'signature':
         return <FileSignature className="w-4 h-4" />;
       case 'initial':
-        return <Edit className="w-4 h-4" />;
+        return <img src="/TM-Pluma-negro.png" className="pxi-md icon-muted" alt="" />;
       case 'date':
         return <Calendar className="w-4 h-4" />;
       case 'text':
-        return <FileText className="w-4 h-4" />;
+        return <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" />;
       case 'checkbox':
         return <CheckSquare className="w-4 h-4" />;
       default:
-        return <FileText className="w-4 h-4" />;
+        return <img src="/TM-File-negro.svg" className="pxi-md icon-muted" alt="" />;
     }
   };
   
@@ -183,7 +184,7 @@ export default function SignatureEmailPreview({
                   onClick={clearSignature}
                   className="absolute top-1 right-1 p-1 bg-white rounded-full border border-gray-300 text-gray-500 hover:text-red-500"
                 >
-                  <X className="w-3 h-3" />
+                  <img src="/TM-Close-negro.svg" className="pxi-sm icon-muted" alt="" />
                 </button>
               </div>
             ) : (
@@ -209,11 +210,9 @@ export default function SignatureEmailPreview({
       case 'date':
         return (
           <div className="border-2 border-gray-300 rounded p-2 flex items-center justify-center bg-white">
-            <input
-              type="date"
+            <TMDatePicker
               value={completedFields[field.id] || new Date().toISOString().split('T')[0]}
-              onChange={(e) => handleFieldComplete(field.id, e.target.value)}
-              className="w-full border-none focus:ring-0"
+              onChange={(date) => handleFieldComplete(field.id, date)}
             />
           </div>
         );
@@ -248,27 +247,27 @@ export default function SignatureEmailPreview({
   const renderEmailStep = () => {
     return (
       <div className="space-y-6">
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <div className="p-6 border" style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
                 <User className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900">Document Signing Request</h3>
-                <p className="text-sm text-gray-500">From: THE MANAGER &lt;documents@themanager.com&gt;</p>
+                <h3 className="text-lg font-medium" style={{ color: 'var(--t1)' }}>Document Signing Request</h3>
+                <p className="text-sm" style={{ color: 'var(--t3)' }}>From: THE MANAGER &lt;documents@themanager.com&gt;</p>
               </div>
             </div>
             
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-base font-medium text-gray-900">Please sign: {document?.title}</h4>
-              <p className="mt-2 text-sm text-gray-600">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
+              <h4 className="text-base font-medium" style={{ color: 'var(--t1)' }}>Please sign: {document?.title}</h4>
+              <p className="mt-2 text-sm" style={{ color: 'var(--t2)' }}>
                 Hello {signerName},
               </p>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm" style={{ color: 'var(--t2)' }}>
                 You have been requested to sign the document "{document?.title}". Please review and sign this document at your earliest convenience.
               </p>
-              <p className="mt-4 text-sm text-gray-600">
+              <p className="mt-4 text-sm" style={{ color: 'var(--t2)' }}>
                 Thank you,<br />
                 THE MANAGER
               </p>
@@ -302,24 +301,26 @@ export default function SignatureEmailPreview({
         
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-2/3">
-            <div className="bg-gray-50 border rounded-lg p-4 h-[500px] flex flex-col">
-              <div className="flex justify-between items-center p-2 border-b border-gray-200">
-                <h4 className="text-sm font-medium text-gray-700">Document Preview</h4>
+            <div className="border rounded-lg p-4 h-[500px] flex flex-col" style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
+              <div className="flex justify-between items-center p-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                <h4 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Document Preview</h4>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage <= 1}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30"
+                    className="p-1 hover:opacity-80 disabled:opacity-30"
+                    style={{ color: 'var(--t3)' }}
                   >
                     Previous
                   </button>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs" style={{ color: 'var(--t3)' }}>
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage >= totalPages}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30"
+                    className="p-1 hover:opacity-80 disabled:opacity-30"
+                    style={{ color: 'var(--t3)' }}
                   >
                     Next
                   </button>
@@ -327,13 +328,13 @@ export default function SignatureEmailPreview({
               </div>
               
               <div className="flex-1 p-4 overflow-auto">
-                <div className="bg-white border shadow-sm p-8 min-h-full relative">
+                <div className="border shadow-sm p-8 min-h-full relative" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                   {/* Simulated document content */}
                   {currentPage === 1 && (
                     <div className="space-y-4">
                       <div className="text-center mb-8">
-                        <h1 className="text-xl font-bold">{document?.title || 'Agreement'}</h1>
-                        <p className="text-sm text-gray-500">Page 1 of {totalPages}</p>
+                        <h1 className="text-xl font-bold" style={{ color: 'var(--t1)' }}>{document?.title || 'Agreement'}</h1>
+                        <p className="text-sm" style={{ color: 'var(--t3)' }}>Page 1 of {totalPages}</p>
                       </div>
                       
                       <p className="text-sm">
@@ -455,17 +456,17 @@ export default function SignatureEmailPreview({
           </div>
           
           <div className="md:w-1/3 space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">Required Fields</h4>
+            <h4 className="text-sm font-medium" style={{ color: 'var(--t2)' }}>Required Fields</h4>
             
             {fieldsForCurrentPage.length > 0 ? (
               <div className="space-y-4">
                 {fieldsForCurrentPage.map(field => (
-                  <div key={field.id} className="p-4 bg-gray-50 rounded-lg">
+                  <div key={field.id} className="p-4 rounded-lg" style={{ background: 'var(--surface-2)' }}>
                     <div className="flex items-center gap-2 mb-2">
                       {getFieldIcon(field.type)}
-                      <h5 className="text-sm font-medium text-gray-900">{field.label}</h5>
+                      <h5 className="text-sm font-medium" style={{ color: 'var(--t1)' }}>{field.label}</h5>
                       {field.required && (
-                        <span className="text-xs text-red-500">Required</span>
+                        <span className="text-xs" style={{ color: 'var(--t2)' }}>Required</span>
                       )}
                     </div>
                     
@@ -474,12 +475,12 @@ export default function SignatureEmailPreview({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm p-4 rounded-lg" style={{ color: 'var(--t3)', background: 'var(--surface-2)' }}>
                 No fields to complete on this page. Navigate to other pages to complete all required fields.
               </p>
             )}
             
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
               <button
                 onClick={handleSubmit}
                 disabled={!allFieldsCompleted() || isSubmitting}
@@ -507,12 +508,12 @@ export default function SignatureEmailPreview({
   const renderCompleteStep = () => {
     return (
       <div className="space-y-6">
-        <div className="p-8 bg-green-50 rounded-lg text-center">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <Check className="w-8 h-8 text-green-600" />
+        <div className="p-8 rounded-lg text-center" style={{ background: 'var(--surface-2)' }}>
+          <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--surface)' }}>
+            <img src="/The Manager_Iconografia-11.svg" className="pxi-xl icon-green" alt="" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Document Signed Successfully!</h3>
-          <p className="text-sm text-gray-600 mb-6">
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--t1)' }}>Document Signed Successfully!</h3>
+          <p className="text-sm mb-6" style={{ color: 'var(--t2)' }}>
             Thank you for signing "{document?.title}". All parties will be notified once everyone has signed the document.
           </p>
           <button

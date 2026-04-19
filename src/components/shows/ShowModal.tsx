@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import Modal from '../Modal';
+import { TMDatePicker } from '../ui/TMDatePicker';
 import VenueMapPreview from '../VenueMapPreview';
 import type { Show, VenueSearchResult, GooglePlaceDetails } from '../../types';
 import {
@@ -129,13 +130,12 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
       venue_latitude: venue.latitude,
       venue_longitude: venue.longitude,
       google_place_id: venue.google_place_id || '',
-      venue_id: venue.id ? parseInt(venue.id) : undefined,
+      // Nominatim ids are "osm:<id>:<postalCode>" — not numeric, so skip venue_id
+      venue_id: venue.id && !venue.id.startsWith('osm:') ? parseInt(venue.id) : undefined,
       capacity: venue.capacity || formData.capacity,
     });
     setShowVenueResults(false);
-    setShowMapPreview(
-      !!(venue.latitude && venue.longitude)
-    );
+    setShowMapPreview(!!(venue.latitude && venue.longitude));
   };
 
   const handleGooglePlaceSelect = async (placeDetails: GooglePlaceDetails) => {
@@ -175,13 +175,9 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
           <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Date
           </label>
-          <input
-            type="date"
-            id="date"
+          <TMDatePicker
             value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="mt-1 block w-full rounded-none border-gray-300 dark:border-gray-600 dark:bg-gray-800 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            style={{ color: '#000000' }}
+            onChange={(date) => setFormData({ ...formData, date: date })}
             required
           />
         </div>
@@ -204,8 +200,8 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
                   setShowVenueResults(true);
                 }
               }}
-              className="mt-1 block w-full rounded-none border-gray-300 dark:border-gray-600 dark:bg-gray-800 shadow-sm focus:border-primary focus:ring-primary sm:text-sm pr-10"
-              style={{ color: '#000000' }}
+              className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm pr-10"
+              style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
               required
               autoComplete="off"
               placeholder="Search for a venue..."
@@ -217,26 +213,32 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
             )}
           </div>
           {showVenueResults && venueSearchResults.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto">
+            <div
+              className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto"
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border-2)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+              }}
+            >
               {venueSearchResults.map((venue, index) => (
                 <button
                   key={venue.google_place_id || venue.id || index}
                   type="button"
                   onClick={() => handleVenueSelect(venue)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                  className="w-full px-4 py-3 text-left transition-colors"
+                  style={{
+                    borderBottom: index < venueSearchResults.length - 1 ? '1px solid var(--border)' : 'none',
+                    background: 'transparent',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <div className="space-y-1">
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {venue.name}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {venue.address}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-500">
-                      {venue.city}
-                      {venue.state && `, ${venue.state}`}
-                      {venue.country && ` • ${venue.country}`}
-                    </div>
+                  <div className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
+                    {venue.name}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>
+                    {[venue.address, venue.city, venue.state, venue.country].filter(Boolean).join(', ')}
                   </div>
                 </button>
               ))}
@@ -253,8 +255,8 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
             id="venue_address"
             value={formData.venue_address}
             onChange={(e) => setFormData({ ...formData, venue_address: e.target.value })}
-            className="mt-1 block w-full rounded-none border-gray-300 dark:border-gray-600 dark:bg-gray-800 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            style={{ color: '#000000' }}
+            className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
             placeholder="Optional"
           />
         </div>
@@ -300,8 +302,8 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
             id="country"
             value={formData.country}
             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-            className="mt-1 block w-full rounded-none border-gray-300 dark:border-gray-600 dark:bg-gray-800 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            style={{ color: '#000000' }}
+            className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
             required
           />
         </div>
@@ -327,8 +329,8 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
             id="status"
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as Show['status'] })}
-            className="mt-1 block w-full rounded-none border-gray-300 dark:border-gray-600 dark:bg-gray-800 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            style={{ color: '#000000' }}
+            className="mt-1 block w-full shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            style={{ color: 'var(--t1)', background: 'var(--surface)', borderColor: 'var(--border)' }}
           >
             <option value="confirmed">Confirmed</option>
             <option value="pending">Pending</option>
@@ -340,7 +342,7 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium hover:opacity-80" style={{ color: 'var(--t1)', background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             Cancel
           </button>

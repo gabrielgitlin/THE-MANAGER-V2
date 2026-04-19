@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ZoomIn, ZoomOut, Move, Check, Upload } from 'lucide-react';
+import { ZoomIn, ZoomOut, Move } from 'lucide-react';
 
 interface ImageCropperProps {
   onCropComplete: (blob: Blob) => void;
@@ -263,7 +263,7 @@ export default function ImageCropper({ onCropComplete, onCancel, initialFile }: 
             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <X style={{ width: '20px', height: '20px', color: '#9ca3af' }} />
+            <img src="/TM-Close-negro.svg" className="pxi-lg icon-muted" alt="" />
           </button>
         </div>
 
@@ -307,7 +307,7 @@ export default function ImageCropper({ onCropComplete, onCancel, initialFile }: 
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              <Upload style={{ width: '40px', height: '40px', color: '#6b7280', margin: '0 auto 12px' }} />
+              <img src="/TM-Upload-negro.svg" className="pxi-xl icon-muted" style={{ margin: '0 auto 12px' }} alt="" />
               <div style={{ color: '#d1d5db', fontWeight: 500, marginBottom: '8px' }}>Click to select an image</div>
               <button
                 type="button"
@@ -497,7 +497,7 @@ export default function ImageCropper({ onCropComplete, onCancel, initialFile }: 
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#00B548'}
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#00C853'}
             >
-              <Check style={{ width: '16px', height: '16px' }} />
+              <img src="/The Manager_Iconografia-11.svg" className="pxi-md icon-green" alt="" />
               Apply
             </button>
           )}

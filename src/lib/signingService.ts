@@ -15,15 +15,51 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 // ─── Edge Function Helpers ────────────────────────────────────────────────────
 
 async function callEdgeFunction<T = unknown>(name: string, body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke(name, {
-    body,
-  });
+  // getUser() makes a live server-side request — it validates the current
+  // token AND triggers an auto-refresh if it has expired. This guarantees
+  // the token we use below is fresh and valid for this project.
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  console.log('[signing] getUser result:', { user: userData?.user?.email, userError });
 
-  if (error) {
-    throw new Error(`Edge function '${name}' failed: ${error.message}`);
+  if (userError) {
+    // Token was invalid/expired — attempt an explicit refresh
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw new Error('Session expired — please log out and log in again.');
+    }
   }
 
-  return data as T;
+  // Read the (now-fresh) token from the local session store
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Not authenticated — please log in and try again.');
+  }
+
+  // Debug: log token info (remove after debugging)
+  console.log('[signing] calling edge fn', name, {
+    url: `${supabaseUrl}/functions/v1/${name}`,
+    tokenHeader: session.access_token.slice(0, 30) + '...',
+    expiresAt: session.expires_at,
+    nowTs: Math.floor(Date.now() / 1000),
+    isExpired: (session.expires_at ?? 0) < Math.floor(Date.now() / 1000),
+  });
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': supabaseAnonKey ?? '',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Edge function '${name}' failed (${res.status}): ${text}`);
+  }
+
+  return res.json() as Promise<T>;
 }
 
 async function callPublicEdgeFunction<T = unknown>(name: string, body: Record<string, unknown>): Promise<T> {
@@ -195,6 +231,16 @@ export async function completeSigning(accessToken: string): Promise<unknown> {
     action: 'complete_signing',
     access_token: accessToken,
   });
+}
+
+// ─── Storage URL Helper ───────────────────────────────────────────────────────
+
+export async function getSignedDocumentUrl(storagePath: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from('legal-documents')
+    .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7-day link
+  if (error || !data) return null;
+  return data.signedUrl;
 }
 
 // ─── Re-exports for convenience ───────────────────────────────────────────────

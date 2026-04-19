@@ -1,3 +1,5 @@
+import { Loader2 } from 'lucide-react';
+
 interface LoadingSpinnerProps {
   fullScreen?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -5,58 +7,32 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({ fullScreen = true, size = 'md' }: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: 'w-24 h-24',
-    md: 'w-48 h-48',
-    lg: 'w-72 h-72',
+    sm: 'w-5 h-5',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
   };
 
   const spinner = (
-    <img
-      src="/the-manager-visuals-10_(1).png"
-      alt="Loading"
-      className={sizeClasses[size]}
-      style={{
-        animation: 'flipY 1.5s infinite',
-        transformStyle: 'preserve-3d',
-      }}
+    <Loader2
+      className={`${sizeClasses[size]} animate-spin`}
+      style={{ color: 'var(--brand-1)' }}
     />
   );
 
   if (fullScreen) {
     return (
-      <>
-        <style>{`
-          @keyframes flipY {
-            from {
-              transform: rotateY(0deg);
-            }
-            to {
-              transform: rotateY(360deg);
-            }
-          }
-        `}</style>
-        <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
-          {spinner}
-        </div>
-      </>
+      <div
+        className="fixed inset-0 flex items-center justify-center z-50"
+        style={{ background: 'rgba(12,12,12,0.8)', backdropFilter: 'blur(4px)' }}
+      >
+        {spinner}
+      </div>
     );
   }
 
   return (
-    <>
-      <style>{`
-        @keyframes flipY {
-          from {
-            transform: rotateY(0deg);
-          }
-          to {
-            transform: rotateY(360deg);
-          }
-        }
-      `}</style>
-      <div className="flex items-center justify-center py-12">
-        {spinner}
-      </div>
-    </>
+    <div className="flex items-center justify-center py-12">
+      {spinner}
+    </div>
   );
 }
