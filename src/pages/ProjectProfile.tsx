@@ -272,7 +272,6 @@ export default function ProjectProfile() {
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
                 color: activeTab === tab ? 'var(--t1)' : 'var(--t3)',
-                borderBottom: activeTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
