@@ -35,6 +35,7 @@ const ShowFees = React.lazy(() => import('./pages/live/ShowFees'));
 const Artist = React.lazy(() => import('./pages/Artist'));
 const Industry = React.lazy(() => import('./pages/Industry'));
 const ContactProfile = React.lazy(() => import('./pages/ContactProfile'));
+const OrganizationProfile = React.lazy(() => import('./pages/OrganizationProfile'));
 const Notes = React.lazy(() => import('./pages/Notes'));
 const Tasks = React.lazy(() => import('./pages/Tasks'));
 const Settings = React.lazy(() => import('./pages/Settings'));
@@ -194,7 +195,7 @@ function AppRoutes() {
           } />
           <Route path="industry/companies/:id" element={
             <ProtectedRoute requiredPermission="view_personnel">
-              <div className="p-6"><p>Company profile coming soon</p></div>
+              <OrganizationProfile />
             </ProtectedRoute>
           } />
           {/* Redirect legacy /team URLs */}
