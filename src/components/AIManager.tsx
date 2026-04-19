@@ -145,7 +145,7 @@ export default function AIManager({ isOpen, onClose }: AIManagerProps) {
       }
 
       if (lowerQuery.includes('personnel') || lowerQuery.includes('team') || lowerQuery.includes('crew') || lowerQuery.includes('staff')) {
-        const { data: personnel } = await supabase.from('personnel').select('*');
+        const { data: personnel } = await supabase.from('_deprecated_personnel').select('*');
 
         if (personnel && personnel.length > 0) {
           const roles = personnel.reduce((acc: any, person) => {

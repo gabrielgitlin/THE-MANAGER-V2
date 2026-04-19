@@ -22,7 +22,7 @@ export async function getPersonnelProfiles() {
 
   try {
     const { data, error } = await supabase
-      .from('personnel_profiles')
+      .from('_deprecated_personnel_profiles')
       .select(`
         *,
         personnel_pros(
@@ -63,7 +63,7 @@ export async function getPersonnelProfile(id: string) {
 
   try {
     const { data, error } = await supabase
-      .from('personnel_profiles')
+      .from('_deprecated_personnel_profiles')
       .select(`
         *,
         personnel_pros(
@@ -107,7 +107,7 @@ export async function createPersonnelProfile(data: PersonnelFormData) {
     
     // Start a Supabase transaction
     const { data: profile, error: profileError } = await supabase
-      .from('personnel_profiles')
+      .from('_deprecated_personnel_profiles')
       .insert([{
         type: profileData.type,
         first_name: profileData.firstName,
@@ -132,7 +132,7 @@ export async function createPersonnelProfile(data: PersonnelFormData) {
     // Add PROs
     if (pros.length > 0) {
       const { error: prosError } = await supabase
-        .from('personnel_pros')
+        .from('_deprecated_personnel_pros')
         .insert(
           pros.map(pro => ({
             personnel_id: profile.id,
@@ -148,7 +148,7 @@ export async function createPersonnelProfile(data: PersonnelFormData) {
     // Add Publishers
     if (publishers.length > 0) {
       const { error: publishersError } = await supabase
-        .from('personnel_publishers')
+        .from('_deprecated_personnel_publishers')
         .insert(
           publishers.map(pub => ({
             personnel_id: profile.id,
@@ -178,7 +178,7 @@ export async function updatePersonnelProfile(id: string, data: PersonnelFormData
 
     // Update profile
     const { error: profileError } = await supabase
-      .from('personnel_profiles')
+      .from('_deprecated_personnel_profiles')
       .update({
         type: profileData.type,
         first_name: profileData.firstName,
@@ -200,13 +200,13 @@ export async function updatePersonnelProfile(id: string, data: PersonnelFormData
     if (profileError) throw profileError;
 
     // Delete existing PROs and Publishers
-    await supabase.from('personnel_pros').delete().eq('personnel_id', id);
-    await supabase.from('personnel_publishers').delete().eq('personnel_id', id);
+    await supabase.from('_deprecated_personnel_pros').delete().eq('personnel_id', id);
+    await supabase.from('_deprecated_personnel_publishers').delete().eq('personnel_id', id);
 
     // Add new PROs
     if (pros.length > 0) {
       const { error: prosError } = await supabase
-        .from('personnel_pros')
+        .from('_deprecated_personnel_pros')
         .insert(
           pros.map(pro => ({
             personnel_id: id,
@@ -222,7 +222,7 @@ export async function updatePersonnelProfile(id: string, data: PersonnelFormData
     // Add new Publishers
     if (publishers.length > 0) {
       const { error: publishersError } = await supabase
-        .from('personnel_publishers')
+        .from('_deprecated_personnel_publishers')
         .insert(
           publishers.map(pub => ({
             personnel_id: id,
@@ -249,7 +249,7 @@ export async function deletePersonnelProfile(id: string) {
 
   try {
     const { error } = await supabase
-      .from('personnel_profiles')
+      .from('_deprecated_personnel_profiles')
       .delete()
       .eq('id', id);
 
@@ -268,7 +268,7 @@ export async function getPROs() {
 
   try {
     const { data, error } = await supabase
-      .from('performance_rights_organizations')
+      .from('_deprecated_performance_rights_organizations')
       .select('*')
       .order('name');
 
@@ -293,7 +293,7 @@ export async function getPublishers() {
 
   try {
     const { data, error } = await supabase
-      .from('publishers')
+      .from('_deprecated_publishers')
       .select('*')
       .order('name');
 
