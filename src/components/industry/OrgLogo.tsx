@@ -2,14 +2,14 @@ import React from 'react';
 import type { OrganizationType } from '../../types/organizations';
 
 const TYPE_COLORS: Record<string, string> = {
-  label: '#1a3a2a',
-  publisher: '#1a3a2a',
-  management: '#1a2a3a',
-  booking: '#1a2a3a',
-  distributor: '#1a2030',
-  pr: '#1a2030',
-  marketing: '#1a2030',
-  default: '#1e1e1e',
+  label: 'var(--surface-4)',
+  publisher: 'var(--surface-4)',
+  management: 'var(--surface-3)',
+  booking: 'var(--surface-3)',
+  distributor: 'var(--surface-2)',
+  pr: 'var(--surface-2)',
+  marketing: 'var(--surface-2)',
+  default: 'var(--surface)',
 };
 
 interface OrgLogoProps {
