@@ -26,6 +26,8 @@ export interface PublisherAffiliation {
 export interface Contact {
   id: string;
   userId: string;
+  workspaceId: string;
+  visibility: 'workspace' | 'private';
   category: ContactCategory;
   role?: string;
   firstName: string;
@@ -51,7 +53,9 @@ export interface Contact {
   updatedAt: string;
 }
 
-export type ContactFormData = Omit<Contact, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
+export type ContactFormData = Omit<Contact, 'id' | 'userId' | 'workspaceId' | 'createdAt' | 'updatedAt'> & {
+  visibility?: 'workspace' | 'private';
+};
 
 export interface ContactPaymentInfo {
   id: string;

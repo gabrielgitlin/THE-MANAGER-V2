@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { currentWorkspaceId } from './workspaces';
 import type {
   Contact, ContactFormData,
   ContactPaymentInfo, ContactPaymentFormData,
@@ -32,6 +33,8 @@ function rowToContact(row: Record<string, unknown>): Contact {
   return {
     id: row.id as string,
     userId: row.user_id as string,
+    workspaceId: row.workspace_id as string,
+    visibility: (row.visibility as Contact['visibility']) ?? 'workspace',
     category: row.category as Contact['category'],
     role: (row.role as string) ?? undefined,
     firstName: row.first_name as string,
@@ -61,9 +64,11 @@ function rowToContact(row: Record<string, unknown>): Contact {
 // ─── Contacts CRUD ─────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .select('*')
+    .eq('workspace_id', wsId)
     .order('last_name', { ascending: true });
   if (error) throw error;
   return (data ?? []).map(rowToContact);
@@ -80,9 +85,12 @@ export async function getContact(id: string): Promise<Contact> {
 }
 
 export async function createContact(formData: ContactFormData): Promise<Contact> {
+  const wsId = await currentWorkspaceId();
   const { data, error } = await supabase
     .from('contacts')
     .insert({
+      workspace_id: wsId,
+      visibility: formData.visibility ?? 'workspace',
       category: formData.category,
       role: formData.role || null,
       first_name: formData.firstName,
@@ -113,6 +121,7 @@ export async function createContact(formData: ContactFormData): Promise<Contact>
 
 export async function updateContact(id: string, formData: Partial<ContactFormData>): Promise<Contact> {
   const updates: Record<string, unknown> = {};
+  if (formData.visibility !== undefined)            updates.visibility = formData.visibility;
   if (formData.category !== undefined)              updates.category = formData.category;
   if (formData.role !== undefined)                  updates.role = formData.role || null;
   if (formData.firstName !== undefined)             updates.first_name = formData.firstName;
