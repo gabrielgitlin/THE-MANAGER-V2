@@ -198,6 +198,11 @@ function AppRoutes() {
               <OrganizationProfile />
             </ProtectedRoute>
           } />
+          <Route path="industry/projects/:id" element={
+            <ProtectedRoute requiredPermission="view_personnel">
+              <div className="p-6 text-[var(--t2)]">Project detail coming soon</div>
+            </ProtectedRoute>
+          } />
           {/* Redirect legacy /team URLs */}
           <Route path="team" element={<Navigate to="/industry" replace />} />
           <Route path="team/:id" element={<RedirectTeamToIndustry />} />
