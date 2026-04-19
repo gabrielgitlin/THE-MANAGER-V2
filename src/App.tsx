@@ -7,6 +7,7 @@ import Onboarding from './components/Onboarding';
 import { useAuthStore } from './store/authStore';
 import { useOnboarding } from './hooks/useOnboarding';
 import { isNative } from './lib/platform';
+import { ensurePersonalWorkspace } from './lib/workspaces';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -49,6 +50,15 @@ function AppRoutes() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Fire-and-forget: ensure a personal workspace exists whenever a user signs in.
+  useEffect(() => {
+    if (user) {
+      ensurePersonalWorkspace().catch((err) =>
+        console.error('[workspaces] ensurePersonalWorkspace failed:', err)
+      );
+    }
+  }, [user]);
 
   // Show onboarding when detected
   useEffect(() => {
