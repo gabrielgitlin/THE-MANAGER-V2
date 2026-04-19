@@ -119,8 +119,8 @@ export default function Layout() {
     },
     {
       icon: PolyhedraIcons.Team,
-      label: 'TEAM',
-      path: '/team',
+      label: 'INDUSTRY',
+      path: '/industry',
       permission: 'view_personnel' as const,
       group: 3
     },

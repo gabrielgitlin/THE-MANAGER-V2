@@ -216,8 +216,8 @@ export default function AIManager({ isOpen, onClose }: AIManagerProps) {
         navigate('/live');
       } else if (lower.includes('marketing')) {
         navigate('/marketing');
-      } else if (lower.includes('team')) {
-        navigate('/team');
+      } else if (lower.includes('team') || lower.includes('industry')) {
+        navigate('/industry');
       } else if (lower.includes('artist')) {
         navigate('/artist');
       } else if (lower.includes('settings')) {

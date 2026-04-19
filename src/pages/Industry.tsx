@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { getContacts } from '../lib/contacts';
 import type { Contact, ContactCategory } from '../types/contacts';
 
-export default function Team() {
+export default function Industry() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ContactCategory | 'all'>('all');

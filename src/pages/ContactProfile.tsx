@@ -40,7 +40,7 @@ export default function ContactProfile() {
     if (!window.confirm(`Delete ${contact.firstName} ${contact.lastName}? This cannot be undone.`)) return;
     try {
       await deleteContact(contact.id);
-      navigate('/team');
+      navigate('/industry');
     } catch {
       setError('Failed to delete contact. Please try again.');
     }
@@ -51,7 +51,7 @@ export default function ContactProfile() {
   if (error || !contact) {
     return (
       <div className="p-6">
-        <button className="btn btn-ghost btn-sm flex items-center gap-1 mb-6" onClick={() => navigate('/team')}>
+        <button className="btn btn-ghost btn-sm flex items-center gap-1 mb-6" onClick={() => navigate('/industry')}>
           <img src="/TM-ArrowLeft-negro.svg" className="pxi-sm icon-muted" alt="" />
           <span className="text-t3 text-xs uppercase" style={{ fontFamily: 'var(--font-mono)' }}>Contacts</span>
         </button>
@@ -66,7 +66,7 @@ export default function ContactProfile() {
       <div className="px-4 md:px-6 pt-5">
         <button
           className="btn btn-ghost btn-sm flex items-center gap-1"
-          onClick={() => navigate('/team')}
+          onClick={() => navigate('/industry')}
         >
           <img src="/TM-ArrowLeft-negro.svg" className="pxi-sm icon-muted" alt="" />
           <span className="text-t3 text-xs uppercase" style={{ fontFamily: 'var(--font-mono)' }}>

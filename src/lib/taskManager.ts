@@ -44,8 +44,8 @@ export const detectTask = (response: string): Task => {
       return { type: 'navigate', params: { path: '/legal' } };
     } else if (/marketing|promotion/i.test(response)) {
       return { type: 'navigate', params: { path: '/marketing' } };
-    } else if (/team|personnel|crew|staff/i.test(response)) {
-      return { type: 'navigate', params: { path: '/team' } };
+    } else if (/team|industry|personnel|crew|staff/i.test(response)) {
+      return { type: 'navigate', params: { path: '/industry' } };
     } else if (/artist|profile/i.test(response)) {
       return { type: 'navigate', params: { path: '/artist' } };
     } else if (/notes/i.test(response)) {
@@ -433,8 +433,8 @@ export const executeTask = async (
       return '';
     
     case 'find_personnel':
-      // Navigate to team page
-      navigate('/team');
+      // Navigate to industry page
+      navigate('/industry');
       return '';
     
     case 'find_catalog_info':

@@ -13,7 +13,7 @@ const tabs: Tab[] = [
   { type: 'image', icon: '/TM-Vinil-negro.png', path: '/catalog' },
   { type: 'image', icon: '/TM-Contrato-negro.png', path: '/legal' },
   { type: 'image', icon: '/TM-Ajedrez Caballo-negro.png', path: '/marketing' },
-  { type: 'image', icon: '/TM-Sello-negro.png', path: '/team' },
+  { type: 'image', icon: '/TM-Sello-negro.png', path: '/industry' },
   { type: 'image', icon: '/TM-Icono-negro.png', path: '/artist' },
   { type: 'lucide', LucideIcon: StickyNote, path: '/notes' },
   { type: 'lucide', LucideIcon: CheckSquare, path: '/tasks' },
