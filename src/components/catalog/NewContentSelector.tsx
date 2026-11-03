@@ -1,11 +1,10 @@
-import React from 'react';
 
 interface NewContentSelectorProps {
   onSelect: (type: 'song' | 'ep' | 'album') => void;
   onClose: () => void;
 }
 
-export default function NewContentSelector({ onSelect, onClose }: NewContentSelectorProps) {
+export default function NewContentSelector({ onSelect, onClose: _onClose }: NewContentSelectorProps) {
   const options = [
     {
       type: 'song' as const,

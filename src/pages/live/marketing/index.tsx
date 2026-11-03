@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import MarketingChecklist from './MarketingChecklist';
@@ -9,7 +9,7 @@ import type { Show, MarketingTask } from '../../../types';
 export default function Marketing() {
   const navigate = useNavigate();
   const [shows] = useState<Show[]>([]);
-  const [marketingTasks, setMarketingTasks] = useState<Record<number, MarketingTask[]>>({});
+  const [, setMarketingTasks] = useState<Record<number, MarketingTask[]>>({});
 
   const handleUpdateTasks = (showId: number, tasks: MarketingTask[]) => {
     setMarketingTasks(prev => ({

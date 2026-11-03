@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ContactAffiliation } from '../../types/affiliations';
 import { displayRole } from '../../lib/industryRoles';
 

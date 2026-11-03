@@ -164,25 +164,17 @@ export async function toggleTaskComplete(id: string, completed: boolean): Promis
 }
 
 export async function getTaskComments(taskId: string): Promise<TaskComment[]> {
+  // auth.users is not exposed through PostgREST, so an `author:auth.users(email)`
+  // embed always failed; query the comments directly.
   const { data, error } = await supabase
     .from('task_comments')
-    .select(`
-      *,
-      author:auth.users(email)
-    `)
+    .select('*')
     .eq('task_id', taskId)
     .order('created_at', { ascending: true });
 
   if (error) {
     console.error('Error fetching task comments:', error);
-    const { data: fallbackData, error: fallbackError } = await supabase
-      .from('task_comments')
-      .select('*')
-      .eq('task_id', taskId)
-      .order('created_at', { ascending: true });
-
-    if (fallbackError) throw fallbackError;
-    return fallbackData || [];
+    throw error;
   }
 
   return data || [];

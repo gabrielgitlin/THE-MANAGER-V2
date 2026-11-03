@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   BarChart,
   Bar,
@@ -11,8 +10,13 @@ import {
 } from 'recharts';
 import type { BudgetSummary } from '../types';
 
+// Categories are free-form text (live budgets add their own), so accept any string.
+interface BudgetChartRow extends Omit<BudgetSummary, 'category'> {
+  category: string;
+}
+
 interface BudgetChartProps {
-  budgetSummary: BudgetSummary[];
+  budgetSummary: BudgetChartRow[];
 }
 
 const formatCurrency = (value: number) =>

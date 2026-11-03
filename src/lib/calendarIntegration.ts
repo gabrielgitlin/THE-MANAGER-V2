@@ -482,7 +482,7 @@ export const calendarIntegrationService = {
   },
 
   // Parse iCal date/time format
-  parseICalDateTime(value: string, params: any): { date: string; time: string | null; isAllDay: boolean } {
+  parseICalDateTime(value: string, _params: Record<string, string>): { date: string; time: string | null; isAllDay: boolean } {
     if (value.length === 8) {
       const year = value.substring(0, 4);
       const month = value.substring(4, 6);

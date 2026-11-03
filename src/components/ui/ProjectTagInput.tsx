@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getArtists } from '../../lib/artists';
 import type { Artist } from '../../lib/artists';
 

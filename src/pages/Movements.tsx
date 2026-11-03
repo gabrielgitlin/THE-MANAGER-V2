@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
-import type { BudgetItem, BudgetCategory, TransactionType, IncomeStatus, ExpenseStatus, PaymentStatus } from '../types';
+import { ChevronLeft, FileSpreadsheet, ChevronUp, ChevronDown } from 'lucide-react';
+import type { BudgetCategory, TransactionType, IncomeStatus, ExpenseStatus, PaymentStatus } from '../types';
 import { mockFinances } from '../data/mockData';
 import { utils, writeFile } from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Music', 'Press', 'Other'];
 const TRANSACTION_TYPES: TransactionType[] = ['Expense', 'Income'];
@@ -151,7 +151,7 @@ export default function Movements() {
       });
 
       // Add footer
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       doc.setFontSize(8);
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);

@@ -335,7 +335,6 @@ function InlineDate({
       <TMDatePicker
         value={draft}
         onChange={v => { setDraft(v); commit(v); }}
-        placeholder="No date"
       />
     );
   }
@@ -954,7 +953,6 @@ export default function LegalDetails() {
               <TMDatePicker
                 value={editForm.signed_date}
                 onChange={v => setEditForm({ ...editForm, signed_date: v })}
-                placeholder="No date"
               />
             </div>
             <div className="form-field">
@@ -962,7 +960,6 @@ export default function LegalDetails() {
               <TMDatePicker
                 value={editForm.expiry_date}
                 onChange={v => setEditForm({ ...editForm, expiry_date: v })}
-                placeholder="No date"
               />
             </div>
           </div>

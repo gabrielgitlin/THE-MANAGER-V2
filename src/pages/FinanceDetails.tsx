@@ -1,26 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, X, FileSpreadsheet, ChevronLeft } from 'lucide-react';
+import { Plus, FileSpreadsheet, ChevronLeft } from 'lucide-react';
 import { utils, writeFile } from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Modal from '../components/Modal';
 import BudgetChart from '../components/BudgetChart';
 import LoadingSpinner from '../components/LoadingSpinner';
-import type { TrackFinance, BudgetCategory, BudgetItem, TransactionType, PaymentStatus, Budget } from '../types';
-import { mockFinances } from '../data/mockData';
+import type { BudgetCategory, BudgetItem, TransactionType, PaymentStatus, Budget } from '../types';
 import { getBudgetById, updateBudgetItem, createBudgetItem, deleteBudgetItem as deleteBudgetItemService, updateBudgetCategory, calculateCommissions, updateBudgetCommissions } from '../lib/budgetService';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Music', 'Press', 'Other'];
 const TRANSACTION_TYPES: TransactionType[] = ['Expense', 'Income'];
-const PAYMENT_STATUSES: PaymentStatus[] = ['Received', 'Pending', 'Paid', 'Unpaid'];
+const PAYMENT_STATUSES: PaymentStatus[] = ['received', 'pending', 'paid', 'unpaid'];
 
-// Additional categories for live show budgets
-const LIVE_BUDGET_CATEGORIES: BudgetCategory[] = [
+// Additional categories for live show budgets (stored as free-form text in the DB)
+const LIVE_BUDGET_CATEGORIES: string[] = [
   'Personnel', 'Production', 'Venue', 'Travel', 'Accommodation', 
   'Marketing', 'Catering', 'Insurance', 'Other'
 ];
+
+// Older rows may have been saved with capitalized statuses ('Received', 'Unpaid', ...);
+// normalize to the canonical lowercase PaymentStatus values on load.
+const normalizeBudget = (data: Budget | null | undefined): Budget | undefined => {
+  if (!data) return undefined;
+  return {
+    ...data,
+    budgetItems: data.budgetItems.map(item => ({
+      ...item,
+      status: item.status.toLowerCase() as PaymentStatus,
+    })),
+  };
+};
 
 
 export default function FinanceDetails() {
@@ -33,7 +45,7 @@ export default function FinanceDetails() {
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
-  const [editedBudgets, setEditedBudgets] = useState<Record<BudgetCategory, number>>({});
+  const [editedBudgets, setEditedBudgets] = useState<Record<string, number>>({});
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isEditingCommissions, setIsEditingCommissions] = useState(false);
@@ -45,7 +57,7 @@ export default function FinanceDetails() {
     type: 'Expense',
     amount: 0,
     category: 'Other',
-    status: 'Unpaid',
+    status: 'unpaid',
     attachments: [],
   });
 
@@ -57,7 +69,7 @@ export default function FinanceDetails() {
       try {
         setIsLoading(true);
         const budgetData = await getBudgetById(id);
-        setBudget(budgetData || undefined);
+        setBudget(normalizeBudget(budgetData));
       } catch (error) {
         console.error('Error loading budget:', error);
       } finally {
@@ -69,7 +81,7 @@ export default function FinanceDetails() {
   }, [id]);
 
   // Get all available categories based on budget type
-  const getAllCategories = (): BudgetCategory[] => {
+  const getAllCategories = (): string[] => {
     if (budget?.type === 'show') {
       return [...LIVE_BUDGET_CATEGORIES];
     }
@@ -124,7 +136,7 @@ export default function FinanceDetails() {
   const totalActual = budgetSummary.reduce((sum, item) => sum + item.actualAmount, 0);
   const totalVariance = totalBudget - totalActual;
 
-  const handleBudgetEdit = (category: BudgetCategory, amount: number) => {
+  const handleBudgetEdit = (category: string, amount: number) => {
     setEditedBudgets(prev => ({
       ...prev,
       [category]: amount,
@@ -134,7 +146,7 @@ export default function FinanceDetails() {
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
     
-    const category = newCategory.trim() as BudgetCategory;
+    const category = newCategory.trim();
     handleBudgetEdit(category, 0);
     setNewCategory('');
     setIsAddingCategory(false);
@@ -168,7 +180,7 @@ export default function FinanceDetails() {
       );
 
       const refreshedBudget = await getBudgetById(id);
-      setBudget(refreshedBudget || undefined);
+      setBudget(normalizeBudget(refreshedBudget));
       setIsEditingBudget(false);
       setEditedBudgets({});
     } catch (error) {
@@ -285,7 +297,7 @@ export default function FinanceDetails() {
       });
 
       // Add footer
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       doc.setFontSize(8);
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -350,7 +362,7 @@ export default function FinanceDetails() {
     try {
       await deleteBudgetItemService(String(itemId));
       const refreshedBudget = await getBudgetById(id);
-      setBudget(refreshedBudget || undefined);
+      setBudget(normalizeBudget(refreshedBudget));
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Failed to delete item. Please try again.');
@@ -471,25 +483,25 @@ export default function FinanceDetails() {
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Income Received</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getIncomeByStatus('Received'))}
+                  {formatCurrency(getIncomeByStatus('received'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Income Pending</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getIncomeByStatus('Pending'))}
+                  {formatCurrency(getIncomeByStatus('pending'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Expenses Paid</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getExpensesByStatus('Paid'))}
+                  {formatCurrency(getExpensesByStatus('paid'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Expenses Unpaid</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getExpensesByStatus('Unpaid'))}
+                  {formatCurrency(getExpensesByStatus('unpaid'))}
                 </p>
               </div>
             </div>
@@ -680,7 +692,7 @@ export default function FinanceDetails() {
                   type: 'Income',
                   amount: 0,
                   category: 'Other',
-                  status: 'Pending',
+                  status: 'pending',
                   attachments: [],
                 });
                 setIsModalOpen(true);
@@ -740,8 +752,8 @@ export default function FinanceDetails() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.status === 'Received'
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                    item.status === 'received'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-beige text-black'
                   }`}>
@@ -823,7 +835,7 @@ export default function FinanceDetails() {
                   type: 'Expense',
                   amount: 0,
                   category: 'Other',
-                  status: 'Unpaid',
+                  status: 'unpaid',
                   attachments: [],
                 });
                 setIsModalOpen(true);
@@ -883,8 +895,8 @@ export default function FinanceDetails() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.status === 'Paid'
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                    item.status === 'paid'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-beige text-black'
                   }`}>
@@ -976,7 +988,7 @@ export default function FinanceDetails() {
                         e.target.checked
                       );
                       const refreshedBudget = await getBudgetById(id);
-                      setBudget(refreshedBudget || undefined);
+                      setBudget(normalizeBudget(refreshedBudget));
                     } catch (error) {
                       console.error('Error updating commissions:', error);
                     }
@@ -1089,7 +1101,7 @@ export default function FinanceDetails() {
             type: 'Expense',
             amount: 0,
             category: 'Other',
-            status: 'Unpaid',
+            status: 'unpaid',
             attachments: [],
           });
         }}
@@ -1107,7 +1119,7 @@ export default function FinanceDetails() {
             }
 
             const refreshedBudget = await getBudgetById(id);
-            setBudget(refreshedBudget || undefined);
+            setBudget(normalizeBudget(refreshedBudget));
 
             setIsModalOpen(false);
             setEditingItemId(null);
@@ -1117,7 +1129,7 @@ export default function FinanceDetails() {
               type: 'Expense',
               amount: 0,
               category: 'Other',
-              status: 'Unpaid',
+              status: 'unpaid',
               attachments: [],
             });
           } catch (error) {
@@ -1222,7 +1234,7 @@ export default function FinanceDetails() {
             >
               {PAYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
                 </option>
               ))}
             </select>
@@ -1294,7 +1306,7 @@ export default function FinanceDetails() {
                   type: 'Expense',
                   amount: 0,
                   category: 'Other',
-                  status: 'Unpaid',
+                  status: 'unpaid',
                   attachments: [],
                 });
               }}
@@ -1330,7 +1342,7 @@ export default function FinanceDetails() {
               budget.applyCommissions || false
             );
             const refreshedBudget = await getBudgetById(id);
-            setBudget(refreshedBudget || undefined);
+            setBudget(normalizeBudget(refreshedBudget));
             setIsEditingCommissions(false);
           } catch (error) {
             console.error('Error updating commission rates:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, MapPin, Clock, Users, Plane, Building, Disc, Calendar as CalendarIcon, ArrowRight, FileSpreadsheet, Bell, ArrowUp, ArrowDown, MoreHorizontal } from 'lucide-react';
+import { Plus, MapPin, Clock, Calendar as CalendarIcon, ArrowRight, FileSpreadsheet, ArrowUp, ArrowDown, MoreHorizontal } from 'lucide-react';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
@@ -10,7 +10,7 @@ import { utils, writeFile } from 'xlsx';
 import { calendarIntegrationService } from '../lib/calendarIntegration';
 import { calendarEventSyncService } from '../lib/calendarEventSync';
 import { supabase } from '../lib/supabase';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 interface CalendarEvent {
   id: string;
@@ -24,35 +24,10 @@ interface CalendarEvent {
   icon: React.FC<{ className?: string }>;
   tags?: string[];
   source?: 'internal' | 'google' | 'ical' | 'outlook' | 'database';
-}
-
-interface CalendarSource {
-  id: string;
-  name: string;
-  type: 'google' | 'ical' | 'outlook' | 'internal';
-  color: string;
-  icon: string;
-  connected: boolean;
-  lastSync?: string;
-  events?: number;
+  relatedId?: string;
 }
 
 // No mock data - all events loaded from database
-
-// Default calendar source - only THE MANAGER's internal calendar
-// User-added calendars will be loaded from the database
-const CALENDAR_SOURCES: CalendarSource[] = [
-  {
-    id: 'internal',
-    name: 'THE MANAGER',
-    type: 'internal',
-    color: '#A58A67',
-    icon: '/vite.svg',
-    connected: true,
-    lastSync: 'always synced',
-    events: 0
-  }
-];
 
 export default function Calendar() {
   const navigate = useNavigate();
@@ -68,7 +43,6 @@ export default function Calendar() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [calendarSources, setCalendarSources] = useState<CalendarSource[]>(CALENDAR_SOURCES);
   const [isCalendarSourcesModalOpen, setIsCalendarSourcesModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<string[]>([]);
@@ -474,7 +448,7 @@ export default function Calendar() {
       doc.text(`Total Events: ${filteredEvents.length}`, 14, yPos);
       
       // Add footer with page numbers
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       
@@ -522,33 +496,6 @@ export default function Calendar() {
       await loadAllDatabaseEvents();
     } finally {
       setIsSyncing(false);
-    }
-  };
-
-  const handleToggleCalendarSource = (sourceId: string) => {
-    const updatedSources = calendarSources.map(source => {
-      if (source.id === sourceId) {
-        return {
-          ...source,
-          connected: !source.connected
-        };
-      }
-      return source;
-    });
-    
-    setCalendarSources(updatedSources);
-    
-    // Update source filter
-    if (sourceFilter.includes(sourceId)) {
-      setSourceFilter(sourceFilter.filter(id => id !== sourceId));
-    }
-  };
-
-  const handleSourceFilterToggle = (sourceType: string) => {
-    if (sourceFilter.includes(sourceType)) {
-      setSourceFilter(sourceFilter.filter(type => type !== sourceType));
-    } else {
-      setSourceFilter([...sourceFilter, sourceType]);
     }
   };
 

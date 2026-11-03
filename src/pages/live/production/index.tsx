@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, FileText, Image, Music, Plus } from 'lucide-react';
 import { formatDate } from '../../../lib/utils';

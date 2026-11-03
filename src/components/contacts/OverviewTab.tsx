@@ -1,5 +1,4 @@
 // src/components/contacts/OverviewTab.tsx
-import React from 'react';
 import type { Contact } from '../../types/contacts';
 
 const SEATING_LABELS = {
