@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:mobile": "tsc && vite build && npx cap sync",
+    "build": "npm run typecheck && vite build",
+    "build:mobile": "npm run build && npx cap sync",
     "cap:ios": "npx cap open ios",
     "cap:android": "npx cap open android",
     "lint": "eslint . --report-unused-disable-directives",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",
@@ -25,6 +27,7 @@
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.1",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@sentry/react": "^8.55.2",
     "@supabase/supabase-js": "^2.39.7",
     "clsx": "^2.1.0",
     "html-to-image": "^1.11.13",
