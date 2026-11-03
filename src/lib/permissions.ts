@@ -201,7 +201,7 @@ export const getAccessLevelLabel = (level: AccessLevel): string => {
 };
 
 // Get available access levels for a module
-export const getAvailableAccessLevels = (module: keyof ModulePermissions): AccessLevel[] => {
+export const getAvailableAccessLevels = (_module: keyof ModulePermissions): AccessLevel[] => {
   // You can customize this based on module-specific requirements
   return ['view', 'comment', 'edit', 'full'];
 };

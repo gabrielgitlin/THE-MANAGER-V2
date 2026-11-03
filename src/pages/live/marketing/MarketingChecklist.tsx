@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { formatDateTime } from '../../../lib/utils';
 import type { Show, MarketingTask } from '../../../types';
@@ -17,7 +17,7 @@ const DEFAULT_TASKS: Omit<MarketingTask, 'completed' | 'completedAt' | 'complete
   { id: 'bandsintown_event', label: 'Event added on BandsInTown' },
 ];
 
-export default function MarketingChecklist({ show, onUpdate }: MarketingChecklistProps) {
+export default function MarketingChecklist({ show: _show, onUpdate }: MarketingChecklistProps) {
   const [tasks, setTasks] = useState<MarketingTask[]>(() => 
     DEFAULT_TASKS.map(task => ({
       ...task,

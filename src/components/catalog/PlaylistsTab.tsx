@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Disc, Plus, Lock, Globe, Play, Pause, Image } from 'lucide-react';
+import { Plus, Lock, Globe } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useMusicPlayerStore } from '../../store/musicPlayerStore';
 import ImageCropper from '../ImageCropper';
 import LoadingSpinner from '../LoadingSpinner';
 import Modal from '../Modal';
-import MusicPlayer from '../MusicPlayer';
 import { ProjectTagInput, type ProjectTag } from '../ui/ProjectTagInput';
+import { ContactTagInput, type ContactTag } from '../ui/ContactTagInput';
+import RichTextEditor from './RichTextEditor';
 
 interface Playlist {
   id: string;
@@ -163,9 +164,7 @@ export default function PlaylistsTab() {
     currentTrackIndex,
     isPlaying,
     hasInteracted,
-    setCurrentTrackIndex,
     togglePlayPause,
-    setHasInteracted
   } = useMusicPlayerStore();
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -178,7 +177,6 @@ export default function PlaylistsTab() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [availableTracks, setAvailableTracks] = useState<AvailableTrack[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
-  const [draggedTrackId, setDraggedTrackId] = useState<string | null>(null);
   const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(null);
 
   const [newPlaylist, setNewPlaylist] = useState({
@@ -451,7 +449,7 @@ export default function PlaylistsTab() {
 
       if (error) throw error;
 
-      setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+      setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '', creators: [] });
       setNewPlaylistCreators([]);
       setIsCreateModalOpen(false);
       fetchPlaylists();
@@ -758,14 +756,20 @@ export default function PlaylistsTab() {
               .eq('track_id', pt.tracks.id)
               .limit(1)
               .maybeSingle();
+            // albums/artists are many-to-one relations, so PostgREST returns single objects
+            // (supabase-js infers arrays without generated DB types).
+            const album = albumData?.albums as unknown as
+              | { cover_url: string | null; artists: { name: string } | null }
+              | null
+              | undefined;
 
             return {
               id: pt.tracks.id,
               title: pt.tracks.title,
-              artist: albumData?.albums?.artists?.name || playlist.title,
+              artist: album?.artists?.name || playlist.title,
               duration: formatDuration(pt.tracks.duration || 0),
               audioUrl: pt.tracks.audio_url || pt.tracks.preview_url || undefined,
-              coverArt: albumData?.albums?.cover_url || playlist.cover_url,
+              coverArt: album?.cover_url || playlist.cover_url || undefined,
               trackNumber: pt.position + 1,
               spotifyId: pt.tracks.spotify_id || undefined,
             };
@@ -787,7 +791,7 @@ export default function PlaylistsTab() {
       artist: pt.albums?.[0]?.artists?.name || 'Unknown Artist',
       duration: formatDuration(pt.tracks.duration || 0),
       audioUrl: pt.tracks.audio_url || pt.tracks.preview_url || undefined,
-      coverArt: pt.albums?.[0]?.cover_url || selectedPlaylist.cover_url,
+      coverArt: pt.albums?.[0]?.cover_url || selectedPlaylist.cover_url || undefined,
       trackNumber: pt.position + 1,
       spotifyId: pt.tracks.spotify_id || undefined,
     }));
@@ -795,62 +799,10 @@ export default function PlaylistsTab() {
     playAlbum(allTracks, trackIndex);
   };
 
-  const handleDragStart = (trackId: string) => {
-    setDraggedTrackId(trackId);
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetPosition: number) => {
-    e.preventDefault();
-    if (!draggedTrackId || !selectedPlaylist) return;
-
-    const draggedIndex = playlistTracks.findIndex(pt => pt.id === draggedTrackId);
-    const targetIndex = playlistTracks.findIndex(pt => pt.position === targetPosition);
-
-    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return;
-
-    const newTracks = [...playlistTracks];
-    const [draggedTrack] = newTracks.splice(draggedIndex, 1);
-    newTracks.splice(targetIndex, 0, draggedTrack);
-
-    newTracks.forEach((track, index) => {
-      track.position = index;
-    });
-
-    setPlaylistTracks(newTracks);
-  };
-
-  const handleDragEnd = async () => {
-    if (!selectedPlaylist) return;
-
-    try {
-      const updates = playlistTracks.map(pt => ({
-        id: pt.id,
-        position: pt.position,
-      }));
-
-      for (const update of updates) {
-        await supabase
-          .from('playlist_tracks')
-          .update({ position: update.position })
-          .eq('id', update.id);
-      }
-    } catch (error) {
-      console.error('Error updating track positions:', error);
-    }
-
-    setDraggedTrackId(null);
-  };
-
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const formatTotalDuration = (): string => {
-    const totalSeconds = playlistTracks.reduce((sum, pt) => sum + (pt.tracks.duration || 0), 0);
-    const mins = Math.floor(totalSeconds / 60);
-    return `${mins} min`;
   };
 
   const filteredTracks = availableTracks.filter(track => {
@@ -1302,7 +1254,7 @@ export default function PlaylistsTab() {
               type="button"
               onClick={() => {
                 setIsCreateModalOpen(false);
-                setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '' });
+                setNewPlaylist({ title: '', description: '', is_public: false, password: '', cover_url: '', creators: [] });
                 setNewPlaylistCreators([]);
               }}
               className="px-4 py-2 transition-colors"

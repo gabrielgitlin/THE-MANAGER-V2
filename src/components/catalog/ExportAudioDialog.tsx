@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from '../Modal';
 
 interface ExportAudioDialogProps {
@@ -34,7 +34,7 @@ async function convertWavToMp3(url: string, onProgress?: (msg: string) => void):
 
   onProgress?.('Encoding MP3…');
   const lamejs = await import('lamejs');
-  const Mp3Encoder = lamejs.default?.Mp3Encoder ?? (lamejs as any).Mp3Encoder;
+  const Mp3Encoder = lamejs.default?.Mp3Encoder ?? lamejs.Mp3Encoder;
 
   const numChannels = audioBuffer.numberOfChannels;
   const sampleRate = audioBuffer.sampleRate;

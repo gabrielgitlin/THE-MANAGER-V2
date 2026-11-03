@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Calendar, FileSpreadsheet, Clock } from 'lucide-react';
 import Modal from '../../components/Modal';
 import TransportationForm from '../../components/logistics/TransportationForm';
 import AccommodationForm from '../../components/logistics/AccommodationForm';
-import TransportationCard from '../../components/logistics/TransportationCard';
-import AccommodationCard from '../../components/logistics/AccommodationCard';
 import LogisticsOverviewCard from '../../components/logistics/LogisticsOverviewCard';
 import LogisticsTimeline from '../../components/logistics/LogisticsTimeline';
 import LogisticsSummary from '../../components/logistics/LogisticsSummary';
@@ -42,8 +40,8 @@ export default function Logistics() {
 
   const handleAddTransportation = (data: Partial<TravelItinerary>) => {
     const newItinerary: TravelItinerary = {
+      ...data as TravelItinerary,
       id: `ti-${Date.now()}`,
-      ...data as TravelItinerary
     };
     setTravelItineraries([...travelItineraries, newItinerary]);
     setTransportationModalOpen(false);
@@ -67,8 +65,8 @@ export default function Logistics() {
 
   const handleAddAccommodation = (data: Partial<AccommodationBooking>) => {
     const newBooking: AccommodationBooking = {
+      ...data as AccommodationBooking,
       id: `ab-${Date.now()}`,
-      ...data as AccommodationBooking
     };
     setAccommodationBookings([...accommodationBookings, newBooking]);
     setAccommodationModalOpen(false);
@@ -258,7 +256,7 @@ export default function Logistics() {
       });
 
       // Add footer
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       doc.setFontSize(8);
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);

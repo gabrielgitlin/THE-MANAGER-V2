@@ -21,12 +21,10 @@ export default function StatsWidget() {
       // Fetch real counts from Supabase
       const [
         { count: trackCount },
-        { count: showCount },
         { count: taskCount },
         { count: noteCount },
       ] = await Promise.all([
         supabase.from('tracks').select('*', { count: 'exact', head: true }),
-        supabase.from('shows').select('*', { count: 'exact', head: true }),
         supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('completed', false),
         supabase.from('notes').select('*', { count: 'exact', head: true }),
       ]);

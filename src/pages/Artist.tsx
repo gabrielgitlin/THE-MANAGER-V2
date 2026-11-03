@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, Users, Key, Eye, EyeOff, Plus, User, Mail, Phone, MapPin, Calendar, Flag, Import as Passport, FileText, Globe, CreditCard, Building2, DollarSign } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuthStore } from '../store/authStore';
+import { Lock, Users, Key, Eye, EyeOff, Plus, CreditCard, Building2, DollarSign } from 'lucide-react';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 interface PersonalInfo {
   firstName: string;
@@ -64,8 +61,6 @@ interface Login {
 }
 
 export default function Artist() {
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'personnel' | 'logins'>('personnel');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -299,7 +294,7 @@ export default function Artist() {
         </button>
       </div>
 
-      <div style={{backgroundColor: "var(--surface)", shadow: "md"}}>
+      <div style={{backgroundColor: "var(--surface)"}}>
         <div style={{padding: "24px", borderBottom: "1px solid var(--border)"}}>
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-medium" style={{color: "var(--t1)"}}>

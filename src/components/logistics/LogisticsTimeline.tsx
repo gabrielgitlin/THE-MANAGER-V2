@@ -1,8 +1,7 @@
-import React from 'react';
 import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, Building, DollarSign, Plus } from 'lucide-react';
 import { TravelItinerary, AccommodationBooking, LogisticsOverview } from '../../types/logistics';
-import { CREW_MEMBERS, TRANSPORTATION_PROVIDERS, ACCOMMODATION_PROVIDERS } from '../../data/logistics';
-import { formatDate, formatTime } from '../../lib/utils';
+import { TRANSPORTATION_PROVIDERS, ACCOMMODATION_PROVIDERS } from '../../data/logistics';
+import { formatTime } from '../../lib/utils';
 
 interface LogisticsTimelineProps {
   overview: LogisticsOverview;

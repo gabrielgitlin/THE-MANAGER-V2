@@ -102,7 +102,6 @@ export default function Legal() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<LegalFilter>('all');
@@ -134,7 +133,6 @@ export default function Legal() {
     template?: string;
     externalLink?: { sourceType: any; url: string; name?: string };
   }) => {
-    setIsSaving(true);
     try {
       const title =
         data.file?.name ||
@@ -149,8 +147,6 @@ export default function Legal() {
       setIsAddModalOpen(false);
     } catch (err) {
       console.error('Error adding document:', err);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -162,7 +158,6 @@ export default function Legal() {
     recommendations: string[];
     file?: File;
   }) => {
-    setIsSaving(true);
     try {
       const newDoc = await legalService.createDocument(
         {
@@ -185,8 +180,6 @@ export default function Legal() {
       setIsAnalysisModalOpen(false);
     } catch (err) {
       console.error('Error adding analyzed document:', err);
-    } finally {
-      setIsSaving(false);
     }
   };
 

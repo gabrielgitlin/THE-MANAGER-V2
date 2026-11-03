@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Music } from 'lucide-react';
 import { getIntegrations, saveIntegration, toggleIntegration, type PlatformIntegration } from '../../lib/platformSync';
 import { supabase } from '../../lib/supabase';
@@ -43,6 +43,8 @@ export default function PlatformIntegrations() {
         .select('id')
         .limit(1)
         .single();
+
+      if (!artist) throw new Error('No artist found');
 
       await saveIntegration({
         artist_id: artist.id,

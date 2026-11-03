@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Budget, BudgetItem, BudgetCategory } from '../types';
+import type { Budget, BudgetItem } from '../types';
 
 export interface CommissionBreakdown {
   grossIncome: number;
@@ -73,7 +73,7 @@ function convertDatabaseToBudget(
     releaseType: dbBudget.release_type as any,
     releaseDate: dbBudget.release_date,
     albumId: dbBudget.album_id as any,
-    showId: dbBudget.show_id,
+    showId: dbBudget.show_id as any, // Budget.showId is typed number but shows use uuid strings
     venue: dbBudget.venue,
     city: dbBudget.city,
     startDate: dbBudget.start_date,

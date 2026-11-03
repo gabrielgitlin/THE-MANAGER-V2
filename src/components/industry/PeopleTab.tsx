@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ContactCard from '../contacts/ContactCard';
 import ContactRow from '../contacts/ContactRow';
 import ContactFilters from '../contacts/ContactFilters';
@@ -10,7 +10,7 @@ import type { Contact, ContactCategory } from '../../types/contacts';
 export default function PeopleTab() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<ContactCategory | 'all' | 'artists'>('all');
+  const [category] = useState<ContactCategory | 'all' | 'artists'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);

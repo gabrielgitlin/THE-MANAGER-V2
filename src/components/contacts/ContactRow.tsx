@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvatarWithFallback from './AvatarWithFallback';
 import type { Contact, ContactCategory } from '../../types/contacts';

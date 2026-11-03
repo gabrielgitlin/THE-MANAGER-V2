@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import AnalyticsDashboard from '../components/marketing/AnalyticsDashboard';
@@ -22,7 +22,6 @@ interface SocialMediaPost {
   status: PostStatus;
   mediaUrl?: string;
   tags?: string[];
-  author: string;
   createdAt: string;
   updatedAt: string;
   done?: boolean;
@@ -78,7 +77,6 @@ export default function Marketing() {
     scheduledTime: '12:00',
     status: 'draft',
     tags: [],
-    author: 'Peter Grant',
     done: false
   });
 
@@ -106,7 +104,6 @@ export default function Marketing() {
         status: p.status as PostStatus,
         mediaUrl: p.media_url,
         tags: p.tags,
-        author: p.author,
         createdAt: p.created_at,
         updatedAt: p.updated_at,
         done: p.done
@@ -182,8 +179,7 @@ export default function Marketing() {
         scheduled_time: newPost.scheduledTime,
         status: newPost.status as postService.PostStatus,
         media_url: newPost.mediaUrl,
-        tags: newPost.tags,
-        author: newPost.author || 'Peter Grant'
+        tags: newPost.tags
       });
 
       const mappedPost: SocialMediaPost = {
@@ -196,7 +192,6 @@ export default function Marketing() {
         status: created.status as PostStatus,
         mediaUrl: created.media_url,
         tags: created.tags,
-        author: created.author,
         createdAt: created.created_at,
         updatedAt: created.updated_at,
         done: created.done
@@ -211,7 +206,6 @@ export default function Marketing() {
         scheduledTime: '12:00',
         status: 'draft',
         tags: [],
-        author: 'Peter Grant',
         done: false
       });
       setIsAddingPost(false);
@@ -534,23 +528,6 @@ export default function Marketing() {
         return 'Other';
       default:
         return category;
-    }
-  };
-
-  const getCategoryColor = (category: MarketingFile['category']) => {
-    switch (category) {
-      case 'press_kit':
-        return 'bg-light-blue var(--t1)';
-      case 'brand_assets':
-        return 'bg-blue-100 text-blue-800';
-      case 'campaign':
-        return 'bg-green-100 text-green-800';
-      case 'analytics':
-        return 'bg-beige var(--t1)';
-      case 'other':
-        return 'var(--surface-2) var(--t1)';
-      default:
-        return 'var(--surface-2) var(--t1)';
     }
   };
 
@@ -918,7 +895,7 @@ export default function Marketing() {
                               Date
                             </label>
                             <TMDatePicker
-                              value={editingPost ? editingPost.scheduledDate : newPost.scheduledDate}
+                              value={editingPost ? editingPost.scheduledDate : newPost.scheduledDate ?? ''}
                               onChange={(date) => {
                                 if (editingPost) {
                                   setEditingPost({ ...editingPost, scheduledDate: date });

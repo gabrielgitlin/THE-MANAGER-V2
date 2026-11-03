@@ -30,7 +30,6 @@ export default function TourCalendar() {
   const [tourDays, setTourDays] = useState<any[]>([]);
   const [tours, setTours] = useState<{ id: string; name: string }[]>([]);
   const [tourFilter, setTourFilter] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -39,7 +38,6 @@ export default function TourCalendar() {
 
   const loadData = async () => {
     try {
-      setLoading(true);
       const startDate = new Date(year, month, 1).toISOString().split('T')[0];
       const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
 
@@ -56,8 +54,6 @@ export default function TourCalendar() {
       setTourDays(daysRes.data || []);
     } catch (err) {
       console.error('Error loading calendar data:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
