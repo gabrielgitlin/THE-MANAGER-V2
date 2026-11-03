@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DollarSign, FileText, Calendar, TrendingUp, Package, Briefcase, Plus } from 'lucide-react';
 import type { ShowDeal, DealTemplate, ShowType, DealTicketTier, DealPayment, DealBonus, DealExpense, DealMerchTerms } from '../../types/deals';
 import { supabase } from '../../lib/supabase';

@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Calendar, MapPin, DollarSign, Clock, Mail, Building, Users, Truck, Plus, Music, User, Ticket } from 'lucide-react';
+import { ChevronLeft, Calendar, MapPin, Mail, Building, Truck, Plus, Music, User, Ticket } from 'lucide-react';
 import TicketShareModal from '../../components/live/TicketShareModal';
-import type { VintageTicketData } from '../../components/live/VintageTicket';
 import ShowDealModal from '../../components/shows/ShowDealModal';
 import ShowAdvancesModal from '../../components/shows/ShowAdvancesModal';
 import DealSummaryCard from '../../components/shows/DealSummaryCard';
 import { formatDate, formatDateTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import type { Show, SetlistItem, GuestListEntry } from '../../types';
 import type { DealSummary } from '../../types/deals';
+import type { ShowAdvances as AdvancesFormData } from '../../types';
 import { getDealByShowId } from '../../lib/dealService';
 import { sendTicketEmail, extractEmailFromContactInfo, validateEmailAddress } from '../../lib/emailService';
 import {
   getShowDetails,
-  updateShowDeal,
   updateShowAdvances,
   toggleMarketingTask,
   addGuestListEntry,
   updateGuestStatus,
-  markTicketsSent,
   type ShowWithDetails,
   type MarketingTask,
   type ProductionFile
@@ -96,13 +93,23 @@ export default function ShowDetails() {
     setDealSummary(dealData);
   };
 
-  const handleAdvancesUpdate = async (updatedAdvances: any) => {
+  // ShowAdvancesModal works with the camelCase form shape from ../../types,
+  // while show_advances rows (showService.ShowAdvances) use snake_case
+  // top-level columns. Map between the two at this boundary.
+  const handleAdvancesUpdate = async (updatedAdvances: AdvancesFormData) => {
     if (!show) return;
 
-    await updateShowAdvances(show.id, updatedAdvances);
+    const { productionManager, venueContact, ...rest } = updatedAdvances;
+    const dbAdvances = {
+      ...rest,
+      production_manager: productionManager,
+      venue_contact: venueContact,
+    };
+
+    await updateShowAdvances(show.id, dbAdvances);
     setShow({
       ...show,
-      advances: updatedAdvances,
+      advances: { ...(show.advances ?? { id: '', show_id: show.id }), ...dbAdvances },
     });
     setIsAdvancesModalOpen(false);
   };
@@ -1026,7 +1033,13 @@ export default function ShowDetails() {
           isOpen={isAdvancesModalOpen}
           onClose={() => setIsAdvancesModalOpen(false)}
           onSave={handleAdvancesUpdate}
-          advances={show.advances}
+          advances={show.advances ? {
+            productionManager: show.advances.production_manager,
+            venueContact: show.advances.venue_contact,
+            schedule: show.advances.schedule,
+            catering: show.advances.catering,
+            parking: show.advances.parking,
+          } : undefined}
         />
       )}
 
