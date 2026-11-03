@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Image, Globe, Tag } from 'lucide-react';
-import type { Track, CreditShare } from '../types';
+import type { CreditShare } from '../types';
 import { TMDatePicker } from './ui/TMDatePicker';
 import { ContactTagInput, type ContactTag } from './ui/ContactTagInput';
 
@@ -452,7 +452,7 @@ export default function CatalogForm({
                 Release Date
               </label>
               <TMDatePicker
-                value={formData.releaseDate}
+                value={formData.releaseDate || ''}
                 onChange={(date) => setFormData({ ...formData, releaseDate: date })}
               />
             </div>

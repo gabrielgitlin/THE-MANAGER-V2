@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { CalendarIcon, Disc, Plane, Building, CheckCircle, Scale, Cake } from 'lucide-react';
+import { CalendarIcon, Disc, CheckCircle, Scale, Cake } from 'lucide-react';
 
 export interface CalendarEvent {
   id: string;

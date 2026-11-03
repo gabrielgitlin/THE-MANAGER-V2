@@ -1,4 +1,3 @@
-import React from 'react';
 import type { OrganizationType } from '../../types/organizations';
 
 const TYPE_COLORS: Record<string, string> = {

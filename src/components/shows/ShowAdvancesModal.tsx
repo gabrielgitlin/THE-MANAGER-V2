@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Clock, Mail, Phone } from 'lucide-react';
 import Modal from '../Modal';
 import type { ShowAdvances } from '../../types';
 

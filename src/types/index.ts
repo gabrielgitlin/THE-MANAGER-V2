@@ -116,6 +116,9 @@ export interface Album {
   genres: string[];
   upc?: string;
   artworkUrl?: string;
+  spotifyUrl?: string;
+  /** Linked artist contacts (albums.artist_contacts); id is undefined when not yet in Team */
+  artistTags?: { id?: string; name: string }[];
   artistCredits: CreditShare[];
   producers: CreditShare[];
   mixEngineers: CreditShare[];

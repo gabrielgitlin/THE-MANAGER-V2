@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { getYouTubeIntegration, getYouTubeChannelAnalytics, getYouTubeVideoAnalytics } from '../../lib/youtubeAnalytics';
@@ -20,7 +20,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { ArrowDown, ArrowUp, Calendar, Filter, Globe, Instagram, Music, AlignJustify as Spotify, TrendingUp, Twitter, Youtube } from 'lucide-react';
+import { ArrowUp, Globe, Instagram, Music, TrendingUp, Twitter, Youtube } from 'lucide-react';
 
 // Mock data for streaming platforms
 const STREAMING_DATA = {
@@ -232,7 +232,6 @@ export default function AnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('streaming');
   const [youtubeIntegration, setYoutubeIntegration] = useState<any>(null);
-  const [youtubeChannelData, setYoutubeChannelData] = useState<any[]>([]);
   const [youtubeVideoData, setYoutubeVideoData] = useState<any[]>([]);
   const [hasRealData, setHasRealData] = useState(false);
 
@@ -260,7 +259,6 @@ export default function AnalyticsDashboard() {
           const videoData = await getYouTubeVideoAnalytics(integration.id, 10);
 
           if (channelData.length > 0) {
-            setYoutubeChannelData(channelData.reverse());
             setYoutubeVideoData(videoData);
             setHasRealData(true);
           }
@@ -287,11 +285,6 @@ export default function AnalyticsDashboard() {
     setTimeout(() => {
       setIsLoading(false);
     }, 1500);
-  };
-
-  const getLatestYouTubeStats = () => {
-    if (youtubeChannelData.length === 0) return null;
-    return youtubeChannelData[youtubeChannelData.length - 1];
   };
 
   return (
@@ -474,7 +467,7 @@ export default function AnalyticsDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={Object.entries(STREAMING_DATA.platforms).map(([key, value], index) => ({
+                        data={Object.entries(STREAMING_DATA.platforms).map(([key, value]) => ({
                           name: key === 'appleMusic' ? 'Apple Music' : 
                                 key === 'amazonMusic' ? 'Amazon Music' : 
                                 key === 'youtubeMusic' ? 'YouTube Music' : 
@@ -489,7 +482,7 @@ export default function AnalyticsDashboard() {
                         dataKey="value"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
-                        {Object.entries(STREAMING_DATA.platforms).map((entry, index) => (
+                        {Object.entries(STREAMING_DATA.platforms).map((_entry, index) => (
                           <Cell key={`cell-${index}`} fill={PLATFORM_COLORS[index % PLATFORM_COLORS.length]} />
                         ))}
                       </Pie>
@@ -622,7 +615,7 @@ export default function AnalyticsDashboard() {
                             dataKey="value"
                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                           >
-                            {STREAMING_DATA.demographics.gender.map((entry, index) => (
+                            {STREAMING_DATA.demographics.gender.map((_entry, index) => (
                               <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                             ))}
                           </Pie>
@@ -784,7 +777,7 @@ export default function AnalyticsDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={Object.entries(SOCIAL_MEDIA_DATA.platforms).map(([key, value], index) => ({
+                        data={Object.entries(SOCIAL_MEDIA_DATA.platforms).map(([key, value]) => ({
                           name: key.charAt(0).toUpperCase() + key.slice(1),
                           value
                         }))}
@@ -796,7 +789,7 @@ export default function AnalyticsDashboard() {
                         dataKey="value"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
-                        {Object.entries(SOCIAL_MEDIA_DATA.platforms).map((entry, index) => (
+                        {Object.entries(SOCIAL_MEDIA_DATA.platforms).map((_entry, index) => (
                           <Cell key={`cell-${index}`} fill={SOCIAL_COLORS[index % SOCIAL_COLORS.length]} />
                         ))}
                       </Pie>
@@ -951,7 +944,7 @@ export default function AnalyticsDashboard() {
                           dataKey="value"
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
-                          {SOCIAL_MEDIA_DATA.demographics.gender.map((entry, index) => (
+                          {SOCIAL_MEDIA_DATA.demographics.gender.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                           ))}
                         </Pie>

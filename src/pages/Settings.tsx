@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Bell, Globe, Shield, LogOut, Mail, Lock, Key, Users, LockKeyhole, UserPlus, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { hasPermission, getPermissionsForRole, Permission, Role, getModuleAccess, getAccessLevelLabel, getAvailableAccessLevels, AccessLevel, ModulePermissions } from '../lib/permissions';
+import { getModuleAccess, getAccessLevelLabel, AccessLevel, ModulePermissions } from '../lib/permissions';
 import PlatformIntegrations from '../components/settings/PlatformIntegrations';
 import AnalyticsIntegrations from '../components/settings/AnalyticsIntegrations';
 import InviteUserModal from '../components/settings/InviteUserModal';
 import Onboarding from '../components/Onboarding';
-import { getTeamMembers, getUserPermissions, updateUserPermission, updateUserRole, TeamMember, UserPermission } from '../lib/userManagement';
+import { getTeamMembers, updateUserPermission, TeamMember } from '../lib/userManagement';
 
 const SETTINGS_CATEGORIES = [
   { id: 'profile', name: 'Profile', icon: User },
@@ -23,7 +23,6 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useAuthStore();
   const [activeCategory, setActiveCategory] = useState('profile');
-  const [isConnected, setIsConnected] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Form state
@@ -128,15 +127,6 @@ export default function Settings() {
       loadTeamMembers();
     } catch (error) {
       console.error('Error updating permissions:', error);
-    }
-  };
-
-  const handleRoleChange = async (userId: string, newRole: Role) => {
-    try {
-      await updateUserRole(userId, newRole);
-      loadTeamMembers();
-    } catch (error) {
-      console.error('Error updating role:', error);
     }
   };
 
@@ -504,7 +494,7 @@ export default function Settings() {
                         </label>
                         <select
                           value={selectedModule || ''}
-                          onChange={(e) => setSelectedModule(e.target.value)}
+                          onChange={(e) => setSelectedModule((e.target.value || null) as keyof ModulePermissions | null)}
                           style={{
                             backgroundColor: 'var(--surface)',
                             borderColor: 'var(--border)',
@@ -531,7 +521,7 @@ export default function Settings() {
                           </label>
                           <select
                             value={selectedAccess || ''}
-                            onChange={(e) => setSelectedAccess(e.target.value)}
+                            onChange={(e) => setSelectedAccess((e.target.value || null) as AccessLevel | null)}
                             style={{
                               backgroundColor: 'var(--surface)',
                               borderColor: 'var(--border)',

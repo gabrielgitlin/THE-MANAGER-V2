@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Youtube, Music as Spotify, Instagram, Twitter, Facebook, Music as TikTok, Loader2 } from 'lucide-react';
 import {
   getYouTubeIntegration,
@@ -75,6 +75,8 @@ export default function AnalyticsIntegrations() {
         .select('id')
         .limit(1)
         .single();
+
+      if (!artist) throw new Error('No artist found');
 
       const redirectUri = `${window.location.origin}${window.location.pathname}`;
       const authUrl = initiateYouTubeOAuth(artist.id, redirectUri);
@@ -223,7 +225,6 @@ export default function AnalyticsIntegrations() {
         {platforms.map((platform) => {
           const Icon = platform.icon;
           const isConnected = !!platform.integration;
-          const isEnabled = platform.integration?.enabled || false;
           const isSyncEnabled = platform.integration?.sync_enabled || false;
 
           return (

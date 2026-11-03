@@ -15,6 +15,7 @@ interface Props {
 }
 
 const EMPTY: ContactFormData = {
+  visibility: 'workspace',
   category: 'other',
   role: '',
   firstName: '',
@@ -42,6 +43,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
   const [form, setForm] = useState<ContactFormData>(
     contact
       ? {
+          visibility: contact.visibility,
           category: contact.category,
           role: contact.role ?? '',
           firstName: contact.firstName,

@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { ShowDeal, DealSummary, DealTicketTier, DealPayment, DealBonus, DealExpense, DealMerchTerms } from '../types/deals';
+import type { ShowDeal, DealSummary } from '../types/deals';
 
 export async function getDealByShowId(showId: string): Promise<DealSummary | null> {
   const { data: deal, error: dealError } = await supabase

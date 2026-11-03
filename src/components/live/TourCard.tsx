@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPin, Calendar, Music, ChevronRight } from 'lucide-react';
 import type { Tour } from '../../types/tour';
 import { formatDate } from '../../lib/utils';

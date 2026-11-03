@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, UserPlus, Loader2 } from 'lucide-react';
+import { Mail, UserPlus, Loader2 } from 'lucide-react';
 import { Role } from '../../lib/permissions';
 import { inviteUser } from '../../lib/userManagement';
 import Modal from '../Modal';
@@ -49,7 +49,6 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,9 +56,6 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
     setIsLoading(true);
 
     try {
-      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
-      setGeneratedPassword(tempPassword);
-
       await inviteUser(email, role);
       setSuccess(true);
       onSuccess();
@@ -81,7 +77,6 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
       setRole('team_member');
       setError(null);
       setSuccess(false);
-      setGeneratedPassword(null);
       onClose();
     }
   };

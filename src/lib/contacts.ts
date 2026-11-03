@@ -90,7 +90,11 @@ export async function getContacts(): Promise<Contact[]> {
         const endDate = aff.end_date ?? undefined;
         const isActive = !endDate || new Date(endDate) >= new Date();
         if (isActive) {
-          const org = aff.organization as { id: string; name: string } | null;
+          // PostgREST returns a single object for this many-to-one join, but the
+          // untyped client infers an array; accept either shape.
+          const org: { id: string; name: string } | null | undefined = Array.isArray(aff.organization)
+            ? aff.organization[0]
+            : aff.organization;
           primaryAffMap[aff.contact_id] = {
             role: aff.role as string,
             roleCustom: (aff.role_custom as string) ?? undefined,

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, Calendar, MapPin, Users, Music, Truck, Building, Coffee, Lightbulb, Speaker, Camera, Wifi } from 'lucide-react';
-import type { Budget, BudgetCategory, BudgetType } from '../../types';
+import React, { useState } from 'react';
+import { DollarSign, Plus, Users, Truck, Building, Coffee, Camera } from 'lucide-react';
+import type { Budget, BudgetCategory } from '../../types';
 import { CREW_MEMBERS } from '../../data/logistics';
 
 interface ShowBudgetTemplateProps {

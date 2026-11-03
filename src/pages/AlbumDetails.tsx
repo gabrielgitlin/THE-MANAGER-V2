@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Disc, Calendar, Tag, Globe, DollarSign, TrendingUp, Plus, GripVertical } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Plus, GripVertical } from 'lucide-react';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -13,6 +13,9 @@ import DigitalAssetUploader from '../components/catalog/DigitalAssetUploader';
 import { listAssets as listDigitalAssets } from '../lib/digitalAssetService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ProjectTagInput, type ProjectTag } from '../components/ui/ProjectTagInput';
+import { ContactTagInput, type ContactTag } from '../components/ui/ContactTagInput';
+import { KebabMenu } from '../components/ui/KebabMenu';
+import { syncArtistsToTeam } from '../lib/contacts';
 
 
 export default function AlbumDetails() {
@@ -28,7 +31,7 @@ export default function AlbumDetails() {
   const [editDraft, setEditDraft] = useState<string>('');
   const [isEditingTracks, setIsEditingTracks] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
-  const [draggedTrackId, setDraggedTrackId] = useState<string | number | null>(null);
+  const [draggedTrackId, setDraggedTrackId] = useState<number | null>(null);
   const [activeSpotifyEmbed, setActiveSpotifyEmbed] = useState<string | null>(null);
   const [isEditingCredits, setIsEditingCredits] = useState(false);
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -36,9 +39,8 @@ export default function AlbumDetails() {
   const [newGenre, setNewGenre] = useState('');
   const [newCredit, setNewCredit] = useState<{ type: string; credit: CreditShare }>({ type: '', credit: { name: '' } });
   const [isAddingCredit, setIsAddingCredit] = useState(false);
-  const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
-  const [linkedBudget, setLinkedBudget] = useState<Budget | null>(null);
   const [artistProjects, setArtistProjects] = useState<ProjectTag[]>([]);
+  const [isEditingAlbum, setIsEditingAlbum] = useState(false);
   const [isUploadingArtwork, setIsUploadingArtwork] = useState(false);
   const [showStockPicker, setShowStockPicker] = useState(false);
   const artworkInputRef = React.useRef<HTMLInputElement>(null);
@@ -157,11 +159,16 @@ export default function AlbumDetails() {
             title: at.tracks.title,
             duration: formatDuration(Number(at.tracks.duration) || 0),
             trackNumber: at.track_number,
+            discNumber: at.disc_number ?? 1,
             isrc: at.tracks.isrc || '',
             spotifyUri: at.tracks.spotify_url ? `spotify:track:${at.tracks.spotify_id}` : undefined,
             audioUrl: at.tracks.audio_url || at.tracks.preview_url || undefined,
             albumId: albumData.id as any,
+            genres: [],
+            producers: [],
             songwriters: [],
+            mixEngineers: [],
+            masteringEngineers: [],
           })),
           artistCredits: [],
           producers: [],
@@ -179,7 +186,7 @@ export default function AlbumDetails() {
         } else if (albumData.artist_id) {
           setArtistProjects([{
             id: albumData.artist_id as string,
-            name: albumData.artists?.name || 'Unknown Artist',
+            name: artistName,
           }]);
         }
       } catch (err) {
@@ -217,12 +224,6 @@ export default function AlbumDetails() {
     if (track.audioUrl) return 'native' as const;
     if (track.spotifyUri) return 'spotify' as const;
     return 'none' as const;
-  };
-
-  const spotifyUriToUrl = (uri: string) => {
-    // spotify:track:XXXXX → https://open.spotify.com/track/XXXXX
-    const id = uri.replace('spotify:track:', '');
-    return `https://open.spotify.com/track/${id}`;
   };
 
   const handlePlayPause = (trackId: number) => {
@@ -278,6 +279,80 @@ export default function AlbumDetails() {
     setEditDraft('');
   };
 
+  const saveField = async (field: EditableField, value: string) => {
+    setEditingField(null);
+    setEditDraft('');
+    if (!albumData) return;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === (albumData[field] ?? '')) return;
+
+    const applyUpdate = (prev: Album | null) => (prev ? { ...prev, [field]: trimmed } : prev);
+    setAlbumData(applyUpdate);
+    setAlbum(applyUpdate);
+
+    if (user && id) {
+      const { error } = await supabase
+        .from('albums')
+        .update({ [FIELD_TO_COLUMN[field]]: trimmed })
+        .eq('id', id);
+      if (error) console.error(`Error saving album ${field}:`, error);
+    }
+  };
+
+  const commitEditing = () => {
+    if (editingField) saveField(editingField, editDraft);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitEditing();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelEditing();
+    }
+  };
+
+  // Drag-to-reorder (active while isReordering). Reorders locally on drag-over,
+  // persists the new track numbers to album_tracks on drag end.
+  const handleDragStart = (trackId: number) => {
+    setDraggedTrackId(trackId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetTrackNumber: number) => {
+    e.preventDefault();
+    if (draggedTrackId === null || !albumData) return;
+    const fromIndex = albumData.tracks.findIndex(t => t.id === draggedTrackId);
+    const toIndex = albumData.tracks.findIndex(t => t.trackNumber === targetTrackNumber);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+    const reordered = [...albumData.tracks];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setAlbumData({
+      ...albumData,
+      tracks: reordered.map((t, i) => ({ ...t, trackNumber: i + 1 })),
+    });
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedTrackId(null);
+    if (!albumData) return;
+    setAlbum(albumData);
+    if (!user || !id) return;
+    try {
+      for (const track of albumData.tracks) {
+        const { error } = await supabase
+          .from('album_tracks')
+          .update({ track_number: track.trackNumber })
+          .eq('album_id', id)
+          .eq('track_id', track.id);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error('Error saving track order:', err);
+    }
+  };
+
   const handleSaveAlbum = async () => {
     if (user && id && albumData) {
       try {
@@ -291,15 +366,6 @@ export default function AlbumDetails() {
       }
     }
     setIsEditingAlbum(false);
-  };
-
-  const handleSaveTrack = (trackId: number, updates: any) => {
-    if (!albumData) return;
-    const updatedTracks = albumData.tracks.map(track => 
-      track.id === trackId ? { ...track, ...updates } : track
-    );
-    setAlbumData({ ...albumData, tracks: updatedTracks });
-    setEditingTrackId(null);
   };
 
   const handleAddGenre = () => {
@@ -597,7 +663,7 @@ export default function AlbumDetails() {
     }
 
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     doc.setFontSize(8);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -923,6 +989,38 @@ export default function AlbumDetails() {
                   </h1>
                 )}
               </div>
+              {/* Artist — double-click to edit */}
+              {isEditingArtist ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex-1">
+                    <ContactTagInput
+                      value={artistEditTags}
+                      onChange={setArtistEditTags}
+                      preferRole="Artist"
+                      placeholder="Search artists…"
+                      size="sm"
+                    />
+                  </div>
+                  <button onClick={() => saveArtistTags(artistEditTags)} className="btn btn-primary">
+                    Save
+                  </button>
+                  <button onClick={() => setIsEditingArtist(false)} className="btn btn-secondary">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <p
+                  onDoubleClick={() => {
+                    setArtistEditTags(displayAlbum.artistTags ?? []);
+                    setIsEditingArtist(true);
+                  }}
+                  className="text-lg mt-1 cursor-text select-none"
+                  style={{ color: 'var(--t2)' }}
+                  title="Double-click to edit"
+                >
+                  {displayAlbum.artist}
+                </p>
+              )}
               {isEditingAlbum && (
                 <div className="mt-2">
                   <label className="block text-xs font-medium text-gray-500 mb-1">
@@ -934,6 +1032,9 @@ export default function AlbumDetails() {
                     placeholder="Search projects…"
                     size="sm"
                   />
+                  <button onClick={handleSaveAlbum} className="btn btn-primary mt-2">
+                    Save
+                  </button>
                 </div>
               )}
               <div className="flex items-center gap-4 mt-4">
@@ -947,7 +1048,7 @@ export default function AlbumDetails() {
                 {editingField === 'releaseDate' ? (
                   <TMDatePicker
                     value={editDraft}
-                    onChange={(date) => setEditDraft(date)}
+                    onChange={(date) => saveField('releaseDate', date)}
                   />
                 ) : (
                   <span
@@ -998,6 +1099,11 @@ export default function AlbumDetails() {
                   label: `Set Status: ${STATUS_LABELS[STATUS_CYCLE[((album as any).status || 'draft').toLowerCase()] || 'draft']}`,
                   icon: '/TM-Tag-negro.svg',
                   onClick: handleChangeStatus,
+                },
+                {
+                  label: 'Edit Artist Projects',
+                  icon: '/TM-Pluma-negro.png',
+                  onClick: () => setIsEditingAlbum(true),
                 },
                 {
                   label: 'Duplicate Album',

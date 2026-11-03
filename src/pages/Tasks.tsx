@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Calendar, Tag, ChevronDown, ChevronUp, Plus, Check, Loader2, User } from 'lucide-react';
+import { ChevronLeft, Calendar, Tag, ChevronDown, ChevronUp, Plus, Loader2, User } from 'lucide-react';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import { formatDate } from '../lib/utils';
 import * as taskService from '../lib/taskService';
@@ -223,7 +223,7 @@ export default function Tasks() {
         </button>
       </div>
 
-      <div style={{backgroundColor: "var(--surface)", shadow: "md"}}>
+      <div style={{backgroundColor: "var(--surface)"}}>
         <div style={{padding: "24px", borderBottom: "1px solid var(--border)"}}>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">

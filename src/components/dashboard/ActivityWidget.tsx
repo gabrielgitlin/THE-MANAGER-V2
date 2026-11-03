@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, FileText, Music, Calendar, Loader2 } from 'lucide-react';
+import { CheckCircle, FileText, Calendar, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ActivityItem {
