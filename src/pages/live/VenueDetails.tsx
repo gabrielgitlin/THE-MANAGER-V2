@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Users, Globe, Mail, Music } from 'lucide-react';
 import VenueModal from '../../components/live/VenueModal';

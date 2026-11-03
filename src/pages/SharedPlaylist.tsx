@@ -179,13 +179,19 @@ export default function SharedPlaylist() {
             .eq('track_id', pt.tracks.id)
             .limit(1)
             .maybeSingle();
+          // albums/artists are many-to-one relations, so PostgREST returns single objects
+          // (supabase-js infers arrays without generated DB types).
+          const album = albumData?.albums as unknown as
+            | { title: string; cover_url: string | null; artists: { name: string } | null }
+            | null
+            | undefined;
 
           return {
             ...pt,
-            albumInfo: albumData?.albums ? {
-              title: albumData.albums.title,
-              cover_url: albumData.albums.cover_url,
-              artist_name: albumData.albums.artists?.name,
+            albumInfo: album ? {
+              title: album.title,
+              cover_url: album.cover_url,
+              artist_name: album.artists?.name,
             } : undefined,
           };
         })
@@ -325,7 +331,7 @@ export default function SharedPlaylist() {
   };
 
   const getTrackCover = (track: PlaylistTrack) => {
-    return track.albumInfo?.cover_url || playlist?.cover_url;
+    return track.albumInfo?.cover_url || playlist?.cover_url || undefined;
   };
 
   // --- Loading ---

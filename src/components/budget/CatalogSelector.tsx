@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Music, Album as AlbumIcon, ChevronDown, ChevronRight } from 'lucide-react';
-import type { Album, Track } from '../../types';
+import type { Album } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { CATALOG } from '../../data/catalog';
 import { useAuthStore } from '../../store/authStore';
@@ -18,7 +18,7 @@ interface NewTrack {
   isrc?: string;
 }
 
-export default function CatalogSelector({ selectedTracks, onSelectionChange, releaseType }: CatalogSelectorProps) {
+export default function CatalogSelector({ selectedTracks, onSelectionChange, releaseType: _releaseType }: CatalogSelectorProps) {
   const { user } = useAuthStore();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [expandedAlbums, setExpandedAlbums] = useState<Set<number>>(new Set());

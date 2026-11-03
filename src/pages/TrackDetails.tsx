@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -105,7 +105,6 @@ export default function TrackDetails() {
             label: albumData.label || '',
             distributor: '',
             upc: albumData.upc || '',
-            spotifyUrl: albumData.spotify_url,
             tracks: [],
             artistCredits: [],
             producers: [],
@@ -117,12 +116,17 @@ export default function TrackDetails() {
             id: trackData.id as any,
             title: trackData.title,
             duration: formatDuration(Number(trackData.duration) || 0),
+            discNumber: trackData.disc_number || 1,
             trackNumber: albumTrackData?.track_number || 1,
             isrc: trackData.isrc || '',
             spotifyUri: trackData.spotify_url ? `spotify:track:${trackData.spotify_id}` : undefined,
             audioUrl: trackData.audio_url || trackData.preview_url || undefined,
             albumId: albumData.id as any,
+            genres: albumData.genres_array || [],
+            producers: [],
             songwriters: [],
+            mixEngineers: [],
+            masteringEngineers: [],
           };
 
           setAlbum(formattedAlbum);
@@ -163,11 +167,6 @@ export default function TrackDetails() {
     if (t.audioUrl) return 'native' as const;
     if (t.spotifyUri) return 'spotify' as const;
     return 'none' as const;
-  };
-
-  const spotifyUriToUrl = (uri: string) => {
-    const id = uri.replace('spotify:track:', '');
-    return `https://open.spotify.com/track/${id}`;
   };
 
   const handlePlayPause = () => {
@@ -451,7 +450,7 @@ export default function TrackDetails() {
                 }
 
                 // Add footer
-                const pageCount = doc.internal.getNumberOfPages();
+                const pageCount = doc.getNumberOfPages();
                 doc.setFontSize(8);
                 for (let i = 1; i <= pageCount; i++) {
                   doc.setPage(i);

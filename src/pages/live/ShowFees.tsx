@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, DollarSign, Calendar, MapPin, Plus, Download } from 'lucide-react';
+import { ChevronLeft, DollarSign, Calendar, MapPin, Plus } from 'lucide-react';
 import FeeSummaryTable from '../../components/FeeSummaryTable';
 import ShowFeeModal from '../../components/personnel/ShowFeeModal';
 import { formatDate } from '../../lib/utils';

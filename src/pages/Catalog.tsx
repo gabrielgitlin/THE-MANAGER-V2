@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, ArrowUpRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { TMMonthPicker } from '../components/ui/TMMonthPicker';
 import Modal from '../components/Modal';
 import CatalogForm from '../components/CatalogForm';
@@ -14,11 +14,10 @@ import ReplaceAudioDialog from '../components/catalog/ReplaceAudioDialog';
 import ExportAudioDialog from '../components/catalog/ExportAudioDialog';
 import { KebabMenu } from '../components/ui/KebabMenu';
 import CatalogList from './CatalogList';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
-import type { Album, Track } from '../types';
+import type { Album, Track, CreditShare } from '../types';
 import { CATALOG } from '../data/catalog';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
-import { isSupabaseReady, supabase } from '../lib/supabase';
+import { formatDate } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import { syncArtistsToTeam } from '../lib/contacts';
 import type { ContactTag } from '../components/ui/ContactTagInput';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
@@ -36,11 +35,9 @@ export default function Catalog() {
   const [isSpotifyImportModalOpen, setIsSpotifyImportModalOpen] = useState(false);
   const [isDemoUploadModalOpen, setIsDemoUploadModalOpen] = useState(false);
   const [promotingAlbum, setPromotingAlbum] = useState<{ id: number; title: string } | null>(null);
-  const [editingAlbumId, setEditingAlbumId] = useState<number | null>(null);
   const [editingTrackId, setEditingTrackId] = useState<number | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<'Single' | 'EP' | 'Album'>('Single');
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [formatFilter, setFormatFilter] = useState<'All' | 'Album' | 'EP' | 'Single'>('All');
   const [demoTypeFilter, setDemoTypeFilter] = useState<'all' | 'demo' | 'mix' | 'master' | 'on_hold'>('all');
   const [currentArtistId, setCurrentArtistId] = useState<string | null>(null);
@@ -69,11 +66,11 @@ export default function Catalog() {
     artistTags: [] as ContactTag[],
     genres: [] as string[],
     format: 'Single' as 'Single' | 'EP' | 'Album',
-    artistCredits: [] as string[],
-    producers: [] as string[],
-    songwriters: [] as string[],
-    mixEngineers: [] as string[],
-    masteringEngineers: [] as string[],
+    artistCredits: [] as CreditShare[],
+    producers: [] as CreditShare[],
+    songwriters: [] as CreditShare[],
+    mixEngineers: [] as CreditShare[],
+    masteringEngineers: [] as CreditShare[],
     newGenre: '',
   });
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -135,7 +132,7 @@ export default function Catalog() {
 
   const handleSaveTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || isSaving) return;
 
     setIsSaving(true);
     try {
@@ -273,11 +270,11 @@ export default function Catalog() {
       // Sync all credited artists/collaborators to the Team database (silent, non-blocking)
       syncArtistsToTeam([
         ...formData.artistTags.map((t: ContactTag) => ({ name: t.name, role: 'Artist' })),
-        ...(formData.artistCredits ?? []).map((n: string) => ({ name: n, role: 'Artist' })),
-        ...(formData.producers ?? []).map((n: string) => ({ name: n, role: 'Producer' })),
-        ...(formData.songwriters ?? []).map((n: string) => ({ name: n, role: 'Songwriter' })),
-        ...(formData.mixEngineers ?? []).map((n: string) => ({ name: n, role: 'Mix Engineer' })),
-        ...(formData.masteringEngineers ?? []).map((n: string) => ({ name: n, role: 'Mastering Engineer' })),
+        ...(formData.artistCredits ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Artist' })),
+        ...(formData.producers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Producer' })),
+        ...(formData.songwriters ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Songwriter' })),
+        ...(formData.mixEngineers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Mix Engineer' })),
+        ...(formData.masteringEngineers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Mastering Engineer' })),
       ]);
 
       // Reset form and close modal
@@ -389,8 +386,15 @@ export default function Catalog() {
             demo_status: (album as any).demo_status ?? null,
             hold_until: (album as any).hold_until ?? null,
             notes: (album as any).notes ?? undefined,
+            genres: [],
+            artistCredits: [],
+            producers: [],
+            mixEngineers: [],
+            masteringEngineers: [],
             tracks: (albumTracks || []).filter((at: any) => at.tracks != null).map((at: any) => ({
               id: at.tracks.id as any,
+              albumId: album.id,
+              discNumber: at.disc_number || 1,
               title: at.tracks.title,
               duration: formatDuration(at.tracks.duration || 0),
               trackNumber: at.track_number,
@@ -401,6 +405,11 @@ export default function Catalog() {
               audioVersions: at.tracks.audio_versions ?? [],
               demo_status: at.tracks.demo_status ?? null,
               hold_until: at.tracks.hold_until ?? null,
+              genres: [],
+              producers: [],
+              songwriters: [],
+              mixEngineers: [],
+              masteringEngineers: [],
             })),
           };
         })
@@ -437,7 +446,7 @@ export default function Catalog() {
 
   const calculateTotalDuration = (tracks: Track[]): number => {
     return tracks.reduce((total, track) => {
-      const [mins, secs] = track.duration.split(':').map(Number);
+      const [mins, secs] = (track.duration || '0:00').split(':').map(Number);
       return total + (mins * 60) + secs;
     }, 0);
   };
@@ -969,7 +978,7 @@ export default function Catalog() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl })));
+                              playAlbum(album.tracks.map(t => ({ ...t, artist: album.artist, duration: t.duration || '0:00', coverArt: album.artworkUrl })));
                             }}
                             className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                             style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -986,7 +995,7 @@ export default function Catalog() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl })));
+                                playAlbum(album.tracks.map(t => ({ ...t, artist: album.artist, duration: t.duration || '0:00', coverArt: album.artworkUrl })));
                               }}
                               className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                               style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -1390,11 +1399,11 @@ export default function Catalog() {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingAlbumId(null);
           setEditingTrackId(null);
           setFormData({
             title: '',
             artist: '',
+            artistTags: [],
             genres: [],
             format: 'Single',
             artistCredits: [],

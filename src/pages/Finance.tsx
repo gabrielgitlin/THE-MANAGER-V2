@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { DollarSign, Plus, ChevronRight, ArrowUpCircle, ArrowDownCircle, ArrowRight, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Calendar, ChevronLeft, Calendar as CalendarIcon, Tag } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, Legend } from 'recharts';
-import type { TrackFinance, BudgetItem, BudgetCategory, TransactionType, IncomeStatus, ExpenseStatus, Budget, BudgetType } from '../types';
-import { mockFinances } from '../data/mockData';
+import { Link } from 'react-router-dom';
+import { DollarSign, Plus, ChevronRight, ArrowUpCircle, ArrowDownCircle, ArrowRight, ChevronDown, ChevronUp, Calendar as CalendarIcon, Tag } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import type { BudgetItem, BudgetCategory, IncomeStatus, ExpenseStatus, Budget, BudgetType } from '../types';
 import Modal from '../components/Modal';
-import BudgetChart from '../components/BudgetChart';
 import BudgetTypeSelector from '../components/budget/BudgetTypeSelector';
 import BudgetForm from '../components/budget/BudgetForm';
 import InvoiceGenerator from '../components/InvoiceGenerator';
-import { getAllBudgets, getAllBudgetItems, createBudget, createBudgetItem } from '../lib/budgetService';
+import { getAllBudgets, createBudget, createBudgetItem } from '../lib/budgetService';
 import { supabase } from '../lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Music', 'Press', 'Other'];
-const TRANSACTION_TYPES: TransactionType[] = ['Expense', 'Income'];
 const INCOME_STATUSES: IncomeStatus[] = ['received', 'pending'];
 const EXPENSE_STATUSES: ExpenseStatus[] = ['paid', 'unpaid'];
 
 export default function Finance() {
-  const navigate = useNavigate();
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'quarter' | 'year' | 'custom'>('month');
   const [customDateRange, setCustomDateRange] = useState<{start: string, end: string}>({
     start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   });
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isOverviewFilterOpen, setIsOverviewFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -42,16 +37,13 @@ export default function Finance() {
     category: 'all' as 'all' | BudgetCategory,
     status: 'all' as 'all' | IncomeStatus | ExpenseStatus,
   });
-  const [showAllBudgets, setShowAllBudgets] = useState(false);
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isNewBudgetModalOpen, setIsNewBudgetModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedBudgetType, setSelectedBudgetType] = useState<BudgetType | null>(null);
   const [selectedShowId, setSelectedShowId] = useState<number | null>(null);
-  const [finances, setFinances] = useState(mockFinances);
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [newTransaction, setNewTransaction] = useState<Omit<BudgetItem, 'id'>>({
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -263,12 +255,9 @@ export default function Finance() {
 
   // Group budgets by type
   const groupedBudgets = budgets.reduce((groups, budget) => {
-    if (!groups[budget.type]) {
-      groups[budget.type] = [];
-    }
-    groups[budget.type].push(budget);
+    (groups[budget.type] ??= []).push(budget);
     return groups;
-  }, {} as Record<BudgetType, Budget[]>);
+  }, {} as Partial<Record<Budget['type'], Budget[]>>);
 
   const prepareCashflowData = () => {
     const allTransactions = overviewFilteredTransactions;
@@ -371,13 +360,10 @@ export default function Finance() {
   useEffect(() => {
     const loadBudgets = async () => {
       try {
-        setIsLoading(true);
         const data = await getAllBudgets();
         setBudgets(data);
       } catch (error) {
         console.error('Error loading budgets:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -1086,7 +1072,7 @@ export default function Finance() {
             </button>
             <button
               onClick={() => {
-                setSelectedBudgetType('custom');
+                setSelectedBudgetType(null);
                 setIsNewBudgetModalOpen(true);
               }}
               className="flex items-center justify-center px-4 py-3 bg-[var(--surface)] text-[var(--t1)] border border-black hover:bg-[var(--surface-2)] transition-colors"
@@ -1201,7 +1187,7 @@ export default function Finance() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {Object.keys(groupedBudgets).map(type => {
-                  const typeBudgets = groupedBudgets[type as BudgetType];
+                  const typeBudgets = groupedBudgets[type as Budget['type']];
                   if (!typeBudgets || typeBudgets.length === 0) return null;
 
                   return (
@@ -1211,10 +1197,11 @@ export default function Finance() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {typeBudgets.map((budget) => {
-                          const budgetSpent = budget.items?.reduce((sum, item) =>
+                          const budgetSpent = budget.budgetItems?.reduce((sum, item) =>
                             item.type === 'Expense' ? sum + item.amount : sum, 0) || 0;
-                          const budgetTotal = budget.items?.reduce((sum, item) =>
-                            item.type === 'Income' ? sum + item.amount : sum, 0) || budget.total_amount || 0;
+                          const budgetTotal = budget.budgetItems?.reduce((sum, item) =>
+                            item.type === 'Income' ? sum + item.amount : sum, 0) ||
+                            (budget.categoryBudgets || []).reduce((acc, cat) => acc + cat.budgetAmount, 0);
                           const spentPercentage = budgetTotal > 0 ? (budgetSpent / budgetTotal) * 100 : 0;
 
                           return (
@@ -1749,7 +1736,7 @@ export default function Finance() {
             tracks={[]}
             shows={[]}
             budgets={budgets}
-            showId={selectedShowId}
+            showId={selectedShowId ?? undefined}
           />
         )}
       </Modal>

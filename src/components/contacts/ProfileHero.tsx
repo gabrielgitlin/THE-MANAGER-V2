@@ -1,5 +1,4 @@
 // src/components/contacts/ProfileHero.tsx
-import React from 'react';
 import AvatarWithFallback from './AvatarWithFallback';
 import type { Contact, ContactCategory } from '../../types/contacts';
 

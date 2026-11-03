@@ -4,7 +4,7 @@ import { MapPin, Calendar, Clock, Plus, ChevronRight } from 'lucide-react';
 import ShowModal from '../../components/shows/ShowModal';
 import type { Show } from '../../types';
 import { supabase } from '../../lib/supabase';
-import { formatDate, formatTime } from '../../lib/utils';
+import { formatTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { syncShowToPlatforms } from '../../lib/platformSync';
 
@@ -125,7 +125,7 @@ export default function AllShows() {
           alert('Failed to create artist profile. Please try again.');
           return;
         }
-        artist = newArtist;
+        artist = newArtist as { id: string };
       }
 
       const insertData = {

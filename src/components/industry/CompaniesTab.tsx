@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OrganizationCard from './OrganizationCard';
 import OrganizationRow from './OrganizationRow';
@@ -9,11 +9,13 @@ import type { Organization, OrganizationFormData, OrganizationType } from '../..
 
 type TypeFilter = OrganizationType | 'all';
 
-const SUB_TAB_TYPES: TypeFilter[] = [
+type SubTabType = Extract<TypeFilter, 'all' | 'label' | 'publisher' | 'management' | 'booking' | 'venue' | 'studio' | 'other'>;
+
+const SUB_TAB_TYPES: SubTabType[] = [
   'all', 'label', 'publisher', 'management', 'booking', 'venue', 'studio', 'other',
 ];
 
-const SUB_TAB_LABELS: Record<TypeFilter, string> = {
+const SUB_TAB_LABELS: Record<SubTabType, string> = {
   all: 'ALL',
   label: 'LABELS',
   publisher: 'PUBLISHERS',
