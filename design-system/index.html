@@ -1113,17 +1113,333 @@
       box-shadow: 0 0 6px var(--brand-glow);
     }
   </style>
+
+  <style id="brand-shell">
+    /* ══════════════════════════════════════════
+       BRAND SHELL — Brandbook 2025 editorial layer
+       Paper/ink chrome around dark product specimens.
+    ══════════════════════════════════════════ */
+    :root {
+      --paper:      #eef2ea;  /* Pantone 9043 U */
+      --paper-2:    #e4e9df;
+      --ink:        #000000;  /* Pantone Black U */
+      --ink-2:      rgba(0,0,0,0.62);
+      --ink-3:      rgba(0,0,0,0.38);
+      --rule:       #000000;
+      --bb-green:   #009c55;  /* Pantone 7479 U */
+      --bb-gray:    #90928f;  /* Pantone 7539 U */
+      --bb-blue:    #ccdbe2;  /* Pantone 643 U */
+      --frame-r:    14px;
+      --mono-track: 0.05em;   /* tracking +50 */
+    }
+
+    html { background: var(--paper); color: var(--ink); font-size: 14px; }
+    body { background: var(--paper); }
+    ::selection { background: var(--bb-green); color: #000; }
+
+    .mono-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--mono-track);
+      text-transform: uppercase;
+    }
+
+    /* ── Sidebar ───────────────────────────── */
+    .sidebar {
+      width: 240px;
+      background: var(--paper);
+      border-right: 1px solid var(--rule);
+      color: var(--ink);
+    }
+    .sidebar-logo {
+      padding: 22px 20px 20px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .sidebar-logo .wordmark-img { display: block; width: 150px; height: auto; }
+    .sidebar-logo .sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink);
+      margin-top: 12px;
+      letter-spacing: var(--mono-track);
+      display: flex;
+      justify-content: space-between;
+    }
+    .sidebar-nav { padding: 8px 12px 24px; }
+    .sidebar-group,
+    .sidebar-group[style] {
+      margin: 18px 0 6px !important;
+      padding: 6px 8px 0;
+      border-top: 1px solid var(--rule);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: var(--mono-track);
+      display: flex;
+      justify-content: space-between;
+    }
+    .sidebar-group:first-child { margin-top: 6px !important; }
+    .sidebar-group .num { color: var(--ink-3); }
+    .sidebar-link {
+      padding: 6px 8px;
+      font-size: 13px;
+      color: var(--ink-2);
+      border-left: 0;
+      border-radius: 4px;
+      gap: 10px;
+    }
+    .sidebar-link:hover { color: var(--ink); background: rgba(0,0,0,0.05); }
+    .sidebar-link.active { color: var(--paper); background: var(--ink); border-left-color: transparent; }
+    .sidebar-dot { width: 6px; height: 6px; border-radius: 1px; opacity: 1; background: transparent; border: 1px solid currentColor; }
+    .sidebar-link.active .sidebar-dot { background: var(--bb-green); border-color: var(--bb-green); }
+
+    /* ── Main + header strip ───────────────── */
+    .main { margin-left: 240px; }
+    .topbar {
+      background: var(--paper);
+      border-bottom: 0;
+      height: auto;
+      padding: 14px 40px 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .strip-cell {
+      border-top: 1px solid var(--rule);
+      padding-top: 6px;
+      min-height: 30px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--mono-track);
+      text-transform: uppercase;
+      color: var(--ink);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .strip-cell .topbar-actions { margin-top: -2px; }
+    .topbar .btn-sm { height: 24px; font-size: 10px; padding: 0 10px; font-family: var(--font-mono); letter-spacing: var(--mono-track); text-transform: uppercase; }
+    .topbar .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+    .topbar .btn-secondary:hover { background: var(--ink); color: var(--paper); }
+    .topbar .btn-primary { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+    .topbar .btn-primary:hover { background: var(--bb-green); border-color: var(--bb-green); color: #000; }
+
+    .content { padding: 8px 40px 80px; max-width: 1320px; counter-reset: chapter; }
+
+    /* ── Cover ─────────────────────────────── */
+    .bb-cover {
+      background: var(--bb-green);
+      color: #000;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 24px;
+      margin-bottom: 24px;
+      min-height: 520px;
+    }
+    .bb-frame {
+      border-top: 1px solid currentColor;
+      border-left: 1px solid currentColor;
+      border-top-left-radius: var(--frame-r);
+      padding: 20px 24px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .bb-cover h1 {
+      margin-top: auto;
+      font-size: clamp(56px, 8vw, 112px);
+      line-height: 0.92;
+      font-weight: 600;
+      letter-spacing: -0.035em;
+    }
+    .bb-cover p { font-size: 15px; line-height: 1.5; max-width: 52ch; }
+    .bb-cover p + p { margin-top: 14px; }
+    .bb-cover .bb-lockup { width: 72px; height: auto; margin-top: auto; }
+
+    /* Index (folders) */
+    .bb-index {
+      background: var(--bb-gray);
+      color: #fff;
+      padding: 20px 24px 28px;
+      margin-bottom: 72px;
+    }
+    .bb-index-title { font-size: 20px; font-weight: 500; margin-bottom: 120px; }
+    .bb-index-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .bb-folder {
+      position: relative;
+      display: block;
+      cursor: pointer;
+      color: #fff;
+      transition: transform var(--duration-normal) var(--ease-out);
+    }
+    .bb-folder:hover { transform: translateY(-4px); }
+    .bb-folder svg { display: block; width: 100%; max-width: 240px; height: auto; }
+    .bb-folder span {
+      position: absolute;
+      left: 26px; bottom: 22px;
+      font-size: 15px; font-weight: 500; line-height: 1.2;
+    }
+
+    /* ── Chapter dividers ──────────────────── */
+    .bb-chapter {
+      counter-increment: chapter;
+      counter-reset: sub;
+      position: relative;
+      min-height: 360px;
+      padding: 20px 24px 20px 72px;
+      margin: 0 0 56px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      scroll-margin-top: 70px;
+    }
+    .bb-chapter::before {   /* punched binder holes */
+      content: "";
+      position: absolute;
+      left: 22px; top: 32px; bottom: 32px;
+      width: 14px;
+      background:
+        radial-gradient(circle at 7px 7px, var(--hole) 6.5px, transparent 7px) 0 0 / 14px 64px repeat-y;
+      opacity: 0.95;
+    }
+    .bb-chapter .ch-num,
+    .bb-chapter .ch-title {
+      font-size: clamp(48px, 6.4vw, 92px);
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: -0.035em;
+    }
+    .bb-chapter .ch-meta { position: absolute; top: 20px; left: 72px; right: 24px; display: flex; justify-content: space-between; }
+    .ch-gray  { background: var(--bb-gray);  color: #fff; --hole: #fff; }
+    .ch-green { background: var(--bb-green); color: #000; --hole: #000; }
+    .ch-blue  { background: var(--bb-blue);  color: #000; --hole: #000; }
+    .ch-black { background: #000;            color: #fff; --hole: #fff; }
+
+    /* ── Sections: editorial two-column ────── */
+    .ds-section {
+      counter-increment: sub;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 32px;
+      margin-bottom: 72px;
+      scroll-margin-top: 80px;
+    }
+    .section-header {
+      position: sticky;
+      top: 84px;
+      align-self: start;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0;
+      padding: 8px 0 0;
+      border-bottom: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .section-header::before {
+      content: counter(chapter, decimal-leading-zero) "." counter(sub, decimal-leading-zero);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--mono-track);
+      color: var(--ink-3);
+    }
+    .section-title {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-transform: none;
+      color: var(--ink);
+    }
+    .section-desc { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+
+    .section-body {
+      background: var(--bg);
+      color: var(--t1);
+      border-top-left-radius: var(--frame-r);
+      padding: 28px;
+      min-width: 0;
+      position: relative;
+    }
+    .section-body::before {   /* folder tab */
+      content: "";
+      position: absolute;
+      top: -10px; left: 0;
+      width: 112px; height: 18px;
+      background: var(--bg);
+      border-radius: var(--frame-r) var(--frame-r) 0 0;
+      clip-path: polygon(0 0, 82% 0, 100% 100%, 0 100%);
+    }
+    .section-scroll { overflow-x: auto; }
+    .section-scroll > :last-child { margin-bottom: 0; }
+    .ds-dialog { width: 100%; max-width: 380px; }
+    .grid-2 > *, .grid-3 > *, .grid-4 > * { min-width: 0; }
+
+    /* ── Palette folders (colors section) ──── */
+    .bb-palette {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .bb-swatch { position: relative; cursor: pointer; }
+    .bb-swatch svg { display: block; width: 100%; height: auto; }
+    .bb-swatch .meta {
+      position: absolute;
+      left: 7%; bottom: 10%;
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+    .bb-swatch .meta .nm { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--mono-track); text-transform: uppercase; display: block; margin-bottom: 8px; opacity: .75; }
+    .bb-swatch:hover svg path { filter: brightness(1.04); }
+
+    /* Footer */
+    .bb-footer {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    /* ── Responsive ────────────────────────── */
+    @media (max-width: 1100px) {
+      .ds-section { grid-template-columns: 1fr; gap: 16px; }
+      .section-header { position: static; }
+      .bb-cover { grid-template-columns: 1fr; }
+      .bb-index-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .topbar, .bb-footer { grid-template-columns: repeat(2, 1fr); padding-left: 16px; padding-right: 16px; }
+      .topbar .strip-cell:nth-child(2), .topbar .strip-cell:nth-child(3) { display: none; }
+      .content { padding: 8px 16px 64px; }
+      .bb-chapter { grid-template-columns: 1fr; padding-left: 56px; min-height: 280px; }
+      .bb-chapter .ch-meta { left: 56px; }
+      .bb-palette { grid-template-columns: 1fr; max-width: 360px; }
+      .section-body { padding: 20px 16px; }
+      .bb-index-title { margin-bottom: 48px; }
+    }
+  </style>
 </head>
 <body>
 
 <!-- ═══════════════════════════════════════════ SIDEBAR ═══ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="wordmark">The Manager</div>
-    <div class="sub">Design System · 2025</div>
+    <img class="wordmark-img" src="../public/The Manager_Logo_PNG-2.png" alt="The Manager" />
+    <div class="sub"><span>DESIGN SYSTEM</span><span>©2025</span></div>
   </div>
   <nav class="sidebar-nav">
-    <div class="sidebar-group">Tokens</div>
+    <div class="sidebar-group"><span>TOKENS</span><span class="num">01</span></div>
     <a class="sidebar-link active" data-target="colors" onclick="scrollTo('colors')">
       <span class="sidebar-dot"></span> Colors
     </a>
@@ -1140,7 +1456,7 @@
       <span class="sidebar-dot"></span> Motion
     </a>
 
-    <div class="sidebar-group" style="margin-top: 12px;">Components</div>
+    <div class="sidebar-group"><span>COMPONENTS</span><span class="num">02</span></div>
     <a class="sidebar-link" data-target="buttons" onclick="scrollTo('buttons')">
       <span class="sidebar-dot"></span> Buttons
     </a>
@@ -1184,7 +1500,7 @@
       <span class="sidebar-dot"></span> Calendar
     </a>
 
-    <div class="sidebar-group" style="margin-top: 12px;">Brand</div>
+    <div class="sidebar-group"><span>BRAND</span><span class="num">03</span></div>
     <a class="sidebar-link" data-target="logo" onclick="scrollTo('logo')">
       <span class="sidebar-dot"></span> Logo Usage
     </a>
@@ -1198,7 +1514,7 @@
       <span class="sidebar-dot"></span> Folder Containers
     </a>
 
-    <div class="sidebar-group" style="margin-top: 12px;">Patterns</div>
+    <div class="sidebar-group"><span>PATTERNS</span><span class="num">04</span></div>
     <a class="sidebar-link" data-target="pat-dashboard" onclick="scrollTo('pat-dashboard')">
       <span class="sidebar-dot"></span> Dashboard
     </a>
@@ -1209,7 +1525,7 @@
       <span class="sidebar-dot"></span> Filter + Table
     </a>
 
-    <div class="sidebar-group" style="margin-top: 12px;">Tools</div>
+    <div class="sidebar-group"><span>TOOLS</span><span class="num">05</span></div>
     <a class="sidebar-link" data-target="export" onclick="scrollTo('export')">
       <span class="sidebar-dot"></span> Export CSS
     </a>
@@ -1219,21 +1535,58 @@
 <!-- ═══════════════════════════════════════════ MAIN ═══ -->
 <main class="main">
   <div class="topbar">
-    <span class="topbar-title">Design System</span>
-    <div class="topbar-actions">
+    <div class="strip-cell">Brand Guidelines</div>
+    <div class="strip-cell">©2025</div>
+    <div class="strip-cell">Themanager.music</div>
+    <div class="strip-cell"><span id="strip-section">Design System</span><div class="topbar-actions">
       <button class="btn btn-sm btn-secondary" onclick="resetTokens()">Reset Tokens</button>
       <button class="btn btn-sm btn-primary" onclick="scrollTo('export')">Export CSS</button>
-    </div>
+    </div></div>
   </div>
 
   <div class="content">
 
     <!-- ═══════ COLORS ═══════ -->
+    
+    <!-- ═══════ COVER ═══════ -->
+    <header class="bb-cover">
+      <div class="bb-frame">
+        <span class="mono-label">The Brand's Concept</span>
+        <h1>The<br/>Manager's<br/>Desk</h1>
+      </div>
+      <div class="bb-frame">
+        <p>Behind every great artist, there's a system. Not just talent or vision — but structure, timing, and decisions made behind the scenes.</p>
+        <p>This is the working reference for The Manager's product interface: the tokens, components and patterns that turn the brand into software. Editorial layouts, file systems, grids and modular pieces — nothing is ornamental, everything is intentional.</p>
+        <p>Timeless, minimal, focused. Serious where it matters, playful where it helps.</p>
+        <img class="bb-lockup" src="../public/The Manager_Logo Lockup_PNG_2.png" alt="The Manager lockup" />
+      </div>
+    </header>
+
+    <nav class="bb-index" aria-label="Index">
+      <div class="bb-index-title">Index</div>
+      <div class="bb-index-grid">
+        <a class="bb-folder" onclick="scrollTo('ch-tokens')"><svg viewBox="0 0 280 210" aria-hidden="true"><path d="M8 2h76v8h8v8h180v8h6v176h-6v6H18v-6h-8v-8H2V10h6z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="miter"/><path d="M20 30h244v162H20z" fill="none" stroke="currentColor" stroke-width="6"/></svg><span>01. Tokens<br/>Color, type,<br/>space, motion</span></a>
+        <a class="bb-folder" onclick="scrollTo('ch-components')"><svg viewBox="0 0 280 210" aria-hidden="true"><path d="M8 2h76v8h8v8h180v8h6v176h-6v6H18v-6h-8v-8H2V10h6z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="miter"/><path d="M20 30h244v162H20z" fill="none" stroke="currentColor" stroke-width="6"/></svg><span>02. Components<br/>Building blocks<br/>of the interface</span></a>
+        <a class="bb-folder" onclick="scrollTo('ch-brand')"><svg viewBox="0 0 280 210" aria-hidden="true"><path d="M8 2h76v8h8v8h180v8h6v176h-6v6H18v-6h-8v-8H2V10h6z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="miter"/><path d="M20 30h244v162H20z" fill="none" stroke="currentColor" stroke-width="6"/></svg><span>03. Brand<br/>Logo, icons<br/>and containers</span></a>
+        <a class="bb-folder" onclick="scrollTo('ch-patterns')"><svg viewBox="0 0 280 210" aria-hidden="true"><path d="M8 2h76v8h8v8h180v8h6v176h-6v6H18v-6h-8v-8H2V10h6z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="miter"/><path d="M20 30h244v162H20z" fill="none" stroke="currentColor" stroke-width="6"/></svg><span>04. Patterns<br/>Layouts and<br/>export tools</span></a>
+      </div>
+    </nav>
+
+    <div class="bb-chapter ch-gray" id="ch-tokens">
+      <div class="ch-meta mono-label"><span>Color · Type · Space · Motion</span><span>01</span></div>
+      <div class="ch-num">01</div>
+      <div class="ch-title">Design<br/>Tokens</div>
+    </div>
+
     <section class="ds-section" id="colors">
       <div class="section-header">
         <span class="section-title">Colors</span>
         <span class="section-desc">Click any swatch to edit live · Click value to copy</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
+        <div class="color-group-header" style="background:none;border:0;padding:0 0 12px;">Official Brand Palette · Brandbook 2025</div>
+        <div class="bb-palette"><div class="bb-swatch" style="color:#fff" onclick="copyText('#000000')" title="Copy #000000"><svg viewBox="0 0 300 200" aria-hidden="true"><path d="M0 22Q0 0 22 0H96Q108 0 113 11L119 24Q124 34 137 34H284Q300 34 300 50V186Q300 200 286 200H14Q0 200 0 186Z" fill="#000000"/></svg><div class="meta"><span class="nm">Black</span>RGB: 0, 0, 0<br/>HEX: #000000<br/>CMYK: 0, 0, 0, 100<br/>Pantone Black U</div></div><div class="bb-swatch" style="color:#000" onclick="copyText('#009c55')" title="Copy #009c55"><svg viewBox="0 0 300 200" aria-hidden="true"><path d="M0 22Q0 0 22 0H96Q108 0 113 11L119 24Q124 34 137 34H284Q300 34 300 50V186Q300 200 286 200H14Q0 200 0 186Z" fill="#009c55"/></svg><div class="meta"><span class="nm">Green</span>RGB: 0, 156, 85<br/>HEX: #009c55<br/>CMYK: 84, 13, 91, 1<br/>Pantone 7479 U</div></div><div class="bb-swatch" style="color:#000" onclick="copyText('#eef2ea')" title="Copy #eef2ea"><svg viewBox="0 0 300 200" aria-hidden="true"><path d="M0 22Q0 0 22 0H96Q108 0 113 11L119 24Q124 34 137 34H284Q300 34 300 50V186Q300 200 286 200H14Q0 200 0 186Z" fill="#eef2ea" stroke="rgba(0,0,0,0.12)"/></svg><div class="meta"><span class="nm">Cream</span>RGB: 238, 242, 234<br/>HEX: #eef2ea<br/>CMYK: 5, 2, 7, 0<br/>Pantone 9043 U</div></div><div class="bb-swatch" style="color:#000" onclick="copyText('#ccdbe2')" title="Copy #ccdbe2"><svg viewBox="0 0 300 200" aria-hidden="true"><path d="M0 22Q0 0 22 0H96Q108 0 113 11L119 24Q124 34 137 34H284Q300 34 300 50V186Q300 200 286 200H14Q0 200 0 186Z" fill="#ccdbe2"/></svg><div class="meta"><span class="nm">Blue Gray</span>RGB: 204, 219, 226<br/>HEX: #ccdbe2<br/>CMYK: 19, 7, 7, 0<br/>Pantone 643 U</div></div><div class="bb-swatch" style="color:#000" onclick="copyText('#90928f')" title="Copy #90928f"><svg viewBox="0 0 300 200" aria-hidden="true"><path d="M0 22Q0 0 22 0H96Q108 0 113 11L119 24Q124 34 137 34H284Q300 34 300 50V186Q300 200 286 200H14Q0 200 0 186Z" fill="#90928f"/></svg><div class="meta"><span class="nm">Gray</span>RGB: 144, 146, 143<br/>HEX: #90928f<br/>CMYK: 46, 37, 40, 2<br/>Pantone 7539 U</div></div></div>
+
 
       <div class="color-group">
         <div class="color-group-header">Surfaces</div>
@@ -1259,6 +1612,7 @@
         <div class="color-group-header">Official Brand Palette — Brandbook 2025 (print / editorial)</div>
         <div id="tokens-palette"></div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ TYPOGRAPHY ═══════ -->
@@ -1267,6 +1621,7 @@
         <span class="section-title">Typography</span>
         <span class="section-desc">Two-typeface system — primary grotesk + technical monospace</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Typeface System -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border-2); margin-bottom:2px;">
@@ -1374,6 +1729,7 @@
           <div class="type-specimen-example" style="font-size:11px;color:var(--t3);">Supporting metadata, footnotes, helper text</div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ SPACING ═══════ -->
@@ -1382,9 +1738,11 @@
         <span class="section-title">Spacing</span>
         <span class="section-desc">8-point grid with named steps</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
       <div class="card card-padded">
         <div id="spacing-viz"></div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ RADIUS ═══════ -->
@@ -1393,6 +1751,7 @@
         <span class="section-title">Border Radius</span>
         <span class="section-desc">Square corners throughout — full only for badges/pills/avatars</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
       <div class="card card-padded">
         <div class="radius-row">
           <div class="radius-item">
@@ -1409,6 +1768,7 @@
           All corners are square. <code>--radius-full</code> (9999px) is reserved for badges, traffic lights, and avatar circles only.
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ MOTION ═══════ -->
@@ -1417,16 +1777,26 @@
         <span class="section-title">Motion</span>
         <span class="section-desc">Hover rows to preview animation</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
       <div class="card card-padded">
         <div id="motion-preview"></div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ BUTTONS ═══════ -->
+    
+    <div class="bb-chapter ch-green" id="ch-components">
+      <div class="ch-meta mono-label"><span>Building blocks</span><span>02</span></div>
+      <div class="ch-num">02</div>
+      <div class="ch-title">Interface<br/>Components</div>
+    </div>
+
     <section class="ds-section" id="buttons">
       <div class="section-header">
         <span class="section-title">Buttons</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="demo-box">
         <div class="subsection">
@@ -1468,6 +1838,7 @@
           </div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ CARDS ═══════ -->
@@ -1475,6 +1846,7 @@
       <div class="section-header">
         <span class="section-title">Cards & Containers</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="grid-2">
         <div class="card">
@@ -1532,6 +1904,7 @@
           </div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ TABS ═══════ -->
@@ -1540,6 +1913,7 @@
         <span class="section-title">Tabs</span>
         <span class="section-desc">Fixed height · no layout shift on active</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="card">
         <div style="padding:0 20px;">
@@ -1559,6 +1933,7 @@
         Sub-tabs (36px) for section-level navigation use the same pattern at a smaller scale.
         Active state: <code>color: var(--brand-1); border-bottom: 2px solid var(--brand-1)</code>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ BADGES ═══════ -->
@@ -1566,6 +1941,7 @@
       <div class="section-header">
         <span class="section-title">Badges & Status</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="demo-box">
         <div class="subsection">
@@ -1610,6 +1986,7 @@
           </div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ FORMS ═══════ -->
@@ -1617,6 +1994,7 @@
       <div class="section-header">
         <span class="section-title">Form Inputs</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="demo-box">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -1652,6 +2030,7 @@
           <span class="form-error">Invalid URL format</span>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ TABLE ═══════ -->
@@ -1660,6 +2039,7 @@
         <span class="section-title">Data Table</span>
         <span class="section-desc">40px rows · 13px data · compact density</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="card">
         <div class="card-header">
@@ -1718,6 +2098,7 @@
           </table>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ METRICS ═══════ -->
@@ -1726,6 +2107,7 @@
         <span class="section-title">Metric Cards</span>
         <span class="section-desc">KPI grid — 1px gap, shared border radius</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="metric-grid" style="grid-template-columns:repeat(4,1fr);">
         <div class="metric-card">
@@ -1749,6 +2131,7 @@
           <div style="font-size:11px;color:var(--status-yellow);margin-top:6px;">2 pending release</div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ PROGRESS ═══════ -->
@@ -1757,6 +2140,7 @@
         <span class="section-title">Progress Bars</span>
         <span class="section-desc">6px height · brand-1 fill · smooth transition</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="card card-padded flex-col gap-4">
         <div>
@@ -1781,14 +2165,23 @@
           <div class="progress-bar"><div class="progress-fill" style="width:92%;background:var(--status-red);"></div></div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ LOGO USAGE ═══════ -->
+    
+    <div class="bb-chapter ch-blue" id="ch-brand">
+      <div class="ch-meta mono-label"><span>Logo · Icons · Containers</span><span>03</span></div>
+      <div class="ch-num">03</div>
+      <div class="ch-title">Brand<br/>Resources</div>
+    </div>
+
     <section class="ds-section" id="logo">
       <div class="section-header">
         <span class="section-title">Logo Usage</span>
         <span class="section-desc">Brand guidelines 2025 — Andrés Higueros</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Hero: Full lockup on black — primary canonical use -->
       <div style="background:#000000;display:flex;align-items:center;justify-content:center;padding:48px 40px;margin-bottom:2px;">
@@ -1902,6 +2295,7 @@
           <div class="logo-rule"><span class="logo-rule-mark" style="color:var(--status-red);">✕</span> Use the icon alone where the lockup fits</div>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ ICON SYSTEM ═══════ -->
@@ -1910,6 +2304,7 @@
         <span class="section-title">Icon System</span>
         <span class="section-desc">Pixel art nav icons (brand) · Lucide action icons (current) · Assets needing replacement</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Nav icons -->
       <div class="subsection">
@@ -2048,6 +2443,7 @@
           <strong style="color:var(--status-yellow);">Still needed</strong> — Plus (add), MoreVert (⋮)
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ POPUP MESSAGES ═══════ -->
@@ -2056,6 +2452,7 @@
         <span class="section-title">Popup Messages</span>
         <span class="section-desc">Toasts · Alert banners · Confirmation dialogs</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Toasts -->
       <div class="subsection">
@@ -2183,6 +2580,7 @@
           All components: square corners (<code>border-radius:0</code>) · 1px borders using <code>--border-2</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ CHECKBOXES & RADIOS ═══════ -->
@@ -2191,6 +2589,7 @@
         <span class="section-title">Checkboxes &amp; Radios</span>
         <span class="section-desc">16×16px · square for checkbox, pill for radio · brand-1 fill</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <!-- Checkboxes -->
@@ -2256,6 +2655,7 @@
           Radio dot: <code>6×6px white circle</code> · Disabled: <code>opacity: 0.4</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ DROPDOWNS ═══════ -->
@@ -2264,6 +2664,7 @@
         <span class="section-title">Dropdown Menu</span>
         <span class="section-desc">Custom action menus — not `&lt;select&gt;` · 13px items · 8px vertical padding</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
         <!-- Standard dropdown -->
@@ -2332,6 +2733,7 @@
           Offset from trigger: <code>calc(100% + 4px)</code> · z-index: <code>200</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ TOOLTIPS ═══════ -->
@@ -2340,6 +2742,7 @@
         <span class="section-title">Tooltips</span>
         <span class="section-desc">11px · 5px padding · 6px offset · hover-reveal · square corners</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="card card-padded">
         <div class="subsection-label" style="margin-bottom:24px;">Positions</div>
@@ -2382,6 +2785,7 @@
           Show/hide: <code>opacity 0→1</code> via CSS <code>:hover</code> · Never block interactive elements below
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ SKELETON ═══════ -->
@@ -2390,6 +2794,7 @@
         <span class="section-title">Skeleton Loaders</span>
         <span class="section-desc">Shimmer animation · 1.4s loop · matches layout of loading content</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <!-- Metric card skeleton -->
@@ -2471,6 +2876,7 @@
           Never show skeletons for &lt;300ms — use a delay to avoid flicker on fast loads
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ PAGINATION ═══════ -->
@@ -2479,6 +2885,7 @@
         <span class="section-title">Pagination</span>
         <span class="section-desc">32px buttons · Roboto Mono · brand-1 for active · always show prev/next</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="card card-padded">
         <div class="subsection-label" style="margin-bottom:20px;">Variants</div>
@@ -2543,6 +2950,7 @@
           Always show first/last page + 1 page on each side of current · Info text: <code>n–n of total</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ CALENDAR ═══════ -->
@@ -2551,6 +2959,7 @@
         <span class="section-title">Calendar</span>
         <span class="section-desc">Full-page calendar + compact field variants — all dark-themed, no white popups</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Big Calendar — Month View -->
       <div class="subsection-label">Full Calendar — Month View</div>
@@ -2808,6 +3217,7 @@
           Event pill height: <code>18px</code> · Cell min-height: <code>72px</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ FOLDER CONTAINERS ═══════ -->
@@ -2816,6 +3226,7 @@
         <span class="section-title">Folder Containers</span>
         <span class="section-desc">Top-left radius only — analog filing system reference, used selectively</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <!-- Pattern explanation -->
       <div style="background:var(--surface);border:1px solid var(--border-2);padding:16px 20px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;">
@@ -2952,14 +3363,23 @@
         <span style="color:var(--status-red);">✕</span> Buttons, badges, inputs, modals<br/>
         <span style="color:var(--status-red);">✕</span> More than one folder level on the same screen — one layer of depth max
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ PATTERN: DASHBOARD ═══════ -->
+    
+    <div class="bb-chapter ch-black" id="ch-patterns">
+      <div class="ch-meta mono-label"><span>Layouts · Export</span><span>04</span></div>
+      <div class="ch-num">04</div>
+      <div class="ch-title">Patterns<br/>&amp; Tools</div>
+    </div>
+
     <section class="ds-section" id="pat-dashboard">
       <div class="section-header">
         <span class="section-title">Pattern — Dashboard Layout</span>
         <span class="section-desc">Header → KPI strip → chart row → data table · optimized for &lt;1s scan</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="pattern-preview">
         <!-- Header -->
@@ -3051,6 +3471,7 @@
           Spacing between sections: <code>16px</code> inside dashboard · Page padding: <code>20px</code>
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ PATTERN: FORM LAYOUT ═══════ -->
@@ -3059,6 +3480,7 @@
         <span class="section-title">Pattern — Form Layout</span>
         <span class="section-desc">2-column grid · section headers · sticky footer with Save / Cancel</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="pattern-preview">
         <div class="p-form-layout">
@@ -3125,6 +3547,7 @@
           One <code>btn-primary</code> only — the main save action · Cancel = Ghost, Save Draft = Secondary
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ PATTERN: FILTER + TABLE ═══════ -->
@@ -3133,6 +3556,7 @@
         <span class="section-title">Pattern — Filter + Table</span>
         <span class="section-desc">Search + selects above table · reset + apply · results count in header</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="pattern-preview" style="padding:20px;">
         <!-- Page header -->
@@ -3219,6 +3643,7 @@
           Pagination always at bottom-right · count text at bottom-left — mirror of header count
         </div>
       </div>
+    </div></div>
     </section>
 
     <!-- ═══════ EXPORT ═══════ -->
@@ -3227,6 +3652,7 @@
         <span class="section-title">Export CSS</span>
         <span class="section-desc">Copy the updated :root {} block to apply your changes to src/index.css</span>
       </div>
+      <div class="section-body"><div class="section-scroll">
 
       <div class="export-panel">
         <div class="export-header">
@@ -3235,8 +3661,10 @@
         </div>
         <pre class="export-code" id="css-output"></pre>
       </div>
+    </div></div>
     </section>
 
+    <footer class="bb-footer"><div class="strip-cell">Run the show</div><div class="strip-cell">©2025</div><div class="strip-cell">Themanager.music</div><div class="strip-cell">Mexico City</div></footer>
   </div><!-- /content -->
 </main>
 
@@ -3624,6 +4052,25 @@ document.addEventListener('DOMContentLoaded', () => {
   setupScrollSpy();
   updateExportPreview();
 });
+
+function copyText(v) {
+  try { navigator.clipboard.writeText(v); } catch (e) {}
+  showToast('Copied ' + v);
+}
+function setupStripSection() {
+  const label = document.getElementById('strip-section');
+  if (!label) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const t = e.target.querySelector('.section-title');
+        if (t) label.textContent = t.textContent.trim();
+      }
+    });
+  }, { rootMargin: '-90px 0px -60% 0px' });
+  document.querySelectorAll('.ds-section').forEach(s => obs.observe(s));
+}
+document.addEventListener('DOMContentLoaded', setupStripSection);
 </script>
 </body>
 </html>
