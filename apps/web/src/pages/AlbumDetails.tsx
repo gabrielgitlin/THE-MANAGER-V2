@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Disc, Calendar, Tag, Globe, DollarSign, TrendingUp, Plus, GripVertical } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Plus, GripVertical } from 'lucide-react';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Album, CreditShare } from '../types';
+import type { Album, CreditShare, Track } from '../types';
 import { CATALOG } from '../data/catalog';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
@@ -13,6 +13,7 @@ import DigitalAssetUploader from '../components/catalog/DigitalAssetUploader';
 import { listAssets as listDigitalAssets } from '../lib/digitalAssetService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ProjectTagInput, type ProjectTag } from '../components/ui/ProjectTagInput';
+import { KebabMenu } from '../components/ui/KebabMenu';
 
 
 export default function AlbumDetails() {
@@ -36,32 +37,15 @@ export default function AlbumDetails() {
   const [newGenre, setNewGenre] = useState('');
   const [newCredit, setNewCredit] = useState<{ type: string; credit: CreditShare }>({ type: '', credit: { name: '' } });
   const [isAddingCredit, setIsAddingCredit] = useState(false);
-  const [digitalAssets, setDigitalAssets] = useState<DigitalAsset[]>([]);
-  const [linkedBudget, setLinkedBudget] = useState<Budget | null>(null);
   const [artistProjects, setArtistProjects] = useState<ProjectTag[]>([]);
   const [isUploadingArtwork, setIsUploadingArtwork] = useState(false);
   const [showStockPicker, setShowStockPicker] = useState(false);
   const artworkInputRef = React.useRef<HTMLInputElement>(null);
   const stockCarouselRef = React.useRef<HTMLDivElement>(null);
 
-  // Inline artist tag editing
-  const [isEditingArtist, setIsEditingArtist] = useState(false);
-  const [artistEditTags, setArtistEditTags] = useState<ContactTag[]>([]);
-
-  const saveArtistTags = async (tags: ContactTag[]) => {
-    if (!album) return;
-    const artistStr = tags.map(t => t.name).join(', ');
-    const { error } = await supabase.from('albums').update({
-      artist: artistStr || 'Unknown Artist',
-      artist_contacts: JSON.stringify(tags),
-    }).eq('id', album.id);
-    if (error) { console.error('Failed to save artist:', error); return; }
-    const updated = { ...album, artist: artistStr || 'Unknown Artist', artistTags: tags } as any;
-    setAlbum(updated);
-    setAlbumData(updated);
-    setIsEditingArtist(false);
-    if (tags.length > 0) syncArtistsToTeam(tags.map(t => ({ name: t.name, role: 'Artist' })));
-  };
+  // The artist-projects editor below is gated on this flag, but nothing toggles it since the
+  // inline-edit merge removed the album "Edit" button. TODO: re-wire or drop the editor.
+  const [isEditingAlbum] = useState(false);
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -162,7 +146,8 @@ export default function AlbumDetails() {
             audioUrl: at.tracks.audio_url || at.tracks.preview_url || undefined,
             albumId: albumData.id as any,
             songwriters: [],
-          })),
+          // TODO(types): DB rows lack discNumber/genres/producers/engineers that Track requires.
+          })) as Track[],
           artistCredits: [],
           producers: [],
           mixEngineers: [],
@@ -179,7 +164,9 @@ export default function AlbumDetails() {
         } else if (albumData.artist_id) {
           setArtistProjects([{
             id: albumData.artist_id as string,
-            name: albumData.artists?.name || 'Unknown Artist',
+            // Supabase infers `artists` as an array, but this many-to-one join returns an object.
+            // TODO(types): generate typed Supabase relations.
+            name: (albumData.artists as unknown as { name?: string } | null)?.name || 'Unknown Artist',
           }]);
         }
       } catch (err) {
@@ -217,12 +204,6 @@ export default function AlbumDetails() {
     if (track.audioUrl) return 'native' as const;
     if (track.spotifyUri) return 'spotify' as const;
     return 'none' as const;
-  };
-
-  const spotifyUriToUrl = (uri: string) => {
-    // spotify:track:XXXXX → https://open.spotify.com/track/XXXXX
-    const id = uri.replace('spotify:track:', '');
-    return `https://open.spotify.com/track/${id}`;
   };
 
   const handlePlayPause = (trackId: number) => {
@@ -278,28 +259,84 @@ export default function AlbumDetails() {
     setEditDraft('');
   };
 
-  const handleSaveAlbum = async () => {
-    if (user && id && albumData) {
-      try {
-        const { error } = await supabase
-          .from('albums')
-          .update({ artist_projects: artistProjects })
-          .eq('id', id);
-        if (error) throw error;
-      } catch (err) {
-        console.error('Error saving artist projects:', err);
-      }
+  const commitEditing = async () => {
+    if (!editingField || !albumData) {
+      cancelEditing();
+      return;
     }
-    setIsEditingAlbum(false);
+    const field = editingField;
+    const column = FIELD_TO_COLUMN[field];
+    const rawValue = editDraft.trim();
+
+    // Guard: title, format, and artist are NOT NULL in prod schema. Reject empty saves.
+    if ((field === 'title' || field === 'format' || field === 'artist') && !rawValue) {
+      cancelEditing();
+      return;
+    }
+
+    // Optimistic local update, keyed on the React field name.
+    const patchLocal: Partial<Album> =
+      field === 'releaseDate' ? { releaseDate: rawValue } : { [field]: rawValue } as Partial<Album>;
+    setAlbumData({ ...albumData, ...patchLocal });
+    cancelEditing();
+
+    // Persist. Only attempt when we have a real DB-backed album (UUID id).
+    if (!user || typeof album?.id !== 'string') return;
+    const { error } = await supabase
+      .from('albums')
+      .update({ [column]: rawValue || null })
+      .eq('id', album.id);
+    if (error) {
+      console.error('Error updating album field:', field, error);
+      // Roll back optimistic update
+      setAlbumData({ ...albumData });
+    }
   };
 
-  const handleSaveTrack = (trackId: number, updates: any) => {
-    if (!albumData) return;
-    const updatedTracks = albumData.tracks.map(track => 
-      track.id === trackId ? { ...track, ...updates } : track
-    );
-    setAlbumData({ ...albumData, tracks: updatedTracks });
-    setEditingTrackId(null);
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitEditing();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelEditing();
+    }
+  };
+
+  // ---- Track reorder via drag-and-drop ----
+  const handleDragStart = (trackId: string | number) => {
+    setDraggedTrackId(trackId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetTrackNumber: number) => {
+    e.preventDefault();
+    if (!draggedTrackId || !albumData) return;
+
+    const tracks = [...albumData.tracks];
+    const draggedIdx = tracks.findIndex(t => t.id === draggedTrackId);
+    const targetIdx = tracks.findIndex(t => t.trackNumber === targetTrackNumber);
+    if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) return;
+
+    // Swap track numbers
+    const tmpNum = tracks[draggedIdx].trackNumber;
+    tracks[draggedIdx] = { ...tracks[draggedIdx], trackNumber: tracks[targetIdx].trackNumber };
+    tracks[targetIdx] = { ...tracks[targetIdx], trackNumber: tmpNum };
+    tracks.sort((a, b) => a.trackNumber - b.trackNumber);
+
+    setAlbumData({ ...albumData, tracks });
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedTrackId(null);
+    // Persist the new track order to album_tracks in Supabase
+    if (!user || !albumData) return;
+    for (const track of albumData.tracks) {
+      await supabase
+        .from('album_tracks')
+        .update({ track_number: track.trackNumber })
+        .eq('album_id', albumData.id)
+        .eq('track_id', track.id);
+    }
   };
 
   const handleAddGenre = () => {
