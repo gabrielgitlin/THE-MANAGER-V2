@@ -24,7 +24,7 @@ jobs:
       - run: pnpm turbo run lint typecheck test --filter='./packages/*' --filter=@the-manager/api --filter=@the-manager/worker
 
   web:
-    name: Web — build
+    name: Web — lint, typecheck, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -34,6 +34,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # TODO: switch to `pnpm --filter @the-manager/web build` once the web typecheck passes.
-      - run: pnpm --filter @the-manager/web exec vite build
+      - run: pnpm --filter @the-manager/web lint
+      - run: pnpm --filter @the-manager/web test
+      - run: pnpm --filter @the-manager/web build
       - run: pnpm --filter @the-manager/mcp build

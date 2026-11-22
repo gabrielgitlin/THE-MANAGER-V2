@@ -1,12 +1,31 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from 'node:path';
+
+// Vendor chunks: split heavy dependencies into their own long-cached files.
+const VENDOR_CHUNKS: Record<string, string[]> = {
+  'vendor-react': ['react', 'react-dom', 'react-router-dom', 'react-router', 'scheduler'],
+  'vendor-supabase': ['@supabase'],
+  'vendor-charts': ['recharts', 'd3-', 'victory-vendor'],
+  'vendor-ui': ['framer-motion', 'lucide-react'],
+  'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+  'vendor-xlsx': ['xlsx'],
+};
+
+function vendorChunk(id: string): string | undefined {
+  const match = id.split('node_modules/').pop();
+  if (!match || !id.includes('node_modules')) return undefined;
+  for (const [chunk, pkgs] of Object.entries(VENDOR_CHUNKS)) {
+    if (pkgs.some((pkg) => match.startsWith(pkg.endsWith('-') ? pkg : `${pkg}/`))) return chunk;
+  }
+  return undefined;
+}
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   server: {
@@ -14,38 +33,11 @@ export default defineConfig({
     host: true,
   },
   build: {
-    // Target modern browsers for smaller output
-    target: 'es2020',
-    // Enable source maps for debugging
+    target: 'es2022',
     sourcemap: false,
-    // Chunk size warning at 500KB
     chunkSizeWarningLimit: 500,
     rollupOptions: {
-      output: {
-        manualChunks: {
-          // Vendor chunks - split heavy deps into separate files
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-charts': ['recharts'],
-          'vendor-ui': ['framer-motion', 'lucide-react'],
-          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
-          'vendor-xlsx': ['xlsx'],
-        },
-      },
+      output: { manualChunks: vendorChunk },
     },
-    // Minification
-    minify: 'esbuild',
-  },
-  // Optimize dependency pre-bundling
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      '@supabase/supabase-js',
-      'recharts',
-      'zustand',
-      'lucide-react',
-    ],
   },
 });
