@@ -77,6 +77,8 @@ export default function AnalyticsIntegrations() {
         .single();
       if (!artist) throw new Error('No artist found');
 
+      if (!artist) throw new Error('No artist found');
+
       const redirectUri = `${window.location.origin}${window.location.pathname}`;
       const authUrl = initiateYouTubeOAuth(artist.id, redirectUri);
       window.location.href = authUrl;

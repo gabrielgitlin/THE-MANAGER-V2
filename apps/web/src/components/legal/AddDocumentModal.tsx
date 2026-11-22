@@ -8,7 +8,8 @@ export interface AddDocumentSubmission {
   type: 'template' | 'upload';
   // For template flow
   template?: string;
-  data?: unknown;
+  // Form values filled in the template editor
+  data?: Record<string, unknown>;
   // For upload/link flow
   file?: File;
   externalLink?: {
@@ -88,7 +89,7 @@ export default function AddDocumentModal({ isOpen, onClose, onSubmit }: AddDocum
     onClose();
   };
 
-  const handleTemplateSubmit = (data: any) => {
+  const handleTemplateSubmit = (data: Record<string, unknown>) => {
     // In a real app, this would generate a PDF from the template data
     console.log('Template data:', data);
     

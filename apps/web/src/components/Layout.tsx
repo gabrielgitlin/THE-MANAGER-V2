@@ -52,6 +52,7 @@ export default function Layout() {
     console.log('Saving artist info:', info);
   };
 
+
   return (
     <div className="flex flex-col h-screen" style={{ background: 'var(--bg)' }}>
       <div className="flex-1 flex flex-col min-h-0">

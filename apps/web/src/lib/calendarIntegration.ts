@@ -461,13 +461,13 @@ export const calendarIntegrationService = {
         } else if (key === 'LOCATION') {
           currentEvent.location = value.replace(/\\n/g, '\n').replace(/\\,/g, ',');
         } else if (key === 'DTSTART') {
-          const { date, time, isAllDay } = this.parseICalDateTime(value);
+          const { date, time, isAllDay } = this.parseICalDateTime(value, params);
           currentEvent.startDate = date;
           currentEvent.startTime = time;
           currentEvent.isAllDay = isAllDay;
           currentEvent.timezone = params.TZID;
         } else if (key === 'DTEND') {
-          const { date, time } = this.parseICalDateTime(value);
+          const { date, time } = this.parseICalDateTime(value, params);
           currentEvent.endDate = date;
           currentEvent.endTime = time;
         } else if (key === 'RRULE') {
@@ -482,7 +482,7 @@ export const calendarIntegrationService = {
   },
 
   // Parse iCal date/time format
-  parseICalDateTime(value: string): { date: string; time: string | null; isAllDay: boolean } {
+  parseICalDateTime(value: string, _params: Record<string, string>): { date: string; time: string | null; isAllDay: boolean } {
     if (value.length === 8) {
       const year = value.substring(0, 4);
       const month = value.substring(4, 6);

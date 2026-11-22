@@ -494,7 +494,7 @@ export default function Settings() {
                         </label>
                         <select
                           value={selectedModule || ''}
-                          onChange={(e) => setSelectedModule(e.target.value as keyof ModulePermissions)}
+                          onChange={(e) => setSelectedModule((e.target.value || null) as keyof ModulePermissions | null)}
                           style={{
                             backgroundColor: 'var(--surface)',
                             borderColor: 'var(--border)',
@@ -521,7 +521,7 @@ export default function Settings() {
                           </label>
                           <select
                             value={selectedAccess || ''}
-                            onChange={(e) => setSelectedAccess(e.target.value as AccessLevel)}
+                            onChange={(e) => setSelectedAccess((e.target.value || null) as AccessLevel | null)}
                             style={{
                               backgroundColor: 'var(--surface)',
                               borderColor: 'var(--border)',

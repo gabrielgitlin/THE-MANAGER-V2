@@ -756,9 +756,13 @@ export default function PlaylistsTab() {
               .eq('track_id', pt.tracks.id)
               .limit(1)
               .maybeSingle();
+            // albums/artists are many-to-one relations, so PostgREST returns single objects
+            // (supabase-js infers arrays without generated DB types).
+            const album = albumData?.albums as unknown as
+              | { cover_url: string | null; artists: { name: string } | null }
+              | null
+              | undefined;
 
-            // TODO(types): supabase infers the embedded relation as an array; at runtime it is a single row
-            const album = albumData?.albums as unknown as { cover_url?: string; artists?: { name: string } } | null | undefined;
             return {
               id: pt.tracks.id,
               title: pt.tracks.title,

@@ -179,12 +179,13 @@ export default function SharedPlaylist() {
             .eq('track_id', pt.tracks.id)
             .limit(1)
             .maybeSingle();
-
-          // TODO(types): generated types model these many-to-one embeds as arrays; PostgREST returns objects
+          // albums/artists are many-to-one relations, so PostgREST returns single objects
+          // (supabase-js infers arrays without generated DB types).
           const album = albumData?.albums as unknown as
             | { title: string; cover_url: string | null; artists: { name: string } | null }
             | null
             | undefined;
+
           return {
             ...pt,
             albumInfo: album ? {
@@ -330,7 +331,7 @@ export default function SharedPlaylist() {
   };
 
   const getTrackCover = (track: PlaylistTrack) => {
-    return track.albumInfo?.cover_url || playlist?.cover_url;
+    return track.albumInfo?.cover_url || playlist?.cover_url || undefined;
   };
 
   // --- Loading ---

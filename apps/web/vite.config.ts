@@ -7,7 +7,7 @@ const VENDOR_CHUNKS: Record<string, string[]> = {
   'vendor-react': ['react', 'react-dom', 'react-router-dom', 'react-router', 'scheduler'],
   'vendor-supabase': ['@supabase'],
   'vendor-charts': ['recharts', 'd3-', 'victory-vendor'],
-  'vendor-ui': ['framer-motion', 'lucide-react'],
+  'vendor-ui': ['lucide-react'],
   'vendor-pdf': ['jspdf', 'jspdf-autotable'],
   'vendor-xlsx': ['xlsx'],
 };

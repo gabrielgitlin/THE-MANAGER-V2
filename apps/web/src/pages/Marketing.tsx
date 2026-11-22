@@ -12,11 +12,6 @@ import type { AssetSubmission } from '../lib/assetSources';
 type Platform = 'instagram' | 'twitter' | 'facebook' | 'youtube' | 'tiktok';
 type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
 
-// TODO(types): the marketing_posts rows/inserts carry an `author` column that
-// postService.MarketingPost / CreatePostData don't declare yet.
-type MarketingPostRow = postService.MarketingPost & { author?: string };
-type CreatePostPayload = postService.CreatePostData & { author: string };
-
 interface SocialMediaPost {
   id: string;
   title: string;
@@ -27,7 +22,6 @@ interface SocialMediaPost {
   status: PostStatus;
   mediaUrl?: string;
   tags?: string[];
-  author?: string;
   createdAt: string;
   updatedAt: string;
   done?: boolean;
@@ -83,7 +77,6 @@ export default function Marketing() {
     scheduledTime: '12:00',
     status: 'draft',
     tags: [],
-    author: 'Peter Grant',
     done: false
   });
 
@@ -101,7 +94,7 @@ export default function Marketing() {
         fileService.getFiles()
       ]);
 
-      const mappedPosts: SocialMediaPost[] = fetchedPosts.map((p: MarketingPostRow) => ({
+      const mappedPosts: SocialMediaPost[] = fetchedPosts.map(p => ({
         id: p.id,
         title: p.title,
         content: p.content,
@@ -111,7 +104,6 @@ export default function Marketing() {
         status: p.status as PostStatus,
         mediaUrl: p.media_url,
         tags: p.tags,
-        author: p.author,
         createdAt: p.created_at,
         updatedAt: p.updated_at,
         done: p.done
@@ -179,7 +171,7 @@ export default function Marketing() {
 
     setIsSaving(true);
     try {
-      const createPayload: CreatePostPayload = {
+      const created = await postService.createPost({
         title: newPost.title,
         content: newPost.content,
         platform: newPost.platform as postService.Platform,
@@ -187,10 +179,8 @@ export default function Marketing() {
         scheduled_time: newPost.scheduledTime,
         status: newPost.status as postService.PostStatus,
         media_url: newPost.mediaUrl,
-        tags: newPost.tags,
-        author: newPost.author || 'Peter Grant'
-      };
-      const created: MarketingPostRow = await postService.createPost(createPayload);
+        tags: newPost.tags
+      });
 
       const mappedPost: SocialMediaPost = {
         id: created.id,
@@ -202,7 +192,6 @@ export default function Marketing() {
         status: created.status as PostStatus,
         mediaUrl: created.media_url,
         tags: created.tags,
-        author: created.author,
         createdAt: created.created_at,
         updatedAt: created.updated_at,
         done: created.done
@@ -217,7 +206,6 @@ export default function Marketing() {
         scheduledTime: '12:00',
         status: 'draft',
         tags: [],
-        author: 'Peter Grant',
         done: false
       });
       setIsAddingPost(false);

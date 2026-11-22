@@ -232,7 +232,6 @@ export default function AnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('streaming');
   const [youtubeIntegration, setYoutubeIntegration] = useState<any>(null);
-  const [, setYoutubeChannelData] = useState<any[]>([]);
   const [youtubeVideoData, setYoutubeVideoData] = useState<any[]>([]);
   const [hasRealData, setHasRealData] = useState(false);
 
@@ -260,7 +259,6 @@ export default function AnalyticsDashboard() {
           const videoData = await getYouTubeVideoAnalytics(integration.id, 10);
 
           if (channelData.length > 0) {
-            setYoutubeChannelData(channelData.reverse());
             setYoutubeVideoData(videoData);
             setHasRealData(true);
           }

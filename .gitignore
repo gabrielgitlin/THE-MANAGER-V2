@@ -28,3 +28,4 @@ dist-ssr
 # Monorepo
 .turbo
 coverage
+.claude/settings.local.json

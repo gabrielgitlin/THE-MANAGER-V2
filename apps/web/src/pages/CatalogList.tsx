@@ -11,19 +11,9 @@ import { formatDate } from '../lib/utils';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import { TMMonthPicker } from '../components/ui/TMMonthPicker';
+import type { CreditShare } from '../types';
 
 type SortDir = 'asc' | 'desc';
-
-// Shapes of the credit arrays on catalog rows (rows themselves are untyped `any`).
-interface CatalogRightsHolder { name: string; ipiNumber?: string }
-interface CatalogSongwriter {
-  name: string;
-  publishingPercentage: number;
-  pros?: CatalogRightsHolder[];
-  publishers?: CatalogRightsHolder[];
-}
-interface CatalogProducer { name: string; masterPercentage: number }
-interface CatalogEngineer { name: string }
 
 const COLUMNS = [
   { key: 'title',              label: 'Title' },
@@ -365,20 +355,20 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
         ISRC: track.isrc,
         UPC: track.upc,
         Genres: track.genres.join(', '),
-        'Songwriters (Publishing %)': track.songwriters.map((sw: CatalogSongwriter) =>
+        'Songwriters (Publishing %)': track.songwriters.map((sw: CreditShare) =>
           `${sw.name} (${sw.publishingPercentage}%)`
         ).join('\n'),
-        'PROs (IPI)': track.songwriters.map((sw: CatalogSongwriter) =>
-          sw.pros?.map((pro: CatalogRightsHolder) => `${pro.name} (${pro.ipiNumber})`).join(', ')
+        'PROs (IPI)': track.songwriters.map((sw: CreditShare) =>
+          sw.pros?.map(pro => `${pro.name} (${pro.ipiNumber})`).join(', ')
         ).join('\n'),
-        'Publishers (IPI)': track.songwriters.map((sw: CatalogSongwriter) =>
-          sw.publishers?.map((pub: CatalogRightsHolder) => `${pub.name} (${pub.ipiNumber})`).join(', ')
+        'Publishers (IPI)': track.songwriters.map((sw: CreditShare) =>
+          sw.publishers?.map(pub => `${pub.name} (${pub.ipiNumber})`).join(', ')
         ).join('\n'),
-        'Producers (Master %)': track.producers.map((p: CatalogProducer) =>
+        'Producers (Master %)': track.producers.map((p: CreditShare) =>
           `${p.name} (${p.masterPercentage}%)`
         ).join('\n'),
-        'Mix Engineers':       track.mixEngineers.map((e: CatalogEngineer) => e.name).join(', '),
-        'Mastering Engineers': track.masteringEngineers.map((e: CatalogEngineer) => e.name).join(', '),
+        'Mix Engineers':       track.mixEngineers.map((e: CreditShare) => e.name).join(', '),
+        'Mastering Engineers': track.masteringEngineers.map((e: CreditShare) => e.name).join(', '),
       }));
       const ws = utils.json_to_sheet(data);
       const wb = utils.book_new();
@@ -430,12 +420,12 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
         formatDate(track.releaseDate),
         track.isrc || '-',
         track.upc || '-',
-        track.songwriters.map((sw: CatalogSongwriter) =>
+        track.songwriters.map((sw: CreditShare) =>
           `${sw.name} (${sw.publishingPercentage}%)\n` +
-          `PRO: ${sw.pros?.map((pro: CatalogRightsHolder) => `${pro.name} (${pro.ipiNumber})`).join(', ') || '-'}\n` +
-          `Publisher: ${sw.publishers?.map((pub: CatalogRightsHolder) => `${pub.name} (${pub.ipiNumber})`).join(', ') || '-'}`
+          `PRO: ${sw.pros?.map(pro => `${pro.name} (${pro.ipiNumber})`).join(', ') || '-'}\n` +
+          `Publisher: ${sw.publishers?.map(pub => `${pub.name} (${pub.ipiNumber})`).join(', ') || '-'}`
         ).join('\n\n') || '-',
-        track.producers.map((p: CatalogProducer) => `${p.name} (${p.masterPercentage}%)`).join('\n') || '-',
+        track.producers.map((p: CreditShare) => `${p.name} (${p.masterPercentage}%)`).join('\n') || '-',
       ]);
 
       autoTable(doc, {

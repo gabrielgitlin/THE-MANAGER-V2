@@ -452,7 +452,7 @@ export default function CatalogForm({
                 Release Date
               </label>
               <TMDatePicker
-                value={formData.releaseDate ?? ''}
+                value={formData.releaseDate || ''}
                 onChange={(date) => setFormData({ ...formData, releaseDate: date })}
               />
             </div>

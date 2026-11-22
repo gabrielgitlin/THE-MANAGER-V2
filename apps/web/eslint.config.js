@@ -21,6 +21,10 @@ export default tseslint.config(
     // Legacy backlog, kept visible as warnings: Supabase row typing (`any`) goes away as each module moves
     // to the API, and the React Compiler rules flag patterns that are valid in React 18 without the compiler.
     rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/no-explicit-any': 'warn',
       'react-hooks/immutability': 'warn',
       'react-hooks/set-state-in-effect': 'warn',

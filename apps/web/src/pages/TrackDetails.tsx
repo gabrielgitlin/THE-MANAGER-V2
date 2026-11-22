@@ -93,7 +93,7 @@ export default function TrackDetails() {
 
         if (albumData) {
           const artistName = albumData.artists?.name || albumData.artist || 'Unknown Artist';
-          const formattedAlbum: Album & { spotifyUrl?: string } = {
+          const formattedAlbum: Album = {
             id: albumData.id as any,
             title: albumData.title,
             artist: artistName,
@@ -105,7 +105,6 @@ export default function TrackDetails() {
             label: albumData.label || '',
             distributor: '',
             upc: albumData.upc || '',
-            spotifyUrl: albumData.spotify_url,
             tracks: [],
             artistCredits: [],
             producers: [],
@@ -113,18 +112,22 @@ export default function TrackDetails() {
             masteringEngineers: [],
           };
 
-          // TODO(types): DB tracks don't supply discNumber/genres/producers/mixEngineers/masteringEngineers
-          const formattedTrack = {
+          const formattedTrack: Track = {
             id: trackData.id as any,
             title: trackData.title,
             duration: formatDuration(Number(trackData.duration) || 0),
+            discNumber: trackData.disc_number || 1,
             trackNumber: albumTrackData?.track_number || 1,
             isrc: trackData.isrc || '',
             spotifyUri: trackData.spotify_url ? `spotify:track:${trackData.spotify_id}` : undefined,
             audioUrl: trackData.audio_url || trackData.preview_url || undefined,
             albumId: albumData.id as any,
-            songwriters: [] as Track['songwriters'],
-          } as Track;
+            genres: albumData.genres_array || [],
+            producers: [],
+            songwriters: [],
+            mixEngineers: [],
+            masteringEngineers: [],
+          };
 
           setAlbum(formattedAlbum);
           setTrack(formattedTrack);

@@ -7,43 +7,32 @@ import autoTable from 'jspdf-autotable';
 import Modal from '../components/Modal';
 import BudgetChart from '../components/BudgetChart';
 import LoadingSpinner from '../components/LoadingSpinner';
-import type {
-  BudgetCategory as SharedBudgetCategory,
-  BudgetItem as SharedBudgetItem,
-  TransactionType,
-  PaymentStatus as SharedPaymentStatus,
-  Budget as SharedBudget,
-  BudgetSummary as SharedBudgetSummary,
-} from '../types';
+import type { BudgetCategory, BudgetItem, TransactionType, PaymentStatus, Budget } from '../types';
 import { getBudgetById, updateBudgetItem, createBudgetItem, deleteBudgetItem as deleteBudgetItemService, updateBudgetCategory, calculateCommissions, updateBudgetCommissions } from '../lib/budgetService';
 import { formatDate } from '../lib/utils';
 
-// TODO(types): this page uses capitalised payment statuses and live-show budget
-// categories that the shared PaymentStatus / BudgetCategory unions in src/types
-// don't include yet (budgetService passes the DB strings through `as any`).
-// These local widenings should go away once the shared types are corrected.
-type PaymentStatus = SharedPaymentStatus | 'Received' | 'Pending' | 'Paid' | 'Unpaid';
-type BudgetCategory =
-  | SharedBudgetCategory
-  | 'Personnel' | 'Production' | 'Venue' | 'Travel' | 'Accommodation' | 'Catering' | 'Insurance';
-type BudgetItem = Omit<SharedBudgetItem, 'category' | 'status'> & {
-  category: BudgetCategory;
-  status: PaymentStatus;
-};
-type Budget = Omit<SharedBudget, 'budgetItems' | 'categoryBudgets'> & {
-  budgetItems: BudgetItem[];
-  categoryBudgets: { category: BudgetCategory; budgetAmount: number }[];
-};
-
 const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Music', 'Press', 'Other'];
 const TRANSACTION_TYPES: TransactionType[] = ['Expense', 'Income'];
-const PAYMENT_STATUSES: PaymentStatus[] = ['Received', 'Pending', 'Paid', 'Unpaid'];
+const PAYMENT_STATUSES: PaymentStatus[] = ['received', 'pending', 'paid', 'unpaid'];
 
-// Additional categories for live show budgets
-const LIVE_BUDGET_CATEGORIES: BudgetCategory[] = [
+// Additional categories for live show budgets (stored as free-form text in the DB)
+const LIVE_BUDGET_CATEGORIES: string[] = [
   'Personnel', 'Production', 'Venue', 'Travel', 'Accommodation', 
   'Marketing', 'Catering', 'Insurance', 'Other'
 ];
+
+// Older rows may have been saved with capitalized statuses ('Received', 'Unpaid', ...);
+// normalize to the canonical lowercase PaymentStatus values on load.
+const normalizeBudget = (data: Budget | null | undefined): Budget | undefined => {
+  if (!data) return undefined;
+  return {
+    ...data,
+    budgetItems: data.budgetItems.map(item => ({
+      ...item,
+      status: item.status.toLowerCase() as PaymentStatus,
+    })),
+  };
+};
 
 
 export default function FinanceDetails() {
@@ -68,7 +57,7 @@ export default function FinanceDetails() {
     type: 'Expense',
     amount: 0,
     category: 'Other',
-    status: 'Unpaid',
+    status: 'unpaid',
     attachments: [],
   });
 
@@ -80,7 +69,7 @@ export default function FinanceDetails() {
       try {
         setIsLoading(true);
         const budgetData = await getBudgetById(id);
-        setBudget(budgetData || undefined);
+        setBudget(normalizeBudget(budgetData));
       } catch (error) {
         console.error('Error loading budget:', error);
       } finally {
@@ -92,7 +81,7 @@ export default function FinanceDetails() {
   }, [id]);
 
   // Get all available categories based on budget type
-  const getAllCategories = (): BudgetCategory[] => {
+  const getAllCategories = (): string[] => {
     if (budget?.type === 'show') {
       return [...LIVE_BUDGET_CATEGORIES];
     }
@@ -147,7 +136,7 @@ export default function FinanceDetails() {
   const totalActual = budgetSummary.reduce((sum, item) => sum + item.actualAmount, 0);
   const totalVariance = totalBudget - totalActual;
 
-  const handleBudgetEdit = (category: BudgetCategory, amount: number) => {
+  const handleBudgetEdit = (category: string, amount: number) => {
     setEditedBudgets(prev => ({
       ...prev,
       [category]: amount,
@@ -157,7 +146,7 @@ export default function FinanceDetails() {
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
     
-    const category = newCategory.trim() as BudgetCategory;
+    const category = newCategory.trim();
     handleBudgetEdit(category, 0);
     setNewCategory('');
     setIsAddingCategory(false);
@@ -191,7 +180,7 @@ export default function FinanceDetails() {
       );
 
       const refreshedBudget = await getBudgetById(id);
-      setBudget(refreshedBudget || undefined);
+      setBudget(normalizeBudget(refreshedBudget));
       setIsEditingBudget(false);
       setEditedBudgets({});
     } catch (error) {
@@ -373,7 +362,7 @@ export default function FinanceDetails() {
     try {
       await deleteBudgetItemService(String(itemId));
       const refreshedBudget = await getBudgetById(id);
-      setBudget(refreshedBudget || undefined);
+      setBudget(normalizeBudget(refreshedBudget));
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Failed to delete item. Please try again.');
@@ -494,25 +483,25 @@ export default function FinanceDetails() {
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Income Received</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getIncomeByStatus('Received'))}
+                  {formatCurrency(getIncomeByStatus('received'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Income Pending</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getIncomeByStatus('Pending'))}
+                  {formatCurrency(getIncomeByStatus('pending'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Expenses Paid</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getExpensesByStatus('Paid'))}
+                  {formatCurrency(getExpensesByStatus('paid'))}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-charcoal uppercase mb-1 font-medium">Expenses Unpaid</p>
                 <p className="text-xl text-charcoal">
-                  {formatCurrency(getExpensesByStatus('Unpaid'))}
+                  {formatCurrency(getExpensesByStatus('unpaid'))}
                 </p>
               </div>
             </div>
@@ -678,7 +667,7 @@ export default function FinanceDetails() {
         {/* Budget Chart */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-4">Budget vs Actual Comparison</h3>
-          <BudgetChart budgetSummary={budgetSummary as SharedBudgetSummary[]} />
+          <BudgetChart budgetSummary={budgetSummary} />
         </div>
       </div>
 
@@ -703,7 +692,7 @@ export default function FinanceDetails() {
                   type: 'Income',
                   amount: 0,
                   category: 'Other',
-                  status: 'Pending',
+                  status: 'pending',
                   attachments: [],
                 });
                 setIsModalOpen(true);
@@ -763,8 +752,8 @@ export default function FinanceDetails() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.status === 'Received'
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                    item.status === 'received'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-beige text-black'
                   }`}>
@@ -846,7 +835,7 @@ export default function FinanceDetails() {
                   type: 'Expense',
                   amount: 0,
                   category: 'Other',
-                  status: 'Unpaid',
+                  status: 'unpaid',
                   attachments: [],
                 });
                 setIsModalOpen(true);
@@ -906,8 +895,8 @@ export default function FinanceDetails() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.status === 'Paid'
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                    item.status === 'paid'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-beige text-black'
                   }`}>
@@ -999,7 +988,7 @@ export default function FinanceDetails() {
                         e.target.checked
                       );
                       const refreshedBudget = await getBudgetById(id);
-                      setBudget(refreshedBudget || undefined);
+                      setBudget(normalizeBudget(refreshedBudget));
                     } catch (error) {
                       console.error('Error updating commissions:', error);
                     }
@@ -1014,7 +1003,7 @@ export default function FinanceDetails() {
 
         <div className="p-6">
           {(() => {
-            const commissions = calculateCommissions(budget as SharedBudget);
+            const commissions = calculateCommissions(budget);
             return (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1112,7 +1101,7 @@ export default function FinanceDetails() {
             type: 'Expense',
             amount: 0,
             category: 'Other',
-            status: 'Unpaid',
+            status: 'unpaid',
             attachments: [],
           });
         }}
@@ -1124,13 +1113,13 @@ export default function FinanceDetails() {
 
           try {
             if (editingItemId) {
-              await updateBudgetItem(String(editingItemId), newItem as Partial<SharedBudgetItem>);
+              await updateBudgetItem(String(editingItemId), newItem);
             } else {
-              await createBudgetItem(id, newItem as Omit<SharedBudgetItem, 'id'>);
+              await createBudgetItem(id, newItem);
             }
 
             const refreshedBudget = await getBudgetById(id);
-            setBudget(refreshedBudget || undefined);
+            setBudget(normalizeBudget(refreshedBudget));
 
             setIsModalOpen(false);
             setEditingItemId(null);
@@ -1140,7 +1129,7 @@ export default function FinanceDetails() {
               type: 'Expense',
               amount: 0,
               category: 'Other',
-              status: 'Unpaid',
+              status: 'unpaid',
               attachments: [],
             });
           } catch (error) {
@@ -1245,7 +1234,7 @@ export default function FinanceDetails() {
             >
               {PAYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
                 </option>
               ))}
             </select>
@@ -1317,7 +1306,7 @@ export default function FinanceDetails() {
                   type: 'Expense',
                   amount: 0,
                   category: 'Other',
-                  status: 'Unpaid',
+                  status: 'unpaid',
                   attachments: [],
                 });
               }}
@@ -1353,7 +1342,7 @@ export default function FinanceDetails() {
               budget.applyCommissions || false
             );
             const refreshedBudget = await getBudgetById(id);
-            setBudget(refreshedBudget || undefined);
+            setBudget(normalizeBudget(refreshedBudget));
             setIsEditingCommissions(false);
           } catch (error) {
             console.error('Error updating commission rates:', error);

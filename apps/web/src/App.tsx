@@ -1,8 +1,10 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { BrowserRouter, MemoryRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
+import { setMonitoringUser } from './lib/monitoring';
 import Onboarding from './components/Onboarding';
 import { useAuthStore } from './store/authStore';
 import { useOnboarding } from './hooks/useOnboarding';
@@ -57,6 +59,11 @@ function RedirectTeamToIndustry() {
 
 function AppRoutes() {
   const { user, loading, initialize } = useAuthStore();
+  const location = useLocation();
+
+  useEffect(() => {
+    setMonitoringUser(user ? { id: user.id } : null);
+  }, [user]);
   const { needsOnboarding, loading: onboardingLoading, currentStep, stepsCompleted, refresh } = useOnboarding();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -98,6 +105,7 @@ function AppRoutes() {
         />
       )}
 
+      <ErrorBoundary resetKey={location.pathname}>
       <Routes>
         <Route path="/" element={!user ? <Landing /> : <Navigate to="/dashboard" replace />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
@@ -254,6 +262,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
+      </ErrorBoundary>
     </Suspense>
   );
 }

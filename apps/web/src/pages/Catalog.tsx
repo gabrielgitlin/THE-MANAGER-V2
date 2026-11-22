@@ -24,9 +24,6 @@ import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import { useAuthStore } from '../store/authStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-// TODO(types): catalog tracks carry `artist` at runtime (see fetchCatalog) but the shared Track type lacks it
-type PlayerTrack = Parameters<ReturnType<typeof useMusicPlayerStore.getState>['playAlbum']>[0][number];
-
 export default function Catalog() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -38,7 +35,6 @@ export default function Catalog() {
   const [isSpotifyImportModalOpen, setIsSpotifyImportModalOpen] = useState(false);
   const [isDemoUploadModalOpen, setIsDemoUploadModalOpen] = useState(false);
   const [promotingAlbum, setPromotingAlbum] = useState<{ id: number; title: string } | null>(null);
-  const [, setEditingAlbumId] = useState<number | null>(null);
   const [editingTrackId, setEditingTrackId] = useState<number | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<'Single' | 'EP' | 'Album'>('Single');
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,7 +75,7 @@ export default function Catalog() {
   });
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
-  const [, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Inline notes state
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
@@ -136,7 +132,7 @@ export default function Catalog() {
 
   const handleSaveTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || isSaving) return;
 
     setIsSaving(true);
     try {
@@ -274,11 +270,11 @@ export default function Catalog() {
       // Sync all credited artists/collaborators to the Team database (silent, non-blocking)
       syncArtistsToTeam([
         ...formData.artistTags.map((t: ContactTag) => ({ name: t.name, role: 'Artist' })),
-        ...(formData.artistCredits ?? []).map((c) => ({ name: c.name, role: 'Artist' })),
-        ...(formData.producers ?? []).map((c) => ({ name: c.name, role: 'Producer' })),
-        ...(formData.songwriters ?? []).map((c) => ({ name: c.name, role: 'Songwriter' })),
-        ...(formData.mixEngineers ?? []).map((c) => ({ name: c.name, role: 'Mix Engineer' })),
-        ...(formData.masteringEngineers ?? []).map((c) => ({ name: c.name, role: 'Mastering Engineer' })),
+        ...(formData.artistCredits ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Artist' })),
+        ...(formData.producers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Producer' })),
+        ...(formData.songwriters ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Songwriter' })),
+        ...(formData.mixEngineers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Mix Engineer' })),
+        ...(formData.masteringEngineers ?? []).map((c: CreditShare) => ({ name: c.name, role: 'Mastering Engineer' })),
       ]);
 
       // Reset form and close modal
@@ -390,8 +386,15 @@ export default function Catalog() {
             demo_status: (album as any).demo_status ?? null,
             hold_until: (album as any).hold_until ?? null,
             notes: (album as any).notes ?? undefined,
+            genres: [],
+            artistCredits: [],
+            producers: [],
+            mixEngineers: [],
+            masteringEngineers: [],
             tracks: (albumTracks || []).filter((at: any) => at.tracks != null).map((at: any) => ({
               id: at.tracks.id as any,
+              albumId: album.id,
+              discNumber: at.disc_number || 1,
               title: at.tracks.title,
               duration: formatDuration(at.tracks.duration || 0),
               trackNumber: at.track_number,
@@ -402,13 +405,17 @@ export default function Catalog() {
               audioVersions: at.tracks.audio_versions ?? [],
               demo_status: at.tracks.demo_status ?? null,
               hold_until: at.tracks.hold_until ?? null,
+              genres: [],
+              producers: [],
+              songwriters: [],
+              mixEngineers: [],
+              masteringEngineers: [],
             })),
           };
         })
       );
 
-      // TODO(types): the fetched rows carry extra view fields (artistTags, demo_status, notes, ...) that the shared Album/Track types lack
-      setCatalog(albumsWithTracks as unknown as Album[]);
+      setCatalog(albumsWithTracks);
     } catch (err: any) {
       console.error('Error fetching catalog:', err?.message || err, err);
       setCatalog([...CATALOG].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()));
@@ -439,7 +446,7 @@ export default function Catalog() {
 
   const calculateTotalDuration = (tracks: Track[]): number => {
     return tracks.reduce((total, track) => {
-      const [mins, secs] = (track.duration ?? '0:00').split(':').map(Number);
+      const [mins, secs] = (track.duration || '0:00').split(':').map(Number);
       return total + (mins * 60) + secs;
     }, 0);
   };
@@ -971,7 +978,7 @@ export default function Catalog() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl }) as unknown as PlayerTrack));
+                              playAlbum(album.tracks.map(t => ({ ...t, artist: album.artist, duration: t.duration || '0:00', coverArt: album.artworkUrl })));
                             }}
                             className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                             style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -988,7 +995,7 @@ export default function Catalog() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl }) as unknown as PlayerTrack));
+                                playAlbum(album.tracks.map(t => ({ ...t, artist: album.artist, duration: t.duration || '0:00', coverArt: album.artworkUrl })));
                               }}
                               className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                               style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -1392,7 +1399,6 @@ export default function Catalog() {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingAlbumId(null);
           setEditingTrackId(null);
           setFormData({
             title: '',

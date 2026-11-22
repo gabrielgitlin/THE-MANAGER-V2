@@ -4,7 +4,7 @@ interface NewContentSelectorProps {
   onClose: () => void;
 }
 
-export default function NewContentSelector({ onSelect }: NewContentSelectorProps) {
+export default function NewContentSelector({ onSelect, onClose: _onClose }: NewContentSelectorProps) {
   const options = [
     {
       type: 'song' as const,

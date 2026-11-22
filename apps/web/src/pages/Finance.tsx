@@ -16,8 +16,6 @@ const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Mus
 const INCOME_STATUSES: IncomeStatus[] = ['received', 'pending'];
 const EXPENSE_STATUSES: ExpenseStatus[] = ['paid', 'unpaid'];
 
-type LegacyBudgetFields = Budget & { items?: BudgetItem[]; total_amount?: number };
-
 export default function Finance() {
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'quarter' | 'year' | 'custom'>('month');
   const [customDateRange, setCustomDateRange] = useState<{start: string, end: string}>({
@@ -46,7 +44,6 @@ export default function Finance() {
   const [selectedBudgetType, setSelectedBudgetType] = useState<BudgetType | null>(null);
   const [selectedShowId, setSelectedShowId] = useState<number | null>(null);
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [, setIsLoading] = useState(true);
   const [newTransaction, setNewTransaction] = useState<Omit<BudgetItem, 'id'>>({
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -263,12 +260,9 @@ export default function Finance() {
 
   // Group budgets by type
   const groupedBudgets = budgets.reduce((groups, budget) => {
-    if (!groups[budget.type]) {
-      groups[budget.type] = [];
-    }
-    groups[budget.type].push(budget);
+    (groups[budget.type] ??= []).push(budget);
     return groups;
-  }, {} as Record<Budget['type'], Budget[]>);
+  }, {} as Partial<Record<Budget['type'], Budget[]>>);
 
   const prepareCashflowData = () => {
     const allTransactions = overviewFilteredTransactions;
@@ -371,13 +365,10 @@ export default function Finance() {
   useEffect(() => {
     const loadBudgets = async () => {
       try {
-        setIsLoading(true);
         const data = await getAllBudgets();
         setBudgets(data);
       } catch (error) {
         console.error('Error loading budgets:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -1086,7 +1077,7 @@ export default function Finance() {
             </button>
             <button
               onClick={() => {
-                setSelectedBudgetType('custom' as BudgetType); // TODO(types): 'custom' is not a BudgetType; widen BudgetType/BudgetForm props
+                setSelectedBudgetType(null);
                 setIsNewBudgetModalOpen(true);
               }}
               className="flex items-center justify-center px-4 py-3 bg-[var(--surface)] text-[var(--t1)] border border-black hover:bg-[var(--surface-2)] transition-colors"
@@ -1201,7 +1192,7 @@ export default function Finance() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {Object.keys(groupedBudgets).map(type => {
-                  const typeBudgets = groupedBudgets[type as BudgetType];
+                  const typeBudgets = groupedBudgets[type as Budget['type']];
                   if (!typeBudgets || typeBudgets.length === 0) return null;
 
                   return (
@@ -1211,12 +1202,11 @@ export default function Finance() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {typeBudgets.map((budget) => {
-                          // TODO(types): `items`/`total_amount` are not on Budget (mapped budgets expose `budgetItems`)
-                          const legacyBudget = budget as LegacyBudgetFields;
-                          const budgetSpent = legacyBudget.items?.reduce((sum, item) =>
+                          const budgetSpent = budget.budgetItems?.reduce((sum, item) =>
                             item.type === 'Expense' ? sum + item.amount : sum, 0) || 0;
-                          const budgetTotal = legacyBudget.items?.reduce((sum, item) =>
-                            item.type === 'Income' ? sum + item.amount : sum, 0) || legacyBudget.total_amount || 0;
+                          const budgetTotal = budget.budgetItems?.reduce((sum, item) =>
+                            item.type === 'Income' ? sum + item.amount : sum, 0) ||
+                            (budget.categoryBudgets || []).reduce((acc, cat) => acc + cat.budgetAmount, 0);
                           const spentPercentage = budgetTotal > 0 ? (budgetSpent / budgetTotal) * 100 : 0;
 
                           return (

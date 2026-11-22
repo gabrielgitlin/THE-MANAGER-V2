@@ -40,8 +40,8 @@ export default function Logistics() {
 
   const handleAddTransportation = (data: Partial<TravelItinerary>) => {
     const newItinerary: TravelItinerary = {
+      ...data as TravelItinerary,
       id: `ti-${Date.now()}`,
-      ...data as Omit<TravelItinerary, 'id'>
     };
     setTravelItineraries([...travelItineraries, newItinerary]);
     setTransportationModalOpen(false);
@@ -65,8 +65,8 @@ export default function Logistics() {
 
   const handleAddAccommodation = (data: Partial<AccommodationBooking>) => {
     const newBooking: AccommodationBooking = {
+      ...data as AccommodationBooking,
       id: `ab-${Date.now()}`,
-      ...data as Omit<AccommodationBooking, 'id'>
     };
     setAccommodationBookings([...accommodationBookings, newBooking]);
     setAccommodationModalOpen(false);

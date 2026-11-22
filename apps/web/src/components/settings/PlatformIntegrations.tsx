@@ -45,6 +45,8 @@ export default function PlatformIntegrations() {
         .single();
       if (!artist) throw new Error('No artist found');
 
+      if (!artist) throw new Error('No artist found');
+
       await saveIntegration({
         artist_id: artist.id,
         platform,

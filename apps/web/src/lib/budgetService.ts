@@ -73,7 +73,7 @@ function convertDatabaseToBudget(
     releaseType: dbBudget.release_type as any,
     releaseDate: dbBudget.release_date,
     albumId: dbBudget.album_id as any,
-    showId: dbBudget.show_id as any, // TODO(types): Budget.showId is a number but show_id is a string
+    showId: dbBudget.show_id as any, // Budget.showId is typed number but shows use uuid strings
     venue: dbBudget.venue,
     city: dbBudget.city,
     startDate: dbBudget.start_date,

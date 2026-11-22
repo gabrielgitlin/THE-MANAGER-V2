@@ -18,7 +18,7 @@ interface NewTrack {
   isrc?: string;
 }
 
-export default function CatalogSelector({ selectedTracks, onSelectionChange }: CatalogSelectorProps) {
+export default function CatalogSelector({ selectedTracks, onSelectionChange, releaseType: _releaseType }: CatalogSelectorProps) {
   const { user } = useAuthStore();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [expandedAlbums, setExpandedAlbums] = useState<Set<number>>(new Set());

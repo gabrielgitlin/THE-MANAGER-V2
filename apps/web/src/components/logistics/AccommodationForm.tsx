@@ -74,6 +74,7 @@ export default function AccommodationForm({
     });
   };
 
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center gap-3 mb-4">

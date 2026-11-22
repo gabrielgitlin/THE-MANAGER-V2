@@ -9,11 +9,11 @@ import type { Organization, OrganizationFormData, OrganizationType } from '../..
 
 type TypeFilter = OrganizationType | 'all';
 
-const SUB_TAB_TYPES = [
-  'all', 'label', 'publisher', 'management', 'booking', 'venue', 'studio', 'other',
-] as const satisfies readonly TypeFilter[];
+type SubTabType = Extract<TypeFilter, 'all' | 'label' | 'publisher' | 'management' | 'booking' | 'venue' | 'studio' | 'other'>;
 
-type SubTabType = (typeof SUB_TAB_TYPES)[number];
+const SUB_TAB_TYPES: SubTabType[] = [
+  'all', 'label', 'publisher', 'management', 'booking', 'venue', 'studio', 'other',
+];
 
 const SUB_TAB_LABELS: Record<SubTabType, string> = {
   all: 'ALL',

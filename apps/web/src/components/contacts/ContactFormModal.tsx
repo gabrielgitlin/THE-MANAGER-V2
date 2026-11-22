@@ -8,20 +8,14 @@ import type {
   Contact, ContactCategory, ContactFormData, SeatingPreference, SocialLinks,
 } from '../../types/contacts';
 
-// ContactFormData inherits a required `visibility` from Contact, but this form never
-// sets it (createContact defaults it to 'workspace'), so keep it optional locally.
-// TODO(types): make `visibility` optional in ContactFormData in src/types/contacts.ts.
-type ContactFormState = Omit<ContactFormData, 'visibility'> & {
-  visibility?: ContactFormData['visibility'];
-};
-
 interface Props {
   contact?: Contact;
   onSaved: () => void;
   onClose: () => void;
 }
 
-const EMPTY: ContactFormState = {
+const EMPTY: ContactFormData = {
+  visibility: 'workspace',
   category: 'other',
   role: '',
   firstName: '',
@@ -46,9 +40,10 @@ const EMPTY: ContactFormState = {
 };
 
 export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
-  const [form, setForm] = useState<ContactFormState>(
+  const [form, setForm] = useState<ContactFormData>(
     contact
       ? {
+          visibility: contact.visibility,
           category: contact.category,
           role: contact.role ?? '',
           firstName: contact.firstName,
@@ -80,7 +75,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
 
-  function set<K extends keyof ContactFormState>(key: K, val: ContactFormState[K]) {
+  function set<K extends keyof ContactFormData>(key: K, val: ContactFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: val }));
   }
 
@@ -116,7 +111,7 @@ export default function ContactFormModal({ contact, onSaved, onClose }: Props) {
     try {
       const saved = contact
         ? await updateContact(contact.id, form)
-        : await createContact({ ...form, visibility: form.visibility ?? 'workspace' });
+        : await createContact(form);
       if (photoFile) {
         const photoUrl = await uploadContactPhoto(saved.id, photoFile);
         await updateContact(saved.id, { profilePhotoUrl: photoUrl });
