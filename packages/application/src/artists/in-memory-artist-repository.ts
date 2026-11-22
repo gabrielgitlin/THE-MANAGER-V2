@@ -11,13 +11,15 @@ import type {
 export class InMemoryArtistRepository implements ArtistRepository {
   readonly artists = new Map<string, Artist>();
 
-  async findById(id: string): Promise<Artist | null> {
-    return this.artists.get(id) ?? null;
+  async findById(workspaceId: string, id: string): Promise<Artist | null> {
+    const artist = this.artists.get(id);
+    return artist && artist.workspaceId === workspaceId ? artist : null;
   }
 
-  async list({ limit, offset, search }: ListArtistsQuery): Promise<Page<Artist>> {
+  async list({ workspaceId, limit, offset, search }: ListArtistsQuery): Promise<Page<Artist>> {
     const needle = search?.toLowerCase();
     const all = [...this.artists.values()]
+      .filter((a) => a.workspaceId === workspaceId)
       .filter((a) => !needle || a.name.toLowerCase().includes(needle))
       .sort((a, b) => a.name.localeCompare(b.name));
     return { items: all.slice(offset, offset + limit), total: all.length };

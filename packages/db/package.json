@@ -14,7 +14,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:load-snapshot": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -q -f ../../supabase/snapshot/stubs.sql -f ../../supabase/snapshot/public.sql",
+    "db:pull-snapshot": "drizzle-kit pull --config drizzle.pull.config.ts && node scripts/fix-pulled-schema.ts pulled/schema.ts src/schema/supabase.ts && prettier --write src/schema/supabase.ts"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
@@ -25,6 +27,7 @@
     "@types/node": "catalog:",
     "dotenv": "catalog:",
     "drizzle-kit": "catalog:",
+    "prettier": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

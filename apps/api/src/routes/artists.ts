@@ -6,6 +6,7 @@ import {
   ErrorResponseSchema,
   ListArtistsQuerySchema,
   ListArtistsResponseSchema,
+  WorkspaceHeadersSchema,
   type ArtistDto,
 } from '@the-manager/contracts';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
@@ -23,12 +24,13 @@ export const artistRoutes =
       {
         schema: {
           tags: ['artists'],
+          headers: WorkspaceHeadersSchema,
           querystring: ListArtistsQuerySchema,
           response: { 200: ListArtistsResponseSchema },
         },
       },
       async (req) => {
-        const page = await artists.listArtists(req.query);
+        const page = await artists.listArtists(req.headers['x-workspace-id'], req.query);
         return { items: page.items.map(toArtistDto), total: page.total };
       },
     );
@@ -38,11 +40,13 @@ export const artistRoutes =
       {
         schema: {
           tags: ['artists'],
+          headers: WorkspaceHeadersSchema,
           params: ArtistParamsSchema,
           response: { 200: ArtistSchema, 404: ErrorResponseSchema },
         },
       },
-      async (req) => toArtistDto(await artists.getArtist(req.params.id)),
+      async (req) =>
+        toArtistDto(await artists.getArtist(req.headers['x-workspace-id'], req.params.id)),
     );
 
     app.post(
@@ -50,12 +54,13 @@ export const artistRoutes =
       {
         schema: {
           tags: ['artists'],
+          headers: WorkspaceHeadersSchema,
           body: CreateArtistBodySchema,
           response: { 201: ArtistSchema, 422: ErrorResponseSchema },
         },
       },
       async (req, reply) => {
-        const artist = await artists.createArtist(req.body);
+        const artist = await artists.createArtist(req.headers['x-workspace-id'], req.body);
         return reply.status(201).send(toArtistDto(artist));
       },
     );

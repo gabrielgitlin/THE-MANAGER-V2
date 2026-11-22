@@ -29,3 +29,6 @@ dist-ssr
 .turbo
 coverage
 .claude/settings.local.json
+
+# drizzle-kit pull raw output (post-processed into src/schema/supabase.ts)
+packages/db/pulled

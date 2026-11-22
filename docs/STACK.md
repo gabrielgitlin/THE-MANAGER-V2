@@ -55,6 +55,7 @@ Module by module, with the app running throughout:
 
 1. Monorepo skeleton, tooling, CI, Dokploy on Hetzner, empty Postgres.
 2. Schema: `drizzle-kit pull` from Supabase, clean up, first migration; copy data.
+   Done: snapshot in `supabase/snapshot/`, Drizzle schema in `packages/db/src/schema/supabase.ts`. Pending: data copy.
 3. Auth: Better Auth with migrated users (existing password hashes kept), Google OAuth.
 4. Modules one at a time (catalog, shows/touring, finance, legal, marketing, tasks…): domain → use cases → repositories → API → swap the web calls.
 5. Storage, edge functions → API endpoints / pg-boss jobs, emails.

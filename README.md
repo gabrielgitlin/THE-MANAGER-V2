@@ -38,11 +38,26 @@ corepack enable
 pnpm install
 cp .env.example .env
 pnpm db:up                         # Postgres 19 on localhost:5432
-pnpm --filter @the-manager/db db:push
+pnpm --filter @the-manager/db db:load-snapshot   # production schema (see below)
 pnpm dev                           # web, api and worker in watch mode
 ```
 
 API: http://localhost:3000 (`/health`, `/ready`, `/v1/artists`, `/openapi.json`).
+Until authentication lands, workspace-scoped routes take the workspace (a `teams.id`) in the
+`x-workspace-id` header.
+
+## Database schema
+
+The schema comes from the production Supabase database (project `ckyvpcyuqniiqfzmoidu`):
+
+- `supabase/snapshot/public.sql` — tables, constraints, indexes, functions, triggers and RLS policies,
+  exported from the catalog by `supabase/snapshot/export.sh` (`export-ddl.sql`).
+- `supabase/snapshot/stubs.sql` — stand-ins for the Supabase-only objects it references (`auth.users`,
+  `auth.uid()`, roles) so it loads into plain Postgres.
+- `packages/db/src/schema/supabase.ts` — Drizzle schema generated from it. Regenerate with a database that
+  holds the snapshot: `PULL_DATABASE_URL=postgres://… pnpm --filter @the-manager/db db:pull-snapshot`
+  (runs `drizzle-kit pull`, then `scripts/fix-pulled-schema.ts`, which fixes quoted defaults and maps the
+  42 foreign keys to `auth.users`).
 
 ## Scripts
 

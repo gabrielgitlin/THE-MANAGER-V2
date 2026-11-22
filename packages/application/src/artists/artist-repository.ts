@@ -1,6 +1,7 @@
 import type { Artist, ArtistLinks } from '@the-manager/domain';
 
 export interface ListArtistsQuery {
+  workspaceId: string;
   limit: number;
   offset: number;
   search?: string;
@@ -12,6 +13,7 @@ export interface Page<T> {
 }
 
 export interface CreateArtistData {
+  workspaceId: string;
   name: string;
   bio: string;
   genre: string;
@@ -21,7 +23,7 @@ export interface CreateArtistData {
 
 /** Port: how the application reads and stores artists. Implemented in infrastructure. */
 export interface ArtistRepository {
-  findById(id: string): Promise<Artist | null>;
+  findById(workspaceId: string, id: string): Promise<Artist | null>;
   list(query: ListArtistsQuery): Promise<Page<Artist>>;
   create(data: CreateArtistData): Promise<Artist>;
 }

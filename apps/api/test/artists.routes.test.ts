@@ -2,6 +2,9 @@ import { InMemoryArtistRepository, makeArtistUseCases } from '@the-manager/appli
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
 
+const WS = '11111111-1111-4111-8111-111111111111';
+const headers = { 'x-workspace-id': WS };
+
 describe('artists routes', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
   let dbUp = true;
@@ -20,16 +23,17 @@ describe('artists routes', () => {
     const created = await app.inject({
       method: 'POST',
       url: '/v1/artists',
+      headers,
       payload: { name: ' Natalia Lafourcade ' },
     });
     expect(created.statusCode).toBe(201);
     const artist = created.json();
-    expect(artist.name).toBe('Natalia Lafourcade');
+    expect(artist).toMatchObject({ name: 'Natalia Lafourcade', workspaceId: WS });
 
-    const fetched = await app.inject({ method: 'GET', url: `/v1/artists/${artist.id}` });
+    const fetched = await app.inject({ method: 'GET', url: `/v1/artists/${artist.id}`, headers });
     expect(fetched.json()).toEqual(artist);
 
-    const list = await app.inject({ method: 'GET', url: '/v1/artists?search=natalia' });
+    const list = await app.inject({ method: 'GET', url: '/v1/artists?search=natalia', headers });
     expect(list.json()).toMatchObject({ total: 1, items: [{ id: artist.id }] });
   });
 
@@ -37,6 +41,7 @@ describe('artists routes', () => {
     const blank = await app.inject({
       method: 'POST',
       url: '/v1/artists',
+      headers,
       payload: { name: '   ' },
     });
     expect(blank.statusCode).toBe(422);
@@ -47,12 +52,18 @@ describe('artists routes', () => {
     const missing = await app.inject({
       method: 'GET',
       url: '/v1/artists/00000000-0000-4000-8000-000000000000',
+      headers,
     });
     expect(missing.statusCode).toBe(404);
   });
 
   it('rejects malformed requests with 400', async () => {
-    const res = await app.inject({ method: 'GET', url: '/v1/artists/not-a-uuid' });
+    const res = await app.inject({ method: 'GET', url: '/v1/artists/not-a-uuid', headers });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('requires a workspace', async () => {
+    const res = await app.inject({ method: 'GET', url: '/v1/artists' });
     expect(res.statusCode).toBe(400);
   });
 

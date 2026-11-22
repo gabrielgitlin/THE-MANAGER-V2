@@ -8,6 +8,8 @@ export interface ArtistLinks {
 
 export interface Artist {
   id: string;
+  /** Workspace (team) the artist belongs to; every read and write is scoped by it. */
+  workspaceId: string;
   name: string;
   bio: string;
   genre: string;

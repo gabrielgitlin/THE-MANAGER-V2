@@ -6,7 +6,7 @@ import type {
 } from '@the-manager/application';
 import { schema, type Database } from '@the-manager/db';
 import type { Artist } from '@the-manager/domain';
-import { asc, count, eq, ilike } from 'drizzle-orm';
+import { and, asc, count, eq, ilike } from 'drizzle-orm';
 
 const { artists } = schema;
 type Row = schema.ArtistRow;
@@ -18,6 +18,7 @@ export function toArtist(row: Row): Artist {
   const created = row.createdAt ?? new Date(0);
   return {
     id: row.id,
+    workspaceId: row.workspaceId,
     name: row.name,
     bio: row.bio ?? '',
     genre: row.genre ?? '',
@@ -39,15 +40,20 @@ export class DrizzleArtistRepository implements ArtistRepository {
     this.#db = db;
   }
 
-  async findById(id: string): Promise<Artist | null> {
-    const [row] = await this.#db.select().from(artists).where(eq(artists.id, id)).limit(1);
+  async findById(workspaceId: string, id: string): Promise<Artist | null> {
+    const [row] = await this.#db
+      .select()
+      .from(artists)
+      .where(and(eq(artists.workspaceId, workspaceId), eq(artists.id, id)))
+      .limit(1);
     return row ? toArtist(row) : null;
   }
 
-  async list({ limit, offset, search }: ListArtistsQuery): Promise<Page<Artist>> {
-    const where = search
-      ? ilike(artists.name, `%${search.replace(/[\\%_]/g, '\\$&')}%`)
-      : undefined;
+  async list({ workspaceId, limit, offset, search }: ListArtistsQuery): Promise<Page<Artist>> {
+    const where = and(
+      eq(artists.workspaceId, workspaceId),
+      search ? ilike(artists.name, `%${search.replace(/[\\%_]/g, '\\$&')}%`) : undefined,
+    );
     const [rows, totals] = await Promise.all([
       this.#db
         .select()
@@ -65,6 +71,7 @@ export class DrizzleArtistRepository implements ArtistRepository {
     const [row] = await this.#db
       .insert(artists)
       .values({
+        workspaceId: data.workspaceId,
         name: data.name,
         bio: data.bio,
         genre: data.genre,

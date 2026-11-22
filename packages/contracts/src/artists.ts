@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const ArtistSchema = z.object({
   id: z.uuid(),
+  workspaceId: z.uuid(),
   name: z.string(),
   bio: z.string(),
   genre: z.string(),
@@ -43,3 +44,9 @@ export const CreateArtistBodySchema = z.object({
 export type CreateArtistBody = z.infer<typeof CreateArtistBodySchema>;
 
 export const ArtistParamsSchema = z.object({ id: z.uuid() });
+
+/**
+ * Temporary tenant selector until authentication lands (migration step 3):
+ * the workspace will then come from the session, not from the client.
+ */
+export const WorkspaceHeadersSchema = z.object({ 'x-workspace-id': z.uuid() });
