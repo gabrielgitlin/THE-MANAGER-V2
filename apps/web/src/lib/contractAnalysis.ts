@@ -3,12 +3,6 @@ import { OpenAI } from 'openai';
 // TODO(types): tsconfig.app.json targets lib ES2020, which lacks the ES2022
 // `new Error(message, { cause })` overload that every supported browser has.
 // Remove this once the lib is bumped to ES2022.
-declare global {
-  interface ErrorConstructor {
-    new (message?: string, options?: { cause?: unknown }): Error;
-  }
-}
-
 function getOpenAIClient() {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 

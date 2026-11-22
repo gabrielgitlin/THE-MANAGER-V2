@@ -122,7 +122,8 @@ export default function AlbumDetails() {
         if (artistTags.length === 0 && artistName && artistName !== 'Unknown Artist') {
           artistTags = [{ name: artistName }];
         }
-        const formattedAlbum: Album = {
+        // Extra fields kept on the loaded album object beyond the shared Album type.
+        const formattedAlbum: Album & { artistTags: typeof artistTags; spotifyUrl?: string } = {
           id: albumData.id as any,
           title: albumData.title,
           artist: artistName,
@@ -145,9 +146,9 @@ export default function AlbumDetails() {
             spotifyUri: at.tracks.spotify_url ? `spotify:track:${at.tracks.spotify_id}` : undefined,
             audioUrl: at.tracks.audio_url || at.tracks.preview_url || undefined,
             albumId: albumData.id as any,
-            songwriters: [],
-          // TODO(types): DB rows lack discNumber/genres/producers/engineers that Track requires.
-          })) as Track[],
+            songwriters: [] as CreditShare[],
+            // TODO(types): DB rows lack discNumber/genres/producers/engineers that Track requires.
+          }) as Track),
           artistCredits: [],
           producers: [],
           mixEngineers: [],
