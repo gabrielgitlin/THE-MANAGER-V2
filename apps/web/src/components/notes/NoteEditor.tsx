@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bold, Italic, Underline, List, ListOrdered, Palette, Maximize2, Minimize2, GripVertical } from 'lucide-react';
-import type { Note, NoteCategory } from '../../types';
+import type { Note } from '../../types';
 
 interface NoteEditorProps {
   note: Note;
@@ -118,7 +118,7 @@ export default function NoteEditor({
   };
 
   React.useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (isEditing) {
       timer = setInterval(() => {
         if (editorRef.current && editorRef.current.innerHTML !== note.content) {

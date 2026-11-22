@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, Calendar, X } from 'lucide-react';
+import { DollarSign, Calendar } from 'lucide-react';
 import Modal from '../Modal';
 import { CrewMember, Show } from '../../types';
 import { formatDate } from '../../lib/utils';

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import PersonnelList from '../components/personnel/PersonnelList';
 import PersonnelForm from '../components/personnel/PersonnelForm';
 import Modal from '../components/Modal';
@@ -8,10 +7,9 @@ import type { PersonnelProfile } from '../types/personnel';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Personnel() {
-  const navigate = useNavigate();
   const [personnel, setPersonnel] = useState<PersonnelProfile[]>([]);
-  const [pros, setPros] = useState([]);
-  const [publishers, setPublishers] = useState([]);
+  const [pros, setPros] = useState<Awaited<ReturnType<typeof getPROs>>>([]);
+  const [publishers, setPublishers] = useState<Awaited<ReturnType<typeof getPublishers>>>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,7 +131,7 @@ export default function Personnel() {
       >
         <PersonnelForm
           initialData={selectedPerson || undefined}
-          onSubmit={async (data) => {
+          onSubmit={async () => {
             try {
               // Handle form submission
               setIsModalOpen(false);

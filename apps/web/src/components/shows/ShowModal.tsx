@@ -34,7 +34,7 @@ export default function ShowModal({ isOpen, onClose, onSubmit, show }: ShowModal
     venue_longitude: undefined as number | undefined,
     google_place_id: '',
     venue_id: undefined as number | undefined,
-    status: 'confirmed' as string,
+    status: 'confirmed' as Show['status'],
     capacity: 0,
   });
 

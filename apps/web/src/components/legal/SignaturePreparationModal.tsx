@@ -321,6 +321,8 @@ export default function SignaturePreparationModal({ isOpen, onClose, document: d
       const firstName = parts[0] || name.trim();
       const lastName = parts.slice(1).join(' ') || '.';
       return createContact({
+        // createContact defaults visibility to 'workspace'; set explicitly to satisfy ContactFormData.
+        visibility: 'workspace',
         category: 'other',
         firstName,
         lastName,

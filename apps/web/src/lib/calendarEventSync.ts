@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { CalendarIcon, Disc, Plane, Building, CheckCircle, Scale, Cake } from 'lucide-react';
+import { CalendarIcon, Disc, CheckCircle, Scale, Cake } from 'lucide-react';
 
 export interface CalendarEvent {
   id: string;
@@ -217,8 +217,8 @@ export const calendarEventSyncService = {
       if (error) throw error;
 
       return (events || []).map((event: any) => {
-        let mappedType: CalendarEvent['type'] = 'other';
-        let color = 'bg-[#EEF2EA] text-black';
+        let mappedType: CalendarEvent['type'];
+        let color: string;
 
         switch (event.event_type) {
           case 'show':

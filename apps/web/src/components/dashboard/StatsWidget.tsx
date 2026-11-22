@@ -21,7 +21,7 @@ export default function StatsWidget() {
       // Fetch real counts from Supabase
       const [
         { count: trackCount },
-        { count: showCount },
+        , // shows count (unused)
         { count: taskCount },
         { count: noteCount },
       ] = await Promise.all([

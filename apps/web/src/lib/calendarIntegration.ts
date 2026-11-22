@@ -423,7 +423,7 @@ export const calendarIntegrationService = {
     let currentEvent: any = null;
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].trim();
+      const line = lines[i].trim();
 
       if (line.startsWith('BEGIN:VEVENT')) {
         currentEvent = { raw: {} };
@@ -437,7 +437,7 @@ export const calendarIntegrationService = {
         if (colonIndex === -1) continue;
 
         let key = line.substring(0, colonIndex);
-        let value = line.substring(colonIndex + 1);
+        const value = line.substring(colonIndex + 1);
 
         const semicolonIndex = key.indexOf(';');
         const params: any = {};
@@ -461,13 +461,13 @@ export const calendarIntegrationService = {
         } else if (key === 'LOCATION') {
           currentEvent.location = value.replace(/\\n/g, '\n').replace(/\\,/g, ',');
         } else if (key === 'DTSTART') {
-          const { date, time, isAllDay } = this.parseICalDateTime(value, params);
+          const { date, time, isAllDay } = this.parseICalDateTime(value);
           currentEvent.startDate = date;
           currentEvent.startTime = time;
           currentEvent.isAllDay = isAllDay;
           currentEvent.timezone = params.TZID;
         } else if (key === 'DTEND') {
-          const { date, time } = this.parseICalDateTime(value, params);
+          const { date, time } = this.parseICalDateTime(value);
           currentEvent.endDate = date;
           currentEvent.endTime = time;
         } else if (key === 'RRULE') {
@@ -482,7 +482,7 @@ export const calendarIntegrationService = {
   },
 
   // Parse iCal date/time format
-  parseICalDateTime(value: string, params: any): { date: string; time: string | null; isAllDay: boolean } {
+  parseICalDateTime(value: string): { date: string; time: string | null; isAllDay: boolean } {
     if (value.length === 8) {
       const year = value.substring(0, 4);
       const month = value.substring(4, 6);

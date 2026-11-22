@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Calendar, MapPin, DollarSign, Clock, Mail, Building, Users, Truck, Plus, Music, User, Ticket } from 'lucide-react';
+import { ChevronLeft, Calendar, MapPin, Mail, Building, Truck, Plus, Music, User, Ticket } from 'lucide-react';
 import TicketShareModal from '../../components/live/TicketShareModal';
-import type { VintageTicketData } from '../../components/live/VintageTicket';
 import ShowDealModal from '../../components/shows/ShowDealModal';
 import ShowAdvancesModal from '../../components/shows/ShowAdvancesModal';
 import DealSummaryCard from '../../components/shows/DealSummaryCard';
 import { formatDate, formatDateTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import type { Show, SetlistItem, GuestListEntry } from '../../types';
-import type { DealSummary } from '../../types/deals';
+import type { ShowAdvances } from '../../types';
+import type { DealSummary } from '../../lib/dealService';
 import { getDealByShowId } from '../../lib/dealService';
 import { sendTicketEmail, extractEmailFromContactInfo, validateEmailAddress } from '../../lib/emailService';
 import {
   getShowDetails,
-  updateShowDeal,
   updateShowAdvances,
   toggleMarketingTask,
   addGuestListEntry,
   updateGuestStatus,
-  markTicketsSent,
   type ShowWithDetails,
   type MarketingTask,
   type ProductionFile
@@ -1026,7 +1023,8 @@ export default function ShowDetails() {
           isOpen={isAdvancesModalOpen}
           onClose={() => setIsAdvancesModalOpen(false)}
           onSave={handleAdvancesUpdate}
-          advances={show.advances}
+          // TODO(types): showService.ShowAdvances (snake_case) and types.ShowAdvances (camelCase) disagree
+          advances={show.advances as unknown as ShowAdvances | undefined}
         />
       )}
 

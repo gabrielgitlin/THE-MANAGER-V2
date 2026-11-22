@@ -1,6 +1,5 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Calendar, Flag, Import as Passport, Plane, MapPin, CreditCard, Plus } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, Plus, Globe } from 'lucide-react';
 import type { PersonnelProfile } from '../../types/personnel';
 import { formatDate } from '../../lib/utils';
 

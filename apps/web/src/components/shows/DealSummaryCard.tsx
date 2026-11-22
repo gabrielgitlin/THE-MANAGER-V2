@@ -1,6 +1,5 @@
-import React from 'react';
 import { DollarSign, Calendar, TrendingUp } from 'lucide-react';
-import type { DealSummary } from '../../types/deals';
+import type { DealSummary } from '../../lib/dealService';
 import { formatCurrency, formatFeeStructure, formatDealStatus } from '../../lib/dealService';
 
 interface DealSummaryCardProps {

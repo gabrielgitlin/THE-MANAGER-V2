@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, UserPlus, Loader2 } from 'lucide-react';
+import { Mail, UserPlus, Loader2 } from 'lucide-react';
 import { Role } from '../../lib/permissions';
 import { inviteUser } from '../../lib/userManagement';
 import Modal from '../Modal';
@@ -49,7 +49,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [, setGeneratedPassword] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

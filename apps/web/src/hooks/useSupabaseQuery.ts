@@ -204,13 +204,15 @@ export function useSupabaseMutation<T = any>(
 
       try {
         let query;
+        // The client is untyped per table, so pass the generic row as a plain record.
+        const row = values as Record<string, unknown>;
 
         switch (operation) {
           case 'insert':
-            query = supabase.from(table).insert(values).select().single();
+            query = supabase.from(table).insert(row).select().single();
             break;
           case 'update': {
-            let updateQuery = supabase.from(table).update(values);
+            let updateQuery = supabase.from(table).update(row);
             if (match) {
               Object.entries(match).forEach(([key, value]) => {
                 updateQuery = updateQuery.eq(key, value);
@@ -220,7 +222,7 @@ export function useSupabaseMutation<T = any>(
             break;
           }
           case 'upsert':
-            query = supabase.from(table).upsert(values).select().single();
+            query = supabase.from(table).upsert(row).select().single();
             break;
           case 'delete': {
             let deleteQuery = supabase.from(table).delete();

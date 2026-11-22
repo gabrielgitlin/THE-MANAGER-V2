@@ -71,7 +71,7 @@ export default function NotesWidget() {
   const deleteNote = async (id: string) => {
     setNotes(prev => prev.filter(n => n.id !== id));
     if (editing === id) resetForm();
-    try { await noteService.deleteNote(id); } catch (e) { fetchNotes(); }
+    try { await noteService.deleteNote(id); } catch { fetchNotes(); }
   };
 
   const startEdit = (note: Note) => {

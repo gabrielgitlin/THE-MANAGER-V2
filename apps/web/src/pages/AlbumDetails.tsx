@@ -597,7 +597,7 @@ export default function AlbumDetails() {
     }
 
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     doc.setFontSize(8);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);

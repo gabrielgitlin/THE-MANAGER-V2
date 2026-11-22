@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getInitials } from '../../lib/contacts';
 import type { Contact } from '../../types/contacts';
 

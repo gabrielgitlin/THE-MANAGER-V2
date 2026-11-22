@@ -38,7 +38,7 @@ export default function TrackDetailsModal({ track, isOpen, onClose, onEdit }: Tr
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-bold font-title" style={{ color: 'var(--t1)' }}>{track.title}</h2>
-            <p className="text-lg" style={{ color: 'var(--t2)' }}>{track.artist}</p>
+            <p className="text-lg" style={{ color: 'var(--t2)' }}>{(track as Track & { artist?: string }).artist /* TODO(types): Track has no artist field */}</p>
           </div>
           <button
             onClick={() => onEdit(track)}
@@ -108,7 +108,7 @@ export default function TrackDetailsModal({ track, isOpen, onClose, onEdit }: Tr
           <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--t1)' }}>Credits</h3>
           <div className="grid grid-cols-2 gap-6">
             {renderSection('Producers', renderList(track.producers))}
-            {renderSection('Songwriters', renderList(track.songwriters))}
+            {renderSection('Songwriters', renderList(track.songwriters.map((s) => (typeof s === 'string' ? s : s.name))))}
             {renderSection('Mix Engineers', renderList(track.mixEngineers))}
             {renderSection('Mastering Engineers', renderList(track.masteringEngineers))}
           </div>

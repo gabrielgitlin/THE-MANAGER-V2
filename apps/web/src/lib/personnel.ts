@@ -1,5 +1,5 @@
 import { supabase, isSupabaseReady, getConnectionError } from './supabase';
-import type { PersonnelProfile, PersonnelPRO, PersonnelPublisher, PersonnelFormData } from '../types/personnel';
+import type { PersonnelFormData } from '../types/personnel';
 
 // Default mock data for when Supabase is not available
 const DEFAULT_PROS = [

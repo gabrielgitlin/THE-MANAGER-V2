@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from '../Modal';
 import PerformanceAgreementEditor from './PerformanceAgreementEditor';
 import AssetInput from '../assets/AssetInput';
@@ -8,6 +8,7 @@ export interface AddDocumentSubmission {
   type: 'template' | 'upload';
   // For template flow
   template?: string;
+  data?: unknown;
   // For upload/link flow
   file?: File;
   externalLink?: {

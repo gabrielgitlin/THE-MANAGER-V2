@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Printer, MapPin, Clock, Hotel, Plane, Music, Coffee } from 'lucide-react';
+import { Printer, MapPin, Hotel, Plane, Music, Coffee } from 'lucide-react';
 import { getTour, getTourDays } from '../../lib/tourService';
 import { supabase } from '../../lib/supabase';
 import type { Tour, TourDay, DayType } from '../../types/tour';
-import { formatDate, formatTime } from '../../lib/utils';
+import { formatTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 const dayIcon: Record<DayType, React.ElementType | null> = {

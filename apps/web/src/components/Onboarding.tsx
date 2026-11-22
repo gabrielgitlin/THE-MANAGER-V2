@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Music, Globe, Users, User, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Music, Globe, User, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Plus, ChevronRight } from 'lucide-react';
 import ShowModal from '../../components/shows/ShowModal';
 import type { Show } from '../../types';
-import { LOGISTICS_OVERVIEW } from '../../data/logistics';
 import { supabase } from '../../lib/supabase';
 import { formatDate, formatTime } from '../../lib/utils';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -15,7 +14,6 @@ export default function Overview() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShow, setEditingShow] = useState<any | undefined>();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'upcoming' | 'past' | 'month'>('all');
@@ -269,7 +267,8 @@ export default function Overview() {
           alert('Failed to create artist profile. Please try again.');
           return;
         }
-        artist = newArtist;
+        // .single() without an error always returns a row
+        artist = newArtist as NonNullable<typeof artist>;
       }
 
       const { data, error } = await supabase
@@ -338,28 +337,6 @@ export default function Overview() {
     }
   };
 
-  const handleDeleteShow = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('shows')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setShows(shows.filter(show => show.id !== id));
-      setShowDeleteConfirm(null);
-      loadShowsAndEvents();
-    } catch (error) {
-      console.error('Error deleting show:', error);
-      alert('Failed to delete show. Please try again.');
-    }
-  };
-
-  const handleShowClick = (showId: string) => {
-    navigate(`/live/show/${showId}`);
-  };
-
   if (loading) {
     return <LoadingSpinner fullScreen={false} />;
   }
@@ -390,7 +367,7 @@ export default function Overview() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9 block rounded-md shadow-sm focus:ring-primary sm:text-sm"
-                    style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)', focusBorderColor: 'var(--brand-1)' }}
+                    style={{ backgroundColor: 'var(--surface-2)', color: 'var(--t1)', borderColor: 'var(--border)' }}
                   />
                 </div>
 
@@ -588,12 +565,11 @@ export default function Overview() {
                       {monthYear}
                     </h3>
 
-                    <div style={{ borderTopColor: 'var(--border)', borderBottomColor: 'var(--border)', divideColor: 'var(--border)' }} className="divide-y">
+                    <div style={{ borderTopColor: 'var(--border)', borderBottomColor: 'var(--border)' }} className="divide-y">
                       {events.map(event => (
                         <div
                           key={event.id}
                           className="py-3 cursor-pointer transition-colors"
-                          style={{ ':hover': { backgroundColor: 'var(--surface-2)' } }}
                           onClick={() => event.showId && navigate(`/live/show/${event.showId}`)}
                         >
                           <div className="flex items-start justify-between gap-4">

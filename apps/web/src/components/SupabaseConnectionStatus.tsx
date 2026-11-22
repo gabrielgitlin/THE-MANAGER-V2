@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { isSupabaseReady, getConnectionError } from '../lib/supabase';
 
 export default function SupabaseConnectionStatus() {

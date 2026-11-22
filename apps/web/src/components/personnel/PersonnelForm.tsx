@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Globe, Mail, MapPin, Calendar, Flag, Import as Passport, Link2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Globe, Mail, MapPin, Flag, Link2 } from 'lucide-react';
 import { TMDatePicker } from '../ui/TMDatePicker';
 import type { PersonnelFormData } from '../../types/personnel';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, FileText, Image, Music, Plus } from 'lucide-react';
 import { formatDate } from '../../../lib/utils';
@@ -26,7 +26,7 @@ export default function Production() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
   const handleAssetSubmit = (showId: number, type: string, submission: AssetSubmission) => {
-    let url = '';
+    let url: string;
     let name = submission.name;
     if (submission.sourceType === 'upload' && submission.file) {
       url = URL.createObjectURL(submission.file);

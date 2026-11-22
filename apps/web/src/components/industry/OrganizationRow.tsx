@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Organization, OrganizationType } from '../../types/organizations';
 import { ORG_TYPE_LABELS } from '../../types/organizations';
 import OrgLogo from './OrgLogo';

@@ -26,13 +26,11 @@ export default function SignatureEmailPreview({
   onClose,
   document,
   signerName,
-  signerEmail,
-  signerRole,
   fields
 }: SignatureEmailPreviewProps) {
   const [currentStep, setCurrentStep] = useState<'email' | 'document' | 'complete'>('email');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(3); // Simulated total pages
+  const [totalPages] = useState(3); // Simulated total pages
   const [completedFields, setCompletedFields] = useState<Record<string, any>>({});
   const [signature, setSignature] = useState<string>('');
   const [isDrawing, setIsDrawing] = useState(false);

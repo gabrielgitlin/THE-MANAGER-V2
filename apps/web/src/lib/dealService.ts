@@ -1,5 +1,54 @@
 import { supabase } from './supabase';
-import type { ShowDeal, DealSummary, DealTicketTier, DealPayment, DealBonus, DealExpense, DealMerchTerms } from '../types/deals';
+
+// TODO(types): these were imported from '../types/deals', which does not exist.
+// They describe only the fields this module and its consumers read; move them
+// to a shared types module once one is created.
+export interface ShowDeal {
+  id: string;
+  show_id?: string;
+  status: string;
+  fee_structure: string;
+  guarantee_amount?: number | null;
+  percentage_rate?: number | null;
+  percentage_base?: string | null;
+  currency?: string;
+  contract_status?: string | null;
+  net_deductions?: Record<string, { type?: string; amount?: number; rate?: number }> | null;
+}
+
+export interface DealTicketTier {
+  price: number;
+  capacity?: number | null;
+}
+
+export interface DealPayment {
+  amount?: number | null;
+  paid?: boolean | null;
+  payment_type?: string | null;
+  due_timing?: string | null;
+}
+
+export interface DealBonus {
+  description?: string | null;
+  bonus_type?: string | null;
+}
+
+export type DealExpense = Record<string, unknown>;
+
+export type DealMerchTerms = Record<string, unknown>;
+
+export interface DealSummary {
+  deal: ShowDeal;
+  ticket_tiers: DealTicketTier[];
+  payments: DealPayment[];
+  bonuses: DealBonus[];
+  expenses: DealExpense[];
+  merch_terms?: DealMerchTerms;
+  expected_gross: number;
+  expected_net: number;
+  projected_payout: number;
+  deposit_amount: number;
+}
 
 export async function getDealByShowId(showId: string): Promise<DealSummary | null> {
   const { data: deal, error: dealError } = await supabase
@@ -35,16 +84,17 @@ export async function getDealByShowId(showId: string): Promise<DealSummary | nul
   }, 0);
   const expected_net = expected_gross - net_deductions;
 
-  let projected_payout = 0;
+  let projected_payout: number;
   switch (deal.fee_structure) {
     case 'flat_guarantee':
     case 'guarantee_bonus':
       projected_payout = deal.guarantee_amount || 0;
       break;
-    case 'versus':
+    case 'versus': {
       const percentagePayout = expected_net * ((deal.percentage_rate || 0) / 100);
       projected_payout = Math.max(deal.guarantee_amount || 0, percentagePayout);
       break;
+    }
     case 'door_split':
     case 'revenue_share':
       projected_payout = expected_gross * ((deal.percentage_rate || 0) / 100);

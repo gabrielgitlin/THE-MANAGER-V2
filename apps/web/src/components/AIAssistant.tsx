@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Loader2, Bot, User, Zap, Sparkles } from 'lucide-react';
+import { Loader2, Bot, User, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import OpenAI from 'openai';

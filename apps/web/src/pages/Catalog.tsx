@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, ArrowUpRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { TMMonthPicker } from '../components/ui/TMMonthPicker';
 import Modal from '../components/Modal';
 import CatalogForm from '../components/CatalogForm';
@@ -14,11 +14,10 @@ import ReplaceAudioDialog from '../components/catalog/ReplaceAudioDialog';
 import ExportAudioDialog from '../components/catalog/ExportAudioDialog';
 import { KebabMenu } from '../components/ui/KebabMenu';
 import CatalogList from './CatalogList';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import type { Album, Track } from '../types';
 import { CATALOG } from '../data/catalog';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
-import { isSupabaseReady, supabase } from '../lib/supabase';
+import { formatDate } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import { syncArtistsToTeam } from '../lib/contacts';
 import type { ContactTag } from '../components/ui/ContactTagInput';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
@@ -36,11 +35,10 @@ export default function Catalog() {
   const [isSpotifyImportModalOpen, setIsSpotifyImportModalOpen] = useState(false);
   const [isDemoUploadModalOpen, setIsDemoUploadModalOpen] = useState(false);
   const [promotingAlbum, setPromotingAlbum] = useState<{ id: number; title: string } | null>(null);
-  const [editingAlbumId, setEditingAlbumId] = useState<number | null>(null);
+  const [, setEditingAlbumId] = useState<number | null>(null);
   const [editingTrackId, setEditingTrackId] = useState<number | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<'Single' | 'EP' | 'Album'>('Single');
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [formatFilter, setFormatFilter] = useState<'All' | 'Album' | 'EP' | 'Single'>('All');
   const [demoTypeFilter, setDemoTypeFilter] = useState<'all' | 'demo' | 'mix' | 'master' | 'on_hold'>('all');
   const [currentArtistId, setCurrentArtistId] = useState<string | null>(null);
@@ -78,7 +76,7 @@ export default function Catalog() {
   });
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [, setIsSaving] = useState(false);
 
   // Inline notes state
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());

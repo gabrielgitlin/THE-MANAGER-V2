@@ -102,7 +102,7 @@ export default function Legal() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [, setIsSaving] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<LegalFilter>('all');
@@ -194,7 +194,8 @@ export default function Legal() {
     e.stopPropagation();
     setSelectedIds(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };

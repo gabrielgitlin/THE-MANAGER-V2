@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, Calendar, DollarSign } from 'lucide-react';
 import { TMDatePicker } from '../../components/ui/TMDatePicker';
 import Modal from '../../components/Modal';

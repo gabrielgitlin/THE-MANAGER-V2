@@ -1,5 +1,4 @@
-import React from 'react';
-import { Calendar, MapPin, DollarSign, Plane, Building, Users } from 'lucide-react';
+import { Calendar, MapPin, Plane, Building, Users } from 'lucide-react';
 import { LogisticsOverview } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
 import { jsPDF } from 'jspdf';
@@ -146,7 +145,7 @@ export default function LogisticsSummary({ overview }: LogisticsSummaryProps) {
     });
     
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     doc.setFontSize(8);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);

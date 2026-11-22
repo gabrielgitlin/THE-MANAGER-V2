@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TMDatePicker } from '../ui/TMDatePicker';
 import { Plus, Calendar, Clock, MessageSquare, User, ArrowRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
@@ -242,7 +242,7 @@ export default function TodoList() {
 
   const handleInlineUpdate = async (todoId: string, field: 'title' | 'date' | 'priority' | 'assignee') => {
     try {
-      let updates: taskService.UpdateTaskData = {};
+      const updates: taskService.UpdateTaskData = {};
 
       switch (field) {
         case 'title':

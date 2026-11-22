@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, MoreVertical, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { utils, writeFile } from 'xlsx';
@@ -13,6 +13,17 @@ import Modal from '../components/Modal';
 import { TMMonthPicker } from '../components/ui/TMMonthPicker';
 
 type SortDir = 'asc' | 'desc';
+
+// Shapes of the credit arrays on catalog rows (rows themselves are untyped `any`).
+interface CatalogRightsHolder { name: string; ipiNumber?: string }
+interface CatalogSongwriter {
+  name: string;
+  publishingPercentage: number;
+  pros?: CatalogRightsHolder[];
+  publishers?: CatalogRightsHolder[];
+}
+interface CatalogProducer { name: string; masterPercentage: number }
+interface CatalogEngineer { name: string }
 
 const COLUMNS = [
   { key: 'title',              label: 'Title' },
@@ -53,7 +64,6 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState<string>('all'); // kept for export compat
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingISRC, setIsFetchingISRC] = useState(false);
@@ -75,7 +85,6 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [editState, setEditState] = useState<{ trackId: string; field: string; value: string } | null>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<{
@@ -356,20 +365,20 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
         ISRC: track.isrc,
         UPC: track.upc,
         Genres: track.genres.join(', '),
-        'Songwriters (Publishing %)': track.songwriters.map(sw =>
+        'Songwriters (Publishing %)': track.songwriters.map((sw: CatalogSongwriter) =>
           `${sw.name} (${sw.publishingPercentage}%)`
         ).join('\n'),
-        'PROs (IPI)': track.songwriters.map(sw =>
-          sw.pros?.map(pro => `${pro.name} (${pro.ipiNumber})`).join(', ')
+        'PROs (IPI)': track.songwriters.map((sw: CatalogSongwriter) =>
+          sw.pros?.map((pro: CatalogRightsHolder) => `${pro.name} (${pro.ipiNumber})`).join(', ')
         ).join('\n'),
-        'Publishers (IPI)': track.songwriters.map(sw =>
-          sw.publishers?.map(pub => `${pub.name} (${pub.ipiNumber})`).join(', ')
+        'Publishers (IPI)': track.songwriters.map((sw: CatalogSongwriter) =>
+          sw.publishers?.map((pub: CatalogRightsHolder) => `${pub.name} (${pub.ipiNumber})`).join(', ')
         ).join('\n'),
-        'Producers (Master %)': track.producers.map(p =>
+        'Producers (Master %)': track.producers.map((p: CatalogProducer) =>
           `${p.name} (${p.masterPercentage}%)`
         ).join('\n'),
-        'Mix Engineers':       track.mixEngineers.map(e => e.name).join(', '),
-        'Mastering Engineers': track.masteringEngineers.map(e => e.name).join(', '),
+        'Mix Engineers':       track.mixEngineers.map((e: CatalogEngineer) => e.name).join(', '),
+        'Mastering Engineers': track.masteringEngineers.map((e: CatalogEngineer) => e.name).join(', '),
       }));
       const ws = utils.json_to_sheet(data);
       const wb = utils.book_new();
@@ -421,12 +430,12 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
         formatDate(track.releaseDate),
         track.isrc || '-',
         track.upc || '-',
-        track.songwriters.map(sw =>
+        track.songwriters.map((sw: CatalogSongwriter) =>
           `${sw.name} (${sw.publishingPercentage}%)\n` +
-          `PRO: ${sw.pros?.map(pro => `${pro.name} (${pro.ipiNumber})`).join(', ') || '-'}\n` +
-          `Publisher: ${sw.publishers?.map(pub => `${pub.name} (${pub.ipiNumber})`).join(', ') || '-'}`
+          `PRO: ${sw.pros?.map((pro: CatalogRightsHolder) => `${pro.name} (${pro.ipiNumber})`).join(', ') || '-'}\n` +
+          `Publisher: ${sw.publishers?.map((pub: CatalogRightsHolder) => `${pub.name} (${pub.ipiNumber})`).join(', ') || '-'}`
         ).join('\n\n') || '-',
-        track.producers.map(p => `${p.name} (${p.masterPercentage}%)`).join('\n') || '-',
+        track.producers.map((p: CatalogProducer) => `${p.name} (${p.masterPercentage}%)`).join('\n') || '-',
       ]);
 
       autoTable(doc, {
@@ -446,7 +455,7 @@ export default function CatalogList({ embedded = false }: { embedded?: boolean }
         },
       });
 
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setDrawColor(0, 0, 0);

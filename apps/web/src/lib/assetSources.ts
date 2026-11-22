@@ -25,7 +25,7 @@ export function detectSourceFromUrl(raw: string): AssetSourceType {
   const trimmed = raw.trim();
   if (!trimmed) return 'url';
 
-  let host = '';
+  let host: string;
   try {
     host = new URL(trimmed).hostname.toLowerCase();
   } catch {

@@ -1,5 +1,14 @@
 import { OpenAI } from 'openai';
 
+// TODO(types): tsconfig.app.json targets lib ES2020, which lacks the ES2022
+// `new Error(message, { cause })` overload that every supported browser has.
+// Remove this once the lib is bumped to ES2022.
+declare global {
+  interface ErrorConstructor {
+    new (message?: string, options?: { cause?: unknown }): Error;
+  }
+}
+
 function getOpenAIClient() {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
@@ -122,16 +131,16 @@ Important guidelines:
       console.error('Error stack:', error.stack);
 
       if (error.message.includes('API key')) {
-        throw new Error('OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file.');
+        throw new Error('OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file.', { cause: error });
       }
 
       if (error.message.includes('401')) {
-        throw new Error('Invalid OpenAI API key. Please check your VITE_OPENAI_API_KEY in .env file.');
+        throw new Error('Invalid OpenAI API key. Please check your VITE_OPENAI_API_KEY in .env file.', { cause: error });
       }
 
       throw error;
     }
 
-    throw new Error('Failed to analyze contract. Please check the console for details.');
+    throw new Error('Failed to analyze contract. Please check the console for details.', { cause: error });
   }
 }
