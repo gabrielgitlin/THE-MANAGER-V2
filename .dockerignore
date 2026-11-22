@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.env
+apps/web/android
+apps/web/ios
+supabase

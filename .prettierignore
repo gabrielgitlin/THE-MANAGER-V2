@@ -1,0 +1,6 @@
+apps/web
+apps/mcp
+supabase
+pnpm-lock.yaml
+**/dist
+**/migrations

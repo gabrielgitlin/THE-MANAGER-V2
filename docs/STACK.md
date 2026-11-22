@@ -6,7 +6,7 @@ Decisions for moving The Manager off Supabase into a self-hosted pnpm monorepo w
 
 | Area | Choice | Why |
 |---|---|---|
-| Language | TypeScript on Node.js (active LTS) | Types enforce the CLEAN layer contracts; Drizzle relies on them; frontend is already TS |
+| Language | TypeScript 6.0 on Node.js 26 LTS, run natively (type stripping) | Types enforce the CLEAN layer contracts; Drizzle relies on them; frontend is already TS |
 | Package manager | pnpm (workspaces) + Turborepo | Fast installs, workspace protocol, cached builds/tests |
 | Database | PostgreSQL | Current data and 69 migrations are already Postgres; best Drizzle support; RLS, `jsonb`, full-text search |
 | ORM / migrations | Drizzle ORM + drizzle-kit | SQL-like typed queries, schema as code, reviewable SQL migrations; `drizzle-kit pull` bootstraps the schema from Supabase |
@@ -25,7 +25,9 @@ Decisions for moving The Manager off Supabase into a self-hosted pnpm monorepo w
 | Monitoring | Sentry (errors) + Uptime Kuma (uptime, Dokploy template) | |
 | Backups | Daily Postgres dumps from Dokploy to Hetzner Object Storage | |
 
-All libraries use their latest stable release at install time.
+All libraries use their latest stable release at install time, pinned in the pnpm catalog (`pnpm-workspace.yaml`).
+Exception: TypeScript stays on 6.0.x until typescript-eslint supports TypeScript 7.
+Postgres: version 19 (local `docker-compose.dev.yml` and production).
 
 ## Monorepo layout (CLEAN)
 

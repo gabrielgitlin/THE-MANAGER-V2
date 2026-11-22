@@ -1,0 +1,69 @@
+import { InMemoryArtistRepository, makeArtistUseCases } from '@the-manager/application';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { buildApp } from '../src/app.ts';
+
+describe('artists routes', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>;
+  let dbUp = true;
+
+  beforeEach(async () => {
+    app = await buildApp({
+      artists: makeArtistUseCases(new InMemoryArtistRepository()),
+      checkDatabase: async () => {
+        if (!dbUp) throw new Error('down');
+      },
+    });
+  });
+  afterEach(() => app.close());
+
+  it('creates, fetches and lists artists', async () => {
+    const created = await app.inject({
+      method: 'POST',
+      url: '/v1/artists',
+      payload: { name: ' Natalia Lafourcade ' },
+    });
+    expect(created.statusCode).toBe(201);
+    const artist = created.json();
+    expect(artist.name).toBe('Natalia Lafourcade');
+
+    const fetched = await app.inject({ method: 'GET', url: `/v1/artists/${artist.id}` });
+    expect(fetched.json()).toEqual(artist);
+
+    const list = await app.inject({ method: 'GET', url: '/v1/artists?search=natalia' });
+    expect(list.json()).toMatchObject({ total: 1, items: [{ id: artist.id }] });
+  });
+
+  it('maps domain errors to HTTP status codes', async () => {
+    const blank = await app.inject({
+      method: 'POST',
+      url: '/v1/artists',
+      payload: { name: '   ' },
+    });
+    expect(blank.statusCode).toBe(422);
+    expect(blank.json()).toEqual({
+      error: { code: 'VALIDATION', message: 'Artist name is required' },
+    });
+
+    const missing = await app.inject({
+      method: 'GET',
+      url: '/v1/artists/00000000-0000-4000-8000-000000000000',
+    });
+    expect(missing.statusCode).toBe(404);
+  });
+
+  it('rejects malformed requests with 400', async () => {
+    const res = await app.inject({ method: 'GET', url: '/v1/artists/not-a-uuid' });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('reports readiness from the database check', async () => {
+    expect((await app.inject('/ready')).statusCode).toBe(200);
+    dbUp = false;
+    expect((await app.inject('/ready')).statusCode).toBe(503);
+  });
+
+  it('serves an OpenAPI document', async () => {
+    const res = await app.inject('/openapi.json');
+    expect(res.json().paths).toHaveProperty('/v1/artists/');
+  });
+});

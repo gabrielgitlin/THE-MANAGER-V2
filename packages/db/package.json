@@ -1,0 +1,31 @@
+{
+  "name": "@the-manager/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:pull": "drizzle-kit pull",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:"
+  },
+  "devDependencies": {
+    "@the-manager/config": "workspace:*",
+    "@types/node": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

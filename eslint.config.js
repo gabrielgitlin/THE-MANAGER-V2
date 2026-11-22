@@ -1,28 +1,36 @@
+// Shared lint config for the new backend packages (apps/web keeps its own config).
 import js from '@eslint/js';
+import prettier from 'eslint-config-prettier';
 import globals from 'globals';
-import reactHooks from 'eslint-plugin-react-hooks';
-import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['**/dist/**', '**/node_modules/**', 'apps/web/**', 'apps/mcp/**', 'supabase/**'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  prettier,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
-    plugins: {
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
-    },
+    languageOptions: { globals: globals.node },
+  },
+  // CLEAN dependency rule: inner layers never import outer ones.
+  {
+    files: ['packages/domain/**/*.ts'],
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
+      'no-restricted-imports': ['error', { patterns: ['@the-manager/*', 'drizzle-orm*', 'fastify*', 'postgres'] }],
+    },
+  },
+  {
+    files: ['packages/application/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@the-manager/*', '!@the-manager/domain'], message: 'application may only depend on domain.' },
+            { group: ['drizzle-orm*', 'fastify*', 'postgres'], message: 'No frameworks in the application layer.' },
+          ],
+        },
       ],
     },
-  }
+  },
 );

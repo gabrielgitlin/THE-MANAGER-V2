@@ -1,0 +1,26 @@
+{
+  "name": "@the-manager/infrastructure",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@the-manager/application": "workspace:*",
+    "@the-manager/db": "workspace:*",
+    "@the-manager/domain": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@the-manager/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

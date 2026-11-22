@@ -1,0 +1,21 @@
+{
+  "name": "@the-manager/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@the-manager/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
