@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import type { Note as NoteType, NoteCategory } from '../types';
 import { formatDate, formatDateTime } from '../lib/utils';

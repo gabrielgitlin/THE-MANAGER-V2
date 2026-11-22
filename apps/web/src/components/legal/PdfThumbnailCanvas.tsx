@@ -53,7 +53,7 @@ export default function PdfThumbnailCanvas({ url, width = 52, className, style }
         canvas.width = width;
         canvas.height = h;
 
-        await page.render({ canvasContext: canvas.getContext('2d')!, viewport: vp }).promise;
+        await page.render({ canvas, canvasContext: canvas.getContext('2d')!, viewport: vp }).promise;
         if (!cancelled) setStatus('done');
       } catch {
         if (!cancelled) setStatus('error');

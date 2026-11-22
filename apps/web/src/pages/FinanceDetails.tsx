@@ -1,16 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, X, FileSpreadsheet, ChevronLeft } from 'lucide-react';
+import { Plus, FileSpreadsheet, ChevronLeft } from 'lucide-react';
 import { utils, writeFile } from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Modal from '../components/Modal';
 import BudgetChart from '../components/BudgetChart';
 import LoadingSpinner from '../components/LoadingSpinner';
-import type { TrackFinance, BudgetCategory, BudgetItem, TransactionType, PaymentStatus, Budget } from '../types';
-import { mockFinances } from '../data/mockData';
+import type {
+  BudgetCategory as SharedBudgetCategory,
+  BudgetItem as SharedBudgetItem,
+  TransactionType,
+  PaymentStatus as SharedPaymentStatus,
+  Budget as SharedBudget,
+  BudgetSummary as SharedBudgetSummary,
+} from '../types';
 import { getBudgetById, updateBudgetItem, createBudgetItem, deleteBudgetItem as deleteBudgetItemService, updateBudgetCategory, calculateCommissions, updateBudgetCommissions } from '../lib/budgetService';
-import { formatDate, formatTime, formatDateTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
+
+// TODO(types): this page uses capitalised payment statuses and live-show budget
+// categories that the shared PaymentStatus / BudgetCategory unions in src/types
+// don't include yet (budgetService passes the DB strings through `as any`).
+// These local widenings should go away once the shared types are corrected.
+type PaymentStatus = SharedPaymentStatus | 'Received' | 'Pending' | 'Paid' | 'Unpaid';
+type BudgetCategory =
+  | SharedBudgetCategory
+  | 'Personnel' | 'Production' | 'Venue' | 'Travel' | 'Accommodation' | 'Catering' | 'Insurance';
+type BudgetItem = Omit<SharedBudgetItem, 'category' | 'status'> & {
+  category: BudgetCategory;
+  status: PaymentStatus;
+};
+type Budget = Omit<SharedBudget, 'budgetItems' | 'categoryBudgets'> & {
+  budgetItems: BudgetItem[];
+  categoryBudgets: { category: BudgetCategory; budgetAmount: number }[];
+};
 
 const BUDGET_CATEGORIES: BudgetCategory[] = ['Art', 'Digital', 'Marketing', 'Music', 'Press', 'Other'];
 const TRANSACTION_TYPES: TransactionType[] = ['Expense', 'Income'];
@@ -33,7 +56,7 @@ export default function FinanceDetails() {
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
-  const [editedBudgets, setEditedBudgets] = useState<Record<BudgetCategory, number>>({});
+  const [editedBudgets, setEditedBudgets] = useState<Record<string, number>>({});
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isEditingCommissions, setIsEditingCommissions] = useState(false);
@@ -285,7 +308,7 @@ export default function FinanceDetails() {
       });
 
       // Add footer
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       doc.setFontSize(8);
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -655,7 +678,7 @@ export default function FinanceDetails() {
         {/* Budget Chart */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-4">Budget vs Actual Comparison</h3>
-          <BudgetChart budgetSummary={budgetSummary} />
+          <BudgetChart budgetSummary={budgetSummary as SharedBudgetSummary[]} />
         </div>
       </div>
 
@@ -991,7 +1014,7 @@ export default function FinanceDetails() {
 
         <div className="p-6">
           {(() => {
-            const commissions = calculateCommissions(budget);
+            const commissions = calculateCommissions(budget as SharedBudget);
             return (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1101,9 +1124,9 @@ export default function FinanceDetails() {
 
           try {
             if (editingItemId) {
-              await updateBudgetItem(String(editingItemId), newItem);
+              await updateBudgetItem(String(editingItemId), newItem as Partial<SharedBudgetItem>);
             } else {
-              await createBudgetItem(id, newItem);
+              await createBudgetItem(id, newItem as Omit<SharedBudgetItem, 'id'>);
             }
 
             const refreshedBudget = await getBudgetById(id);

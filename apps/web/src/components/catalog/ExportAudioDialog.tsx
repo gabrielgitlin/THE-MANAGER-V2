@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from '../Modal';
 
 interface ExportAudioDialogProps {
@@ -23,6 +23,18 @@ function isWav(url: string): boolean {
   return url.toLowerCase().includes('.wav');
 }
 
+interface LameJsMp3Encoder {
+  encodeBuffer(left: Int16Array, right?: Int16Array): Int8Array;
+  flush(): Int8Array;
+}
+
+type LameJsMp3EncoderCtor = new (channels: number, sampleRate: number, kbps: number) => LameJsMp3Encoder;
+
+interface LameJsModule {
+  Mp3Encoder?: LameJsMp3EncoderCtor;
+  default?: { Mp3Encoder: LameJsMp3EncoderCtor };
+}
+
 async function convertWavToMp3(url: string, onProgress?: (msg: string) => void): Promise<Blob> {
   onProgress?.('Fetching audio…');
   const response = await fetch(url);
@@ -33,7 +45,9 @@ async function convertWavToMp3(url: string, onProgress?: (msg: string) => void):
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
   onProgress?.('Encoding MP3…');
-  const lamejs = await import('lamejs');
+  // TODO(types): lamejs ships no type declarations; add a `declare module 'lamejs'` shim
+  // (e.g. src/types/lamejs.d.ts) and drop the `as string` + local LameJsModule type.
+  const lamejs: LameJsModule = await import('lamejs' as string);
   const Mp3Encoder = lamejs.default?.Mp3Encoder ?? (lamejs as any).Mp3Encoder;
 
   const numChannels = audioBuffer.numberOfChannels;

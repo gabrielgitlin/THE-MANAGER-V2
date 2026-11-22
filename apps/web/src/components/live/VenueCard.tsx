@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPin, Users, ChevronRight, Globe } from 'lucide-react';
 import type { EnhancedVenue } from '../../types/venue';
 

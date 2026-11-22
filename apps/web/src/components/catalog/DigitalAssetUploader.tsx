@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Music, Video, Plus, Eye, Link2 } from 'lucide-react';
 import AssetInput from '../assets/AssetInput';
 import AssetPreviewModal, { type AssetPreviewTarget } from '../assets/AssetPreviewModal';

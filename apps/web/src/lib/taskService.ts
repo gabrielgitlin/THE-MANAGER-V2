@@ -171,7 +171,8 @@ export async function getTaskComments(taskId: string): Promise<TaskComment[]> {
       author:auth.users(email)
     `)
     .eq('task_id', taskId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .overrideTypes<TaskComment[], { merge: false }>();
 
   if (error) {
     console.error('Error fetching task comments:', error);

@@ -30,7 +30,7 @@ export default function TourCalendar() {
   const [tourDays, setTourDays] = useState<any[]>([]);
   const [tours, setTours] = useState<{ id: string; name: string }[]>([]);
   const [tourFilter, setTourFilter] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

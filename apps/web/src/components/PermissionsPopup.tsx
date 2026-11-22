@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Lock, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Permission, Role, AccessLevel, ModulePermissions } from '../lib/permissions';
 import { hasPermission, getAccessLevelLabel, getAvailableAccessLevels, getModuleAccess, updateModuleAccess } from '../lib/permissions';

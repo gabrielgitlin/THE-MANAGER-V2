@@ -18,6 +18,12 @@ interface BudgetFormProps {
   showId?: number;
 }
 
+interface CategoryDraft {
+  name?: string;
+  description?: string;
+  color?: string;
+}
+
 interface NewTrack {
   tempId: string;
   title: string;
@@ -25,7 +31,7 @@ interface NewTrack {
   isrc?: string;
 }
 
-export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, budgets, showId }: BudgetFormProps) {
+export default function BudgetForm({ type, onSubmit, onCancel, shows, budgets, showId }: BudgetFormProps) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
@@ -46,7 +52,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
   const [categories, setCategories] = useState<BudgetCategory[]>(DEFAULT_CATEGORIES);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState<Partial<BudgetCategory>>({
+  const [newCategory, setNewCategory] = useState<CategoryDraft>({
     name: '',
     description: '',
     color: '#' + Math.floor(Math.random()*16777215).toString(16),
@@ -75,7 +81,7 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
     const baseData = {
       title: formData.title,
       artist: formData.artist,
-      status: 'planning',
+      status: 'planning' as const,
       budgetItems: [],
       categoryBudgets: categories.map(cat => ({
         category: cat,
@@ -131,7 +137,6 @@ export default function BudgetForm({ type, onSubmit, onCancel, tracks, shows, bu
   const handleAddCategory = () => {
     if (!newCategory.name) return;
 
-    const id = newCategory.name.toLowerCase().replace(/\s+/g, '_');
     const category = newCategory.name as BudgetCategory;
 
     setCategories([...categories, category]);

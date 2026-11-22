@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, MapPin, Mail, Building, Calendar, Link as LinkIcon, Users, Truck, Plus, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, MapPin, Mail, Calendar, Link as LinkIcon, Truck, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, formatTime } from '../../lib/utils';
 import type { Show } from '../../types';

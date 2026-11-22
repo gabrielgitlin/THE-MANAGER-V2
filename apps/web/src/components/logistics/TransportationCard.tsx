@@ -1,5 +1,4 @@
-import React from 'react';
-import { Plane, Bus, Train, Car, Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
+import { Plane, Bus, Train, Car, MapPin, Users, DollarSign } from 'lucide-react';
 import { TravelItinerary } from '../../types/logistics';
 import { CREW_MEMBERS, TRANSPORTATION_PROVIDERS } from '../../data/logistics';
 import { formatDate } from '../../lib/utils';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 import AnalyticsDashboard from '../components/marketing/AnalyticsDashboard';
@@ -12,6 +12,11 @@ import type { AssetSubmission } from '../lib/assetSources';
 type Platform = 'instagram' | 'twitter' | 'facebook' | 'youtube' | 'tiktok';
 type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
 
+// TODO(types): the marketing_posts rows/inserts carry an `author` column that
+// postService.MarketingPost / CreatePostData don't declare yet.
+type MarketingPostRow = postService.MarketingPost & { author?: string };
+type CreatePostPayload = postService.CreatePostData & { author: string };
+
 interface SocialMediaPost {
   id: string;
   title: string;
@@ -22,7 +27,7 @@ interface SocialMediaPost {
   status: PostStatus;
   mediaUrl?: string;
   tags?: string[];
-  author: string;
+  author?: string;
   createdAt: string;
   updatedAt: string;
   done?: boolean;
@@ -96,7 +101,7 @@ export default function Marketing() {
         fileService.getFiles()
       ]);
 
-      const mappedPosts: SocialMediaPost[] = fetchedPosts.map(p => ({
+      const mappedPosts: SocialMediaPost[] = fetchedPosts.map((p: MarketingPostRow) => ({
         id: p.id,
         title: p.title,
         content: p.content,
@@ -174,7 +179,7 @@ export default function Marketing() {
 
     setIsSaving(true);
     try {
-      const created = await postService.createPost({
+      const createPayload: CreatePostPayload = {
         title: newPost.title,
         content: newPost.content,
         platform: newPost.platform as postService.Platform,
@@ -184,7 +189,8 @@ export default function Marketing() {
         media_url: newPost.mediaUrl,
         tags: newPost.tags,
         author: newPost.author || 'Peter Grant'
-      });
+      };
+      const created: MarketingPostRow = await postService.createPost(createPayload);
 
       const mappedPost: SocialMediaPost = {
         id: created.id,
@@ -534,23 +540,6 @@ export default function Marketing() {
         return 'Other';
       default:
         return category;
-    }
-  };
-
-  const getCategoryColor = (category: MarketingFile['category']) => {
-    switch (category) {
-      case 'press_kit':
-        return 'bg-light-blue var(--t1)';
-      case 'brand_assets':
-        return 'bg-blue-100 text-blue-800';
-      case 'campaign':
-        return 'bg-green-100 text-green-800';
-      case 'analytics':
-        return 'bg-beige var(--t1)';
-      case 'other':
-        return 'var(--surface-2) var(--t1)';
-      default:
-        return 'var(--surface-2) var(--t1)';
     }
   };
 
@@ -918,7 +907,7 @@ export default function Marketing() {
                               Date
                             </label>
                             <TMDatePicker
-                              value={editingPost ? editingPost.scheduledDate : newPost.scheduledDate}
+                              value={editingPost ? editingPost.scheduledDate : newPost.scheduledDate ?? ''}
                               onChange={(date) => {
                                 if (editingPost) {
                                   setEditingPost({ ...editingPost, scheduledDate: date });

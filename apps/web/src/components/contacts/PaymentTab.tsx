@@ -1,5 +1,5 @@
 // src/components/contacts/PaymentTab.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getContactPaymentInfo, upsertContactPaymentInfo } from '../../lib/contacts';
 import type { ContactPaymentInfo, ContactPaymentFormData } from '../../types/contacts';
 

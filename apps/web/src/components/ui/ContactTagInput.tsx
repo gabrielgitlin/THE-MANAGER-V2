@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getContacts } from '../../lib/contacts';
 import type { Contact } from '../../types/contacts';
 

@@ -59,9 +59,9 @@ export async function createAsset(
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not authenticated');
 
-  let fileUrl: string | null = null;
-  let fileSize: number | null = null;
-  let mimeType: string | null = null;
+  let fileUrl: string | null;
+  let fileSize: number | null;
+  let mimeType: string | null;
 
   if (submission.sourceType === 'upload') {
     if (!submission.file) throw new Error('File is required for upload');

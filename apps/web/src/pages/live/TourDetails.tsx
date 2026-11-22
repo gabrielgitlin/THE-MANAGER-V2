@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Calendar, MapPin, Music, ListOrdered } from 'lucide-react';
+import { Plus, Calendar, Music, ListOrdered } from 'lucide-react';
 import TourDayRow from '../../components/live/TourDayRow';
 import TourDayModal from '../../components/live/TourDayModal';
 import TourModal from '../../components/live/TourModal';

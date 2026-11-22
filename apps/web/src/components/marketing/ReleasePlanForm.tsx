@@ -30,7 +30,7 @@ interface ReleasePlanFormProps {
   catalog: any; // Replace with proper catalog type
 }
 
-export default function ReleasePlanForm({ initialData, onSubmit, onCancel, catalog }: ReleasePlanFormProps) {
+export default function ReleasePlanForm({ initialData, onSubmit, onCancel }: ReleasePlanFormProps) {
   const [formData, setFormData] = useState<ReleasePlan>(initialData || {
     title: '',
     releaseType: 'single',

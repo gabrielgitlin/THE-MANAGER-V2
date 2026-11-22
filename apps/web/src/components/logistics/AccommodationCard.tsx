@@ -1,5 +1,4 @@
-import React from 'react';
-import { Building, Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
+import { Building, Calendar, Users, DollarSign } from 'lucide-react';
 import { AccommodationBooking } from '../../types/logistics';
 import { CREW_MEMBERS, ACCOMMODATION_PROVIDERS } from '../../data/logistics';
 import { formatDate } from '../../lib/utils';

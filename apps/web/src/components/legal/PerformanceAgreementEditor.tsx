@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Calendar, DollarSign, MapPin, User, Building2, Clock } from 'lucide-react';
 import { TMDatePicker } from '../ui/TMDatePicker';
 import { jsPDF } from 'jspdf';
 import Modal from '../Modal';
@@ -69,7 +68,7 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
       doc.setFontSize(fontSize);
       const lines = doc.splitTextToSize(text, maxWidth - indent);
       
-      lines.forEach(line => {
+      lines.forEach((line: string) => {
         checkNewPage(lineHeight);
         doc.text(line, margin + indent, yPos);
         yPos += lineHeight;
@@ -199,7 +198,7 @@ export default function PerformanceAgreementEditor({ isOpen, onClose, onSave }: 
     doc.text('Address: ____________________', pageWidth - 100, yPos);
 
     // Add page numbers
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
