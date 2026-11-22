@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-// Mirrors the current Supabase `artists` table (supabase/consolidated_migration.sql).
+// Mirrors the current Supabase `artists` table (supabase/migrations/20251002220914_create_core_schema.sql).
 // Will be replaced by the schema pulled from production with `pnpm db:pull` (migration step 2).
 export const artists = pgTable('artists', {
   id: uuid('id').primaryKey().defaultRandom(),
