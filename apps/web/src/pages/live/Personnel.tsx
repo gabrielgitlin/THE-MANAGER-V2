@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, Calendar, DollarSign } from 'lucide-react';
 import { TMDatePicker } from '../../components/ui/TMDatePicker';
-import Modal from '../../components/Modal';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatDate } from '../../lib/utils';
@@ -11,7 +10,7 @@ const MOCK_SHOWS: Show[] = [];
 
 export default function Personnel() {
   const [crew, setCrew] = useState<CrewMember[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<CrewMember | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingShow, setIsAddingShow] = useState(false);
@@ -159,18 +158,6 @@ export default function Personnel() {
     setStandardFee('');
   };
 
-  const handleUpdateShowFee = (showName: string, newFee: number) => {
-    if (!selectedMember) return;
-    
-    // Update the fee for the specific show
-    const updatedShows = selectedMember.shows?.map(show => 
-      show.name === showName ? { ...show, fee: newFee } : show
-    );
-    
-    handleUpdateSelectedMember({ shows: updatedShows });
-    setIsEditingFee(false);
-  };
-
   const handleRemoveShow = (showName: string) => {
     if (!selectedMember) return;
     
@@ -265,7 +252,7 @@ export default function Personnel() {
     doc.text(`Grand Total: $${grandTotal}`, 170, totalY, { align: 'right' });
     
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     doc.setFontSize(8);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);

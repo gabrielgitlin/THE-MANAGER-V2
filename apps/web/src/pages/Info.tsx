@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Users, Key, Eye, EyeOff, Plus, User, Mail, Phone, MapPin, Calendar, Flag, Import as Passport, FileText, Globe, CreditCard, Building2, DollarSign } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { Lock, Users, Key, Eye, EyeOff, Plus, CreditCard, Building2, DollarSign } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { TMDatePicker } from '../components/ui/TMDatePicker';
 
@@ -164,7 +163,7 @@ export default function Info() {
       } else {
         setError('Invalid password');
       }
-    } catch (error) {
+    } catch {
       setError('Authentication failed');
     }
     

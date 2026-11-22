@@ -14,7 +14,7 @@ import ReplaceAudioDialog from '../components/catalog/ReplaceAudioDialog';
 import ExportAudioDialog from '../components/catalog/ExportAudioDialog';
 import { KebabMenu } from '../components/ui/KebabMenu';
 import CatalogList from './CatalogList';
-import type { Album, Track } from '../types';
+import type { Album, Track, CreditShare } from '../types';
 import { CATALOG } from '../data/catalog';
 import { formatDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
@@ -23,6 +23,9 @@ import type { ContactTag } from '../components/ui/ContactTagInput';
 import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import { useAuthStore } from '../store/authStore';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+// TODO(types): catalog tracks carry `artist` at runtime (see fetchCatalog) but the shared Track type lacks it
+type PlayerTrack = Parameters<ReturnType<typeof useMusicPlayerStore.getState>['playAlbum']>[0][number];
 
 export default function Catalog() {
   const navigate = useNavigate();
@@ -67,11 +70,11 @@ export default function Catalog() {
     artistTags: [] as ContactTag[],
     genres: [] as string[],
     format: 'Single' as 'Single' | 'EP' | 'Album',
-    artistCredits: [] as string[],
-    producers: [] as string[],
-    songwriters: [] as string[],
-    mixEngineers: [] as string[],
-    masteringEngineers: [] as string[],
+    artistCredits: [] as CreditShare[],
+    producers: [] as CreditShare[],
+    songwriters: [] as CreditShare[],
+    mixEngineers: [] as CreditShare[],
+    masteringEngineers: [] as CreditShare[],
     newGenre: '',
   });
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -271,11 +274,11 @@ export default function Catalog() {
       // Sync all credited artists/collaborators to the Team database (silent, non-blocking)
       syncArtistsToTeam([
         ...formData.artistTags.map((t: ContactTag) => ({ name: t.name, role: 'Artist' })),
-        ...(formData.artistCredits ?? []).map((n: string) => ({ name: n, role: 'Artist' })),
-        ...(formData.producers ?? []).map((n: string) => ({ name: n, role: 'Producer' })),
-        ...(formData.songwriters ?? []).map((n: string) => ({ name: n, role: 'Songwriter' })),
-        ...(formData.mixEngineers ?? []).map((n: string) => ({ name: n, role: 'Mix Engineer' })),
-        ...(formData.masteringEngineers ?? []).map((n: string) => ({ name: n, role: 'Mastering Engineer' })),
+        ...(formData.artistCredits ?? []).map((c) => ({ name: c.name, role: 'Artist' })),
+        ...(formData.producers ?? []).map((c) => ({ name: c.name, role: 'Producer' })),
+        ...(formData.songwriters ?? []).map((c) => ({ name: c.name, role: 'Songwriter' })),
+        ...(formData.mixEngineers ?? []).map((c) => ({ name: c.name, role: 'Mix Engineer' })),
+        ...(formData.masteringEngineers ?? []).map((c) => ({ name: c.name, role: 'Mastering Engineer' })),
       ]);
 
       // Reset form and close modal
@@ -404,7 +407,8 @@ export default function Catalog() {
         })
       );
 
-      setCatalog(albumsWithTracks);
+      // TODO(types): the fetched rows carry extra view fields (artistTags, demo_status, notes, ...) that the shared Album/Track types lack
+      setCatalog(albumsWithTracks as unknown as Album[]);
     } catch (err: any) {
       console.error('Error fetching catalog:', err?.message || err, err);
       setCatalog([...CATALOG].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()));
@@ -435,7 +439,7 @@ export default function Catalog() {
 
   const calculateTotalDuration = (tracks: Track[]): number => {
     return tracks.reduce((total, track) => {
-      const [mins, secs] = track.duration.split(':').map(Number);
+      const [mins, secs] = (track.duration ?? '0:00').split(':').map(Number);
       return total + (mins * 60) + secs;
     }, 0);
   };
@@ -712,7 +716,7 @@ export default function Catalog() {
       setMetadataResults(data);
       setShowMetadataModal(true);
       setShowMetadataDetails(false);
-    } catch (err: any) {
+    } catch {
       alert('Failed to fetch metadata. Please try again.');
     } finally {
       setIsFetchingMetadata(false);
@@ -967,7 +971,7 @@ export default function Catalog() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl })));
+                              playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl }) as unknown as PlayerTrack));
                             }}
                             className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                             style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -984,7 +988,7 @@ export default function Catalog() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl })));
+                                playAlbum(album.tracks.map(t => ({ ...t, coverArt: album.artworkUrl }) as unknown as PlayerTrack));
                               }}
                               className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                               style={{ background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
@@ -1393,6 +1397,7 @@ export default function Catalog() {
           setFormData({
             title: '',
             artist: '',
+            artistTags: [],
             genres: [],
             format: 'Single',
             artistCredits: [],
