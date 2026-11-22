@@ -78,7 +78,7 @@ export async function getContacts(): Promise<Contact[]> {
 
   // Fetch primary affiliations for these contacts (separate query to avoid PostgREST filter quirks)
   const contactIds = contacts.map((c: Record<string, unknown>) => c.id as string);
-  let primaryAffMap: Record<string, PrimaryAffiliation> = {};
+  const primaryAffMap: Record<string, PrimaryAffiliation> = {};
   if (contactIds.length > 0) {
     const { data: affRows } = await supabase
       .from('contact_affiliations')
@@ -90,7 +90,8 @@ export async function getContacts(): Promise<Contact[]> {
         const endDate = aff.end_date ?? undefined;
         const isActive = !endDate || new Date(endDate) >= new Date();
         if (isActive) {
-          const org = aff.organization as { id: string; name: string } | null;
+          // TODO(types): generated types model this many-to-one embed as an array; PostgREST returns an object
+          const org = aff.organization as unknown as { id: string; name: string } | null;
           primaryAffMap[aff.contact_id] = {
             role: aff.role as string,
             roleCustom: (aff.role_custom as string) ?? undefined,

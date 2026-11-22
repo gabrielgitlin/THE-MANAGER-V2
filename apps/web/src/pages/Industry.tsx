@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PeopleTab from '../components/industry/PeopleTab';
 import CompaniesTab from '../components/industry/CompaniesTab';
 import ProjectsTab from '../components/industry/ProjectsTab';

@@ -1,9 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useMusicPlayerStore } from '../store/musicPlayerStore';
 import { CATALOG } from '../data/catalog';
-import { mockFinances } from '../data/mockData';
-import { Show, Budget, BudgetType, Note } from '../types';
-import { CREW_MEMBERS } from '../data/logistics';
 
 // Task types that AI Manager can perform
 export type TaskType = 
@@ -373,7 +369,7 @@ export const executeTask = async (
       navigate(task.params.path);
       return '';
     
-    case 'search_catalog':
+    case 'search_catalog': {
       const query = task.params.query.toLowerCase();
       const results = CATALOG.flatMap(album => album.tracks)
         .filter(track => track.title.toLowerCase().includes(query));
@@ -385,8 +381,9 @@ export const executeTask = async (
       } else {
         return '';
       }
+    }
     
-    case 'play_music':
+    case 'play_music': {
       const title = task.params.title.toLowerCase();
       const tracks = CATALOG.flatMap(album => album.tracks)
         .filter(track => track.title.toLowerCase().includes(title));
@@ -405,8 +402,9 @@ export const executeTask = async (
         }
       }
       return '';
+    }
     
-    case 'create_note':
+    case 'create_note': {
       if (!task.params.content) {
         return '';
       }
@@ -420,6 +418,7 @@ export const executeTask = async (
       
       navigate(`/notes?${queryParams}`);
       return '';
+    }
     
     case 'mark_task_done':
       // Navigate to tasks page with query parameters

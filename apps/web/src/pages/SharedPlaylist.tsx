@@ -180,12 +180,17 @@ export default function SharedPlaylist() {
             .limit(1)
             .maybeSingle();
 
+          // TODO(types): generated types model these many-to-one embeds as arrays; PostgREST returns objects
+          const album = albumData?.albums as unknown as
+            | { title: string; cover_url: string | null; artists: { name: string } | null }
+            | null
+            | undefined;
           return {
             ...pt,
-            albumInfo: albumData?.albums ? {
-              title: albumData.albums.title,
-              cover_url: albumData.albums.cover_url,
-              artist_name: albumData.albums.artists?.name,
+            albumInfo: album ? {
+              title: album.title,
+              cover_url: album.cover_url,
+              artist_name: album.artists?.name,
             } : undefined,
           };
         })
@@ -705,7 +710,7 @@ export default function SharedPlaylist() {
               <div className="flex items-center gap-3 flex-1 min-w-0 max-w-xs">
                 <div className="w-10 h-10 flex-shrink-0 overflow-hidden" style={{ backgroundColor: 'var(--surface-2)' }}>
                   {getTrackCover(currentTrack) ? (
-                    <img src={getTrackCover(currentTrack)} alt="" className="w-full h-full object-cover" />
+                    <img src={getTrackCover(currentTrack) ?? undefined} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <img src="/TM2.png" alt="" className="w-4 h-4 object-contain" style={{ filter: 'invert(1)', opacity: 0.2 }} />

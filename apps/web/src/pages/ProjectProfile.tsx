@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Star } from 'lucide-react';
 import { getArtist } from '../lib/artists';
@@ -10,7 +10,7 @@ import {
 } from '../lib/projectRelations';
 import { getContact } from '../lib/contacts';
 import { getOrganization } from '../lib/organizations';
-import { ROLE_LABELS, displayRole } from '../lib/industryRoles';
+import { displayRole } from '../lib/industryRoles';
 import type { ProjectRelation, ProjectRelationFormData } from '../types/projectRelations';
 import ProjectRelationModal from '../components/industry/ProjectRelationModal';
 import LoadingSpinner from '../components/LoadingSpinner';

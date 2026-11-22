@@ -61,7 +61,7 @@ export default function TasksWidget() {
     setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
     try {
       await taskService.toggleTaskComplete(task.id, !task.completed);
-    } catch (e) {
+    } catch {
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
     }
   };
@@ -70,7 +70,7 @@ export default function TasksWidget() {
     setTasks(prev => prev.filter(t => t.id !== id));
     try {
       await taskService.deleteTask(id);
-    } catch (e) {
+    } catch {
       fetchTasks();
     }
   };

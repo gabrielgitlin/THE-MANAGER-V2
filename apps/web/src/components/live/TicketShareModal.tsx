@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import VintageTicket, { type VintageTicketData } from './VintageTicket';
 import { generateTicketPng, generateTicketBlob, downloadTicketImage, sanitizeFilename } from '../../lib/ticketGenerator';

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Loader2, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { Loader2, Bot, User, Minimize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import OpenAI from 'openai';

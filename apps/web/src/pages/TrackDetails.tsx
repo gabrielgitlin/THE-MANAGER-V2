@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -93,7 +93,7 @@ export default function TrackDetails() {
 
         if (albumData) {
           const artistName = albumData.artists?.name || albumData.artist || 'Unknown Artist';
-          const formattedAlbum: Album = {
+          const formattedAlbum: Album & { spotifyUrl?: string } = {
             id: albumData.id as any,
             title: albumData.title,
             artist: artistName,
@@ -113,7 +113,8 @@ export default function TrackDetails() {
             masteringEngineers: [],
           };
 
-          const formattedTrack: Track = {
+          // TODO(types): DB tracks don't supply discNumber/genres/producers/mixEngineers/masteringEngineers
+          const formattedTrack = {
             id: trackData.id as any,
             title: trackData.title,
             duration: formatDuration(Number(trackData.duration) || 0),
@@ -122,8 +123,8 @@ export default function TrackDetails() {
             spotifyUri: trackData.spotify_url ? `spotify:track:${trackData.spotify_id}` : undefined,
             audioUrl: trackData.audio_url || trackData.preview_url || undefined,
             albumId: albumData.id as any,
-            songwriters: [],
-          };
+            songwriters: [] as Track['songwriters'],
+          } as Track;
 
           setAlbum(formattedAlbum);
           setTrack(formattedTrack);
@@ -163,11 +164,6 @@ export default function TrackDetails() {
     if (t.audioUrl) return 'native' as const;
     if (t.spotifyUri) return 'spotify' as const;
     return 'none' as const;
-  };
-
-  const spotifyUriToUrl = (uri: string) => {
-    const id = uri.replace('spotify:track:', '');
-    return `https://open.spotify.com/track/${id}`;
   };
 
   const handlePlayPause = () => {
@@ -451,7 +447,7 @@ export default function TrackDetails() {
                 }
 
                 // Add footer
-                const pageCount = doc.internal.getNumberOfPages();
+                const pageCount = doc.getNumberOfPages();
                 doc.setFontSize(8);
                 for (let i = 1; i <= pageCount; i++) {
                   doc.setPage(i);

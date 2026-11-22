@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../Modal';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -55,7 +55,7 @@ export default function DuplicateTrackDialog({
         .order('title', { ascending: true });
       if (error) throw error;
       setAlbums(data || []);
-    } catch (err: any) {
+    } catch {
       setError('Failed to load projects.');
     } finally {
       setLoadingAlbums(false);

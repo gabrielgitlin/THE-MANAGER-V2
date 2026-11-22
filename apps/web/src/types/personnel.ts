@@ -1,5 +1,3 @@
-import { User } from './index';
-
 export interface PersonnelProfile {
   id: string;
   userId: string;

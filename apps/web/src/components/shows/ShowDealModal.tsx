@@ -1,7 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DollarSign, FileText, Calendar, TrendingUp, Package, Briefcase, Plus } from 'lucide-react';
-import type { ShowDeal, DealTemplate, ShowType, DealTicketTier, DealPayment, DealBonus, DealExpense, DealMerchTerms } from '../../types/deals';
 import { supabase } from '../../lib/supabase';
+
+// TODO(types): these were imported from '../../types/deals', which does not exist.
+// They describe the fields this modal reads and writes; move them to a shared
+// types module once one is created.
+interface ShowType {
+  id: string;
+  name: string;
+}
+
+interface ShowDeal {
+  id: string;
+  show_id: string;
+  status: string;
+  currency: string;
+  fee_structure: string;
+  guarantee_amount: number;
+  percentage_rate: number;
+  percentage_base: string;
+  gross_inclusions: string[];
+  net_deductions: Record<string, { type?: string; amount?: number; rate?: number }>;
+  comps_policy: Record<string, unknown>;
+  contract_status: string;
+  insurance_required: boolean;
+  insurance_amount: number;
+  production_provided: Record<string, unknown>;
+  brand_approvals_required: boolean;
+  confidentiality_required: boolean;
+  negotiation_log: unknown[];
+  cancellation_terms: string;
+  notes: string;
+  template_id: string;
+  template_version: number;
+}
+
+interface DealTemplate {
+  id: string;
+  name: string;
+  version: number;
+  default_values?: Partial<ShowDeal> | null;
+}
+
+interface DealTicketTier {
+  tier_name: string;
+  price: number;
+  capacity: number;
+}
+
+interface DealPayment {
+  payment_type: string;
+  amount: number;
+  due_timing: string;
+}
+
+interface DealBonus {
+  bonus_type: string;
+  bonus_amount: number;
+  trigger_value: number;
+}
+
+interface DealExpense {
+  category: string;
+  responsibility: string;
+  cap_amount: number;
+}
+
+interface DealMerchTerms {
+  merch_allowed: boolean;
+  seller_provided_by: string;
+  venue_cut_percentage: number;
+}
 
 interface ShowDealModalProps {
   isOpen: boolean;
@@ -204,7 +273,7 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
       case 'guarantee_bonus':
         return formData.guarantee_amount || 0;
 
-      case 'versus':
+      case 'versus': {
         const netDeductions = Object.values(formData.net_deductions || {}).reduce((sum: number, deduction: any) => {
           if (deduction.type === 'fixed') return sum + (deduction.amount || 0);
           if (deduction.type === 'percentage') return sum + (gross * (deduction.rate || 0) / 100);
@@ -213,6 +282,7 @@ export default function ShowDealModal({ isOpen, onClose, showId, dealId, onSave 
         const net = gross - netDeductions;
         const percentagePayout = net * ((formData.percentage_rate || 0) / 100);
         return Math.max(formData.guarantee_amount || 0, percentagePayout);
+      }
 
       case 'door_split':
       case 'revenue_share':

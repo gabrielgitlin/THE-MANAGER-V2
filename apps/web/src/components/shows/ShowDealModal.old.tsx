@@ -54,7 +54,8 @@ export default function ShowDealModal({ isOpen, onClose, onSave, deal }: ShowDea
   };
 
   const handleRemoveExpense = (key: string) => {
-    const { [key]: _, ...remainingExpenses } = formData.expenses;
+    const remainingExpenses = { ...formData.expenses };
+    delete remainingExpenses[key];
     setFormData({
       ...formData,
       expenses: remainingExpenses,

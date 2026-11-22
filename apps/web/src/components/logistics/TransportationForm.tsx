@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, DollarSign, Plus } from 'lucide-react';
+import { Clock, MapPin, Users, Plane, Bus, Brain as Train, Car, DollarSign } from 'lucide-react';
 import { TMDatePicker } from '../ui/TMDatePicker';
 import { TransportationProvider, TravelItinerary } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';

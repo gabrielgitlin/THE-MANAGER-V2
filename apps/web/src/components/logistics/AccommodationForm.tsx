@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Building, DollarSign, FileText, X, Plus, Check } from 'lucide-react';
+import { Calendar, Users, Building, DollarSign, X } from 'lucide-react';
 import { TMDatePicker } from '../ui/TMDatePicker';
 import { AccommodationProvider, AccommodationBooking } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
@@ -73,8 +73,6 @@ export default function AccommodationForm({
       amenities: currentAmenities.filter(a => a !== amenity)
     });
   };
-
-  const selectedProvider = providers.find(p => p.id === formData.providerId);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

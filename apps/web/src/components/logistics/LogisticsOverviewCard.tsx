@@ -1,4 +1,3 @@
-import React from 'react';
 import { Calendar, MapPin, DollarSign, Plane, Building, Users, ChevronRight } from 'lucide-react';
 import { LogisticsOverview } from '../../types/logistics';
 import { CREW_MEMBERS } from '../../data/logistics';
